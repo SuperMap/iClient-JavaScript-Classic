@@ -1,0 +1,305 @@
+<!DOCTYPE>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>动态标绘动画</title>
+    <style type="text/css">
+        body{
+            margin: 0;
+            overflow: hidden;
+            background: #fff;
+        }
+        #map{
+            position: relative;
+            height: 553px;
+            border:1px solid #3473b7;
+            left: 20%;
+            width: 79.8%;
+        }
+        #toolbar{
+            /*position: relative;*/
+            /*padding-top:5px;*/
+            /*padding-bottom: 10px;*/
+
+            position: absolute;
+            top: 90%;
+            z-index: 999999;
+            border-radius: 4px;
+            padding-top: 2px;
+        }
+        #menuPlotting {
+            position: absolute;
+            top: 40%;
+            z-index: 999999;
+            border-radius: 4px;
+            padding-top: 2px;
+        }
+        #menu {
+            background: #ffffff;
+            position: absolute;
+            width: 19.8%;
+            height:553px;
+            border:1px solid #3473b7;
+        }
+    </style>
+    <!--<link href='./css/bootstrap.min.css' rel='stylesheet' />-->
+    <!--<link href='./css/bootstrap-responsive.min.css' rel='stylesheet' />-->
+    <!--<link rel="stylesheet" type="text/css" media="screen,projection" href="css/jquery-sticklr.css"/>-->
+    <!--&lt;!&ndash;<script src="js/bevInclude.js"></script>&ndash;&gt;-->
+    <!--<script src="./js/plottingPanel/PlottingPanel.Include.js"></script>-->
+    <!--<script src='../libs/SuperMap.Include.js'></script>-->
+    <!--<script type="text/javascript">-->
+    <link href='./css/bootstrap.min.css' rel='stylesheet' />
+    <link href='./css/bootstrap-responsive.min.css' rel='stylesheet' />
+    <link rel="stylesheet" type="text/css" media="screen,projection" href="css/jquery-sticklr.css"/>
+    <script src="js/bevInclude.js"></script>
+	<script src="../libs/SuperMap.Include.js"></script>
+    <script src="./js/plottingPanel/PlottingPanel.Include.js"></script>
+    <script type="text/javascript">
+        var map, layer,pointLayer,host = "http://localhost:8090";
+        url = host + "/iserver/services/map-china400/rest/maps/China_4326";
+        url2 = host + "/iserver/services/data-DynamicData/rest/data";
+        var serverUrl = host + "/iserver/services/plot-jingyong/rest/plot/";
+
+        var plotting,plottingLayer;
+        var plottingEdits = [];
+        var drawGraphicObjects = [];
+        var plotPanel;
+        var goAniamtionManager;
+        var animator;
+
+        function init() {
+            if(!document.createElement('canvas').getContext) {
+                alert('您的浏览器不支持 canvas，请升级');
+                return;
+            }
+            //初始化地图
+            map = new SuperMap.Map("map",{controls: [
+                new SuperMap.Control.LayerSwitcher(),
+                new SuperMap.Control.ScaleLine(),
+                new SuperMap.Control.Zoom(),
+                new SuperMap.Control.MousePosition(),
+                new SuperMap.Control.Navigation({
+                    dragPanOptions: {
+                        enableKinetic: true
+                    }
+                })]
+            });
+
+            //总控类
+            plotting = SuperMap.Plotting.getInstance(map, serverUrl);
+
+            layer = new SuperMap.Layer.TiledDynamicRESTLayer("World", url, {transparent: true, cacheEnabled: true},{maxResolution:"auto"});
+            layer.events.on({"layerInitialized":addLayer});
+        }
+
+        function addLayer() {
+
+            plottingLayer = new SuperMap.Layer.PlottingLayer("标绘图层", serverUrl);
+            plottingLayer.style = {
+                fillColor: "#66cccc",
+                fillOpacity: 0.4,
+                strokeColor: "#66cccc",
+                strokeOpacity: 1,
+                strokeWidth: 3,
+                pointRadius:6
+            };
+
+            //态势标绘编辑
+            var plottingEdit = new SuperMap.Control.PlottingEdit(plottingLayer);
+            plottingEdits.push(plottingEdit);
+
+            // 绘制标号;
+            var drawGraphicObject = new SuperMap.Control.DrawFeature(plottingLayer, SuperMap.Handler.GraphicObject);
+            drawGraphicObjects.push(drawGraphicObject);
+            //添加态势标绘控件
+            map.addControls([plottingEdit,drawGraphicObject]);
+
+            map.addLayers([layer,plottingLayer]);
+            map.setCenter(new SuperMap.LonLat(0,0), 0);
+
+            //创建标绘面板
+            plotPanel = new SuperMap.Plotting.PlotPanel("plotPanel", serverUrl, map);
+            plotPanel.events.on({"initializeCompleted": initializeCompleted});
+            plotPanel.initializeAsync();
+
+            //设置动画管理器
+            goAniamtionManager = plotting.getGOAnimationManager();
+            goAniamtionManager.setMap(map);
+
+            //创建定时器，并开始
+            animator = new SuperMap.Plot.GOAnimator();
+            animator.start();
+        }
+
+        function initializeCompleted(evt){
+            if(drawGraphicObjects.length > 0)
+            {
+                plotPanel.setDrawFeature(drawGraphicObjects[0]);
+            }
+        }
+
+        //播放动画
+        function play(){
+            if(null === goAniamtionManager.goAnimatons){
+                return;
+            }
+
+            for(var i = 0; i < goAniamtionManager.goAnimatons.length; i++){
+                goAniamtionManager.goAnimatons[i].play();
+            }
+        }
+
+        //暂停
+        function pause(){
+            if(null === goAniamtionManager.goAnimatons){
+                return;
+            }
+
+            for(var i = 0; i < goAniamtionManager.goAnimatons.length; i++){
+                goAniamtionManager.goAnimatons[i].pause();
+            }
+        }
+
+        //停止
+        function stop(){
+            if(null === goAniamtionManager.goAnimatons){
+                return;
+            }
+
+            for(var i = 0; i < goAniamtionManager.goAnimatons.length; i++){
+                goAniamtionManager.goAnimatons[i].stop();
+            }
+        }
+
+        //复位
+        function reset(){
+            if(null === goAniamtionManager.goAnimatons){
+                return;
+            }
+
+            for(var i = 0; i < goAniamtionManager.goAnimatons.length; i++){
+                goAniamtionManager.goAnimatons[i].reset();
+            }
+        }
+
+        //切换底图的显示
+        function show(){
+            layer.setVisibility(!layer.getVisibility());
+        }
+
+        //取消标绘与编辑
+        function plottingAllDeactivate()
+        {
+            for(var i = 0; i < drawGraphicObjects.length; i++)
+            {
+                drawGraphicObjects[i].deactivate();
+            }
+
+            for(var i = 0; i < plottingEdits.length; i++)
+            {
+                plottingEdits[i].deactivate();
+            }
+        }
+        //清空绘制
+        function PlottingClear(){
+
+            plottingAllDeactivate();
+
+            for(var i = 0; i < map.layers.length; i++)
+            {
+                if(map.layers[i].CLASS_NAME === "SuperMap.Layer.PlottingLayer")
+                {
+                    map.layers[i].removeAllFeatures();
+                }
+            }
+        }
+
+        //删除选中标号
+        function deleteSymbol()
+        {
+            for(var i = 0; i < plottingEdits.length; i++)
+            {
+                plottingEdits[i].deleteSelectFeature();
+            }
+        }
+
+        //取消标绘，激活标绘编辑控件
+        function PlottingDrawCancel(){
+            plottingAllDeactivate();
+
+            for(var i = 0; i < plottingEdits.length; i++)
+            {
+                plottingEdits[i].activate();
+            }
+        }
+
+        //创建动画
+        function createAniamtion(){
+
+            if(0 === plottingLayer.selectedFeatures.length){
+                return;
+            }
+
+            var feature = plottingLayer.selectedFeatures[0];
+            var goAniamtionName = "旋转动画" + goAniamtionManager.goAnimatons.length;
+
+            var goAnimation = goAniamtionManager.createGOAnimation(SuperMap.Plot.GOAniamtionType.ANIMATION_ATTRIBUTE,goAniamtionName,feature);
+
+            switch (goAnimation.getGOAnimationType()){
+                case SuperMap.Plot.GOAniamtionType.ANIMATION_SHOW:{
+                    goAnimation.finalDisplay = true;
+                    goAnimation.showEffect = true;
+                    break;
+                }
+                case SuperMap.Plot.GOAniamtionType.ANIMATION_ATTRIBUTE:{
+                    goAnimation.lineColorAnimation = true;
+                    goAnimation.lineWidthAnimation = true;
+                    goAnimation.surroundLineColorAnimation = true;
+                    goAnimation.surroundLineWidthAnimation = true;
+                    break;
+                }
+            }
+        }
+
+    </script>
+</head>
+
+<body onload="init()">
+<div id="menu">
+    <div class="easyui-panel" style="position:absolute;top:0px;bottom:0px;left:0px;right:0px;padding:5px; width: 100%;">
+        <div class="easyui-tabs" style="width: 100%;height: 100%">
+            <div id="plotPanel" title="标绘面板" style="overflow: hidden"></div>
+            <!--<div id="stylePanel" title="属性面板"></div>-->
+        </div>
+    </div>
+</div>
+
+<div id="map">
+    <div id="toolbar">
+    <input type="button" class="btn" value="创建动画" onclick="createAniamtion()"/>
+    <input type="button" class="btn" value="播放" onclick="play()" />
+    <input type="button" class="btn" value="暂停" onclick="pause()" />
+    <input type="button" class="btn" value="停止" onclick="stop()" />
+    <input type="button" class="btn" value="复位" onclick="reset()" />
+    </div>
+
+    <div id="menuPlotting" class="sticklr" style="left: 1%;color:rgb(0,0,0);background-color: #fff;">
+        <li>
+            <a  class="glyphicon plotting-glyphicon-draw-deactivate notArrow" title="取消绘制" ></a>
+            <ul>
+                <li><input type="button" value="取消绘制" onclick="PlottingDrawCancel()" style="width:70px;height: 25px ;margin:0 auto;"> </input> </li>
+
+            </ul>
+        </li>
+        <li>
+            <a  class="glyphicon plotting-glyphicon-draw-removeAll notArrow" title="清除"></a>
+            <ul>
+                <li><input type="button" value="删除标号" onclick="deleteSymbol()" style="width:70px;height: 25px ;margin:0 auto;"> </input> </li>
+                <li><input type="button" value="清空图层" onclick="PlottingClear()" style="width: 70px;height: 25px ;margin:0 auto;"> </input></li>
+            </ul>
+        </li>
+    </div>
+</div>
+</body>
+</html>

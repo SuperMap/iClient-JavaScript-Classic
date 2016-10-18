@@ -1,0 +1,110 @@
+<!DOCTYPE>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>CartoCSS_hightlight</title>
+    <style type="text/css">
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        #map {
+            position: relative;
+            height: 553px;
+            border: 1px solid #3473b7;
+        }
+    </style>
+    <script src='../libs/SuperMap.Include.js'></script>
+    <script type="text" id="textData">
+        @color:#ee9900;
+        *{
+        line-color:@color;
+        line-opacity:1;
+        line-width:3;
+        polygon-fill:@color;
+        polygon-opacity:0.4;
+        text-fill:#000000;
+        }
+    </script>
+    <script type="text/javascript">
+        var map, layer, lat, lon, geolocate, infowin,lonLat,geometryInfo, host = document.location.toString().match(/file:\/\//) ? "http://localhost:8090" : 'http://' + document.location.host;
+        url = host + "/iserver/services/map-china400/rest/maps/China";
+
+        function init() {
+            if(!document.createElement('canvas').getContext) {
+                alert('您的浏览器不支持 canvas，请升级');
+                return;
+            }
+
+            map = new SuperMap.Map("map", {controls: [
+                new SuperMap.Control.ScaleLine(),
+                new SuperMap.Control.Zoom(),
+                new SuperMap.Control.MousePosition(),
+                new SuperMap.Control.Navigation({
+                    dragPanOptions: {
+                        enableKinetic: true
+                    }
+                })]
+            });
+            var hightLightCartoCss=document.getElementById("textData").text;
+            layer = new SuperMap.Layer.TiledVectorLayer("China", url,{cacheEnabled:true,returnAttributes:true},{useLocalStorage:true,highLightCartoCss:hightLightCartoCss});
+            layer.events.on({"layerInitialized": addLayer});
+
+            map.events.on({'click':function(evt){
+                var featureInfo = layer.getFeature(evt.xy.x,evt.xy.y);
+                var lonlat = map.getLonLatFromViewPortPx(evt.xy);
+                openPopup(featureInfo.feature,lonlat);
+                layer.highlightFeatures(featureInfo);
+            }});
+        }
+
+
+        function addLayer() {
+            map.addLayers([layer]);
+            var center = new SuperMap.LonLat(0,0);
+            map.setCenter(center, 1);
+        }
+
+        //定义mouseClickHandler函数，触发click事件会调用此函数
+        function openPopup(feature,lonlat){
+            closeInfoWin();
+            var contentHTML = "<div style='width:80px; font-size:12px;font-weight:bold ; opacity: 0.8'>";
+            contentHTML += "面积为："+ feature.attributes.SmArea;
+            contentHTML += "</div>";
+
+            //初始化FramedCloud类
+            framedCloud = new SuperMap.Popup.FramedCloud(
+                    "chicken",
+                    lonlat,
+                    null,
+                    contentHTML,
+                    null,
+                    true,
+                    null,
+                    true
+            );
+
+            infowin = framedCloud;
+            map.addPopup(framedCloud);
+
+        }
+
+        function closeInfoWin(){
+            if(infowin){
+                try{
+                    infowin.hide();
+                    infowin.destroy();
+                }
+                catch(e){}
+            }
+        }
+
+    </script>
+</head>
+<body onload="init()">
+<div id="map"></div>
+<button onclick="layer.unHightlightFeatures();closeInfoWin();">取消高亮</button>
+</body>
+</html>

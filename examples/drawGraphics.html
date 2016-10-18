@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>编程标绘</title>
+    <style type="text/css">
+        body{
+            margin: 0;
+            overflow: hidden;
+            background: #fff;
+        }
+        #map{
+            position: relative;
+            height: 510px;
+            border:1px solid #3473b7;
+        }
+        #toolbar {
+        position: relative;
+        padding-top: 5px;
+        padding-bottom: 10px;
+    }
+    </style>
+    <link href='./css/bootstrap.min.css' rel='stylesheet' />
+    <link href='./css/bootstrap-responsive.min.css' rel='stylesheet' />
+    <script src = "../libs/SuperMap.Include.js"></script>
+    <script type="text/javascript">
+        var map, baseLayer, plotingtLayer, plottingEdit;
+        var host = document.location.toString().match(/file:\/\//) ? "http://localhost:8090" : 'http://' + document.location.host;
+        var mapurl = host + "/iserver/services/map-world/rest/maps/World";
+        var plotUrl = host + "/iserver/services/plot-jingyong/rest/plot/";
+
+        function init()
+        {
+            map = new SuperMap.Map("map",{controls:[
+                new SuperMap.Control.Zoom() ,
+                new SuperMap.Control.Navigation() ,
+                new SuperMap.Control.LayerSwitcher()
+            ]});
+
+            baseLayer = new SuperMap.Layer.TiledDynamicRESTLayer("World", mapurl, null,{maxResolution:"auto"});
+            baseLayer.events.on({"layerInitialized":addLayer});
+
+            plottingLayer = new SuperMap.Layer.PlottingLayer("标绘图层", plotUrl);
+
+            plottingEdit = new SuperMap.Control.PlottingEdit(plottingLayer);
+        }
+
+        function addLayer(){
+            map.addLayers([baseLayer, plottingLayer]);
+            map.addControls([plottingEdit]);
+            //显示地图范围
+            map.setCenter(new SuperMap.LonLat(0, 0), 0);
+
+            plotting = SuperMap.Plotting.getInstance(map, plotUrl);
+
+            var symbolLibManager = plotting.getSymbolLibManager();
+            if(symbolLibManager.isInitializeOK()){
+            } else {
+                function initializeCompleted(result){
+                    //
+                }
+
+                symbolLibManager.events.on({"initializeCompleted": initializeCompleted,
+                    scope: this});
+                symbolLibManager.initializeAsync();
+            }
+        }
+
+        function drawGroupObject(){
+            plottingEdit.deactivate();
+            clearFeatures();
+
+            var subObjects = [];
+
+            var locationPointWCs1 = [];
+            locationPointWCs1.push(new SuperMap.Geometry.Point(20, 10));
+            locationPointWCs1.push(new SuperMap.Geometry.Point(40, 10));
+            subObjects.push({libId: 22, code: 1003, positionPoints: locationPointWCs1});
+
+            var locationPointWCs2 = [];
+            locationPointWCs2.push(new SuperMap.Geometry.Point(20, 10));
+            subObjects.push({libId: 421, code: 10100, positionPoints: locationPointWCs2});
+
+            var locationPointWCs3 = [];
+            locationPointWCs3.push(new SuperMap.Geometry.Point(40, 10));
+            subObjects.push({libId: 421, code: 9, positionPoints: locationPointWCs3});
+
+            plottingLayer.createGroupObjectWC(subObjects);
+
+            plottingEdit.activate();
+        }
+
+        function drawRegionManager(){
+            plottingEdit.deactivate();
+            clearFeatures();
+
+            var locationPointWCs = [];
+            locationPointWCs.push(new SuperMap.Geometry.Point(20, 0));
+            locationPointWCs.push(new SuperMap.Geometry.Point(10, 20));
+            locationPointWCs.push(new SuperMap.Geometry.Point(30, 40));
+            locationPointWCs.push(new SuperMap.Geometry.Point(60, 10));
+
+            plottingLayer.createRegionManagerWC(locationPointWCs, "空域");
+            plottingEdit.activate();
+        }
+
+        //目标对象管理
+        function drawObjectManager(){
+            var subObjects = [];
+            var locationPointWCs = [new SuperMap.Geometry.Point(0, 0)];
+            subObjects.push({libId: 421, code: 10100},{libId: 421, code: 10100},{libId: 421, code: 10100});
+            plottingLayer.createObjectManagerWC(subObjects,locationPointWCs,2);
+        }
+
+        //清除feature
+        function clearFeatures(){
+            plottingLayer.removeAllFeatures();
+        }
+
+        document.oncontextmenu = function(evt){
+            plottingEdit.activate();
+            return false;
+        }
+    </script>
+</head>
+<body onload="init()" >
+<div id="toolbar">
+    <input type="button" class="btn" value="组合对象" onclick="drawGroupObject()" />
+    <input type="button" class="btn" value="区域管理" onclick="drawRegionManager()" />
+    <input type="button" class="btn" value="目标管理" onclick="drawObjectManager()" />
+    <input type="button" class="btn" value="清除" onclick="clearFeatures()" />
+</div>
+<div id="map"></div>
+
+</body>
+</html>
+
+<script>
+
+    function setCookies(key, value, time) {
+        var cookiesDate = new Date();
+        cookiesDate.setDate(cookiesDate.getDate() + time);
+        document.cookie = key + "=" + encodeURI(value) + ';expires=' + cookiesDate.toLocaleDateString();
+    }
+    function getCookies(key) {
+        var arr1 = document.cookie.split(';');
+        for (var i = 0; i < arr1.length; i++) {
+            var arr2 = arr1[i].split('=');
+            if (arr2[0] === key) {
+                return decodeURI(arr2[1]);
+            }
+        }
+    }
+    function removeCookies(key) {
+        setCookies(key, null, -1);
+    }
+
+
+</script>

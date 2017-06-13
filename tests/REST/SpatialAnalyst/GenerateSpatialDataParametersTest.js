@@ -1,6 +1,6 @@
 ﻿module("GenerateSpatialDataParameters");
 
-test("TestDefaultConstructor", function() {
+test("TestGenerateSpatialDataParameters_constructorDefault", function() {
 	expect(11); 
 	
 	var params = new SuperMap.REST.GenerateSpatialDataParameters();
@@ -17,8 +17,8 @@ test("TestDefaultConstructor", function() {
 	equal(params.errorInfoField, null, "params.errorInfoField");
 	equal(params.dataReturnOption, null, "params.dataReturnOption");
 });
-test("TestConstructor_destroy", function() {
-	expect(12); 
+test("TestGenerateSpatialDataParameters_constructor_destroy", function() {
+	expect(22);
 	
 	//配置数据返回Option
 	var option = new SuperMap.REST.DataReturnOption({
@@ -53,4 +53,17 @@ test("TestConstructor_destroy", function() {
 	equal(params.measureOffsetField, "", "params.measureOffsetField");
 	equal(params.errorInfoField, "", "params.errorInfoField");
 	equal(params.dataReturnOption, option, "params.dataReturnOption");
+
+	params.destroy();
+	equals(params.routeTable, null, "function:destroy");
+	equals(params.routeIDField, null, "function:destroy");
+	equals(params.eventTable, null, "function:destroy");
+	equals(params.eventRouteIDField, null, "function:destroy");
+	equals(params.measureField, null, "function:destroy");
+	equals(params.measureStartField, null, "function:destroy");
+	equals(params.measureEndField, null, "function:destroy");
+	equals(params.measureOffsetField, null, "function:destroy");
+	equals(params.errorInfoField, null, "function:destroy");
+	equals(params.dataReturnOption, null, "function:destroy");
+
 });

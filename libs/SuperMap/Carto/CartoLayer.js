@@ -98,10 +98,12 @@ SuperMap.CartoLayer=SuperMap.Class({
      *  (end)
      * */
     initialize:function(layerName,tile,options){
-        this.tile=tile;
+        if(tile){
+            this.tile=tile;
+        }
         if(typeof layerName=="string"){
             this.layerName=layerName;
-            var name=layerName.replace(/[@#]/gi,"___");
+            var name=layerName.replace(/[@#\s]/gi,"___");
             this.id=name;
             this.className=name;
             this.index=0;
@@ -135,6 +137,20 @@ SuperMap.CartoLayer=SuperMap.Class({
     setIndex:function(num){
         if(!isNaN(num)){
             this.index=num;
+        }
+    },
+
+    getFeatureInfo:function(x,y){
+        if(this.hitContext){
+            x=x|0;
+            y=y|0;
+            var data=this.hitContext.getImageData(x,y,1,1).data;    //从要素选择Canvas上读取要素信息
+            if(data[3]===255){
+                var id=256*data[1]+data[2]-1;        //后四位组成要素ID
+                if(id != null){
+                    return {feature:this.getFeatureById(id),cartoLayer:this};
+                }
+            }
         }
     },
 
@@ -220,9 +236,9 @@ SuperMap.CartoLayer=SuperMap.Class({
             var attributes = feature.attributes,
                 isUnHightlightFeature = (unHightlightFeatureInfo && unHightlightFeatureInfo.cartoLayer.layerName ===this.layerName && unHightlightFeatureInfo.feature && feature.id === unHightlightFeatureInfo.feature.id),
                 isHightLightFeature = (hightlightFeatureInfo && hightlightFeatureInfo.cartoLayer.layerName ===this.layerName && hightlightFeatureInfo.feature && feature.id === hightlightFeatureInfo.feature.id);
-            if((!isHightLightFeature) && (!isUnHightlightFeature) && (layer.lastZoom === zoom) && featureStyleMapLayer && featureStyleMapLayer[feature.id] && featureStyleMapLayer[feature.id].style){
+            if((!isHightLightFeature) && (!isUnHightlightFeature) && (layer.lastZoom === zoom) && featureStyleMapLayer && featureStyleMapLayer[feature.id] && featureStyleMapLayer[feature.id][attachment] && featureStyleMapLayer[feature.id][attachment].style){
                 //保存得到的style，重绘时就不用重新去从shader中转化了
-                feature.style = featureStyleMapLayer[feature.id].style;
+                feature.style = featureStyleMapLayer[feature.id][attachment].style;
                 feature[attachment] = SuperMap.Util.cloneObject(feature.style);
                 layer.lastZoom = zoom;
             }else{
@@ -247,14 +263,16 @@ SuperMap.CartoLayer=SuperMap.Class({
                         type = "TEXT";
                     }
                     feature.style = this.getDefaultStyle(feature.style,type);
-                    for(var j = 0, slen = symbolizers.length; j < slen; j++){
-                        var symbolizer = symbolizers[j];
-                        if(this.layer.activeHighLightFeature && isHightLightFeature){
-                            lastRender = this.layer.highLightCartoShaders && this.getValidStyleFromCarto(zoom,scale,feature.style,{shader:this.layer.highLightCartoShaders[0]},upperAttributes, feature,type);
-                        }else if(symbolizer.useLayerInfo || isText){
-                            this.getValidStyleFromLayerInfo(feature.style,symbolizer,feature,type);
-                        }else{
-                            this.getValidStyleFromCarto(zoom,scale,feature.style,symbolizer,upperAttributes, feature,type,this.layer.cartoShaders.fromServer);
+                    if(this.layer.activeHighLightFeature && isHightLightFeature){
+                        lastRender = this.layer.highLightCartoShaders && this.getValidStyleFromCarto(zoom,scale,feature.style,{shader:this.layer.highLightCartoShaders[0]},upperAttributes, feature,type);
+                    }else {
+                        for(var j = 0, slen = symbolizers.length; j < slen; j++){
+                            var symbolizer = symbolizers[j];
+                            if(symbolizer.useLayerInfo || (symbolizer.shader.fromServer && isText)){
+                                this.getValidStyleFromLayerInfo(feature.style,symbolizer,feature,type);
+                            }else{
+                                this.getValidStyleFromCarto(zoom,scale,feature.style,symbolizer,upperAttributes, feature,type);
+                            }
                         }
                     }
                     //保存得到的style，重绘时就不用重新去从shader中转化了
@@ -264,11 +282,14 @@ SuperMap.CartoLayer=SuperMap.Class({
                 //将相同的要素对应某一级别上的样式缓存到layer中，这样其他的瓦片相同的要素就可以直接获取这个样式，而不用再去使用shader来获取，这是一种以空间换取时间的做法
                 if(!this.layer.featureStyleMap){
                     this.layer.featureStyleMap = {};
-                    this.layer.featureStyleMap[layerName] = {};
-                }else if(!this.layer.featureStyleMap[layerName]){
+                }
+                if(!this.layer.featureStyleMap[layerName]){
                     this.layer.featureStyleMap[layerName] = {};
                 }
-                this.layer.featureStyleMap[layerName][feature.id]={
+                if(!this.layer.featureStyleMap[layerName][feature.id]){
+                    this.layer.featureStyleMap[layerName][feature.id] = {};
+                }
+                this.layer.featureStyleMap[layerName][feature.id][attachment]={
                     style:feature[attachment],
                     upperAttributes:upperAttributes
                 };
@@ -300,8 +321,9 @@ SuperMap.CartoLayer=SuperMap.Class({
         return style;
     },
 
-    getValidStyleFromCarto: function(zoom,scale,style,symbolizer, upperAttributes, feature,type,fromServer){
+    getValidStyleFromCarto: function(zoom,scale,style,symbolizer, upperAttributes, feature,type){
         var shader = symbolizer.shader,
+            fromServer = symbolizer.fromServer,
             attributes = upperAttributes;
         attributes.FEATUREID=feature.id;
         attributes.SCALE = scale;
@@ -445,7 +467,7 @@ SuperMap.CartoLayer=SuperMap.Class({
                                         var imageData=tempCtx.getImageData(0,0,tempCvs.width,tempCvs.height);
                                         var pix=imageData.data;
                                         for(var i= 0,len=pix.length;i<len;i+=4){
-                                            var r=pix[i],g=pix[i+1],b=pix[i+2],a=pix[i+3];
+                                            var r=pix[i],g=pix[i+1],b=pix[i+2];
                                             //将符号图片中的灰色或者黑色的部分替换为前景色，其余为后景色
                                             if(r<225&&g<225&&b<225){
                                                 pix[i]=color.red;
@@ -474,7 +496,7 @@ SuperMap.CartoLayer=SuperMap.Class({
                                     var linePattern=[1,0];
                                     switch(lineSymbolID){
                                         case 1:
-                                            linePattern=[9.7,3.7]
+                                            linePattern=[9.7,3.7];
                                             break;
                                         case 2:
                                             linePattern=[3.7,3.7];
@@ -509,6 +531,9 @@ SuperMap.CartoLayer=SuperMap.Class({
      * 重绘此图层，也就是遍历其内的carto符号，然后调用它们的render方法时行重绘
      * */
     redraw:function(){
+        this.clear();
+        //this.context.canvas.setAttribute('data-index',this.originIndex);
+        //this.context.canvas.setAttribute('data-name',this.layerName);
         if(this.visible){
             for(var att in this.symbolizers){
                 if(att==='default'&& this.symbolizers['__default__']){
@@ -521,10 +546,27 @@ SuperMap.CartoLayer=SuperMap.Class({
     },
 
     /**
+     * APIMethod: clear
+     * 清除图层
+     **/
+    clear:function(){
+        var w=this.context.canvas.width,h= this.context.canvas.height;
+        this.context.globalAlpha=0;
+        this.context.clearRect(0, 0, w,h);
+        if(this.hitContext){
+            this.hitContext.globalAlpha=0;
+            this.hitContext.clearRect(0,0,w,h);
+        }
+    },
+
+    /**
      * APIMethod: destroy
      * CartoLayer对象的析构函数，用于销毁此对象
      * */
     destroy:function(){
+        if(this.tile && this.tile.frame && this.context && this.context.canvas){
+            this.tile.frame.removeChild(this.context.canvas);
+        }
         this.tile=null;
         this.layerName=null;
         this.id=null;
@@ -533,6 +575,8 @@ SuperMap.CartoLayer=SuperMap.Class({
         this.visible=false;
         this.symbolizers=null;
         this.features=null;
+        this.context = null;
+        this.hitContext = null;
     },
 
     CLASS_NAME:"SuperMap.CatoLayer"

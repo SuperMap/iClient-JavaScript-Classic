@@ -20,6 +20,7 @@ if(SuperMap.Web.iConnector == undefined )
  * PolyMaps适配器类
  *  没有点线面对应的接口 ，所以这样就不涉及点线面的转换
  * @constructor
+ * @deprecated
  */
 SuperMap.Web.iConnector.PolyMaps = function(){
 

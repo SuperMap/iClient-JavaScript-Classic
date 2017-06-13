@@ -18,6 +18,12 @@
  */
 
 SuperMap.Layer.CloudLayer = SuperMap.Class(SuperMap.CanvasLayer, {
+    /**
+     * APIProperty: dpi
+     * {Float} 屏幕上每英寸包含像素点的个数。
+     * 该参数结合图层比例尺可以推算出该比例尺下图层的分辨率.默认为96。
+     */
+    dpi: 96,
 
     /**
      * APIProperty: name
@@ -50,6 +56,12 @@ SuperMap.Layer.CloudLayer = SuperMap.Class(SuperMap.CanvasLayer, {
     type: "web",
 
     /**
+     * Property: zOffset
+     * {Number} 图片url中z值偏移量
+     */
+    zOffset:3,
+
+    /**
      * Constructor: SuperMap.Layer.CloudLayer
      * 云服务图层类。
      *
@@ -58,7 +70,7 @@ SuperMap.Layer.CloudLayer = SuperMap.Class(SuperMap.CanvasLayer, {
      */
     initialize: function (options) {
         var me = this;
-        this.attribution = SuperMap.i18n("cloudLayerAttr");
+        this.attribution = SuperMap.i18n("supermap_cloud_map");
         //me.url = me.url + '?map=${mapName}&type=${type}&x=${x}&y=${y}&z=${z}';
         me.changeURL(me.url);
         //超图云只有一个开放的出图地址，投影为墨卡托投影，所以maxExtent和resolutions可以直接设置好
@@ -154,7 +166,7 @@ SuperMap.Layer.CloudLayer = SuperMap.Class(SuperMap.CanvasLayer, {
             x: xyz.x,
             y: xyz.y,
             //仅针对高德地图做调整。by jinjianbo-20160830
-            z: xyz.z + 3
+            z: xyz.z + me.zOffset
         });
     },
 

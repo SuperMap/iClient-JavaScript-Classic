@@ -1,25 +1,23 @@
 module('DotSymbol');
 
-asyncTest("testDotSymbol_Constructor", 1, function () {
+asyncTest("testDotSymbol_Constructor", function () {
     var libID = 421, code2 = 10200, locationPoints = [new SuperMap.Geometry.Point(20, 30)];
     var map, layer, plottingLayer, dotSymbol;
     map = new SuperMap.Map("map");
     layer = new SuperMap.Layer.TiledDynamicRESTLayer("World", GlobeParameter.WorldURL, null, {maxResolution: "auto"});
     layer.events.on({"layerInitialized": addLayer});
     plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", GlobeParameter.plotUrl);
+    plottingLayer.events.on({"symbolcreated": createSymbolSuccess});
+
     function addLayer() {
         map.addLayers([layer, plottingLayer]);
         map.setCenter(new SuperMap.LonLat(0, 0), 0);
 
-        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints, createSymbolSuccess, createSymbolFail);
+        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints);
     }
 
     function createSymbolSuccess(evt) {
         dotSymbol = evt.feature.geometry;
-    }
-
-    function createSymbolFail() {
-
     }
 
     setTimeout(function () {
@@ -27,7 +25,7 @@ asyncTest("testDotSymbol_Constructor", 1, function () {
             equal(dotSymbol.CLASS_NAME, "SuperMap.Geometry.DotSymbol", "DotSymbol.CLASS_NAME");
             start();
         } catch(exception){
-            ok(false, "exception occcurs,message is:" + excepion.message)
+            ok(false, "exception occcurs,message is:" + exception.message);
             start();
         } finally {
             map.destroy();
@@ -36,6 +34,44 @@ asyncTest("testDotSymbol_Constructor", 1, function () {
     }, 400);
 });
 
+asyncTest("testDotSymbol_Destroy", function () {
+    var libID = 421, code2 = 10200, locationPoints = [new SuperMap.Geometry.Point(20, 30)];
+    var map, layer, plottingLayer;
+    map = new SuperMap.Map("map");
+    layer = new SuperMap.Layer.TiledDynamicRESTLayer("World", GlobeParameter.WorldURL, null, {maxResolution: "auto"});
+    layer.events.on({"layerInitialized": addLayer});
+    plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", GlobeParameter.plotUrl);
+
+    var uuid="dotSymbol_test_1";
+    function addLayer() {
+        map.addLayers([layer, plottingLayer]);
+        map.setCenter(new SuperMap.LonLat(0, 0), 0);
+
+        plottingLayer.createSymbol(libID, code2, locationPoints,uuid);
+    }
+
+
+    setTimeout(function () {
+        try{
+            var dotSymbol=plottingLayer.getFeatureByUuid(uuid);
+            dotSymbol.destroy();
+            ok(dotSymbol !== null, "dotSymbol not null");
+            ok(dotSymbol.geometry === null, "dotSymbol.geometry is null");
+
+            start();
+        } catch(exception){
+            ok(false, "exception occcurs,message is:" + exception.message);
+            start();
+        } finally {
+            map.destroy();
+        }
+
+    }, 400);
+});
+
+
+
+
 asyncTest("testDotSymbol_setRotate", function () {
     var libID = 421, code2 = 10200, locationPoints = [new SuperMap.Geometry.Point(20, 30)];
     var map, layer, dotSymbol, plottingLayer;
@@ -43,19 +79,16 @@ asyncTest("testDotSymbol_setRotate", function () {
     layer = new SuperMap.Layer.TiledDynamicRESTLayer("World", GlobeParameter.WorldURL, null, {maxResolution: "auto"});
     layer.events.on({"layerInitialized": addLayer});
     plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", GlobeParameter.plotUrl);
+    plottingLayer.events.on({"symbolcreated": createSymbolSuccess});
     function addLayer() {
         map.addLayers([layer, plottingLayer]);
         map.setCenter(new SuperMap.LonLat(0, 0), 0);
-        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints, createSymbolSuccess, createSymbolFail);
+        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints);
     }
 
     function createSymbolSuccess(evt) {
         dotSymbol = evt.feature.geometry;
         dotSymbol.setRotate(100);
-    }
-
-    function createSymbolFail() {
-
     }
 
     setTimeout(function () {
@@ -64,7 +97,7 @@ asyncTest("testDotSymbol_setRotate", function () {
             equal(setRotateTest, 100, "Function.getRotate");
             start();
         } catch(exception){
-            ok(false, "exception occcurs,message is:" + excepion.message)
+            ok(false, "exception occcurs,message is:" + exception.message);
             start();
         } finally {
             map.destroy();
@@ -80,20 +113,17 @@ asyncTest("testDotSymbol_setScale", 1, function () {
     layer = new SuperMap.Layer.TiledDynamicRESTLayer("World", GlobeParameter.WorldURL, null, {maxResolution: "auto"});
     layer.events.on({"layerInitialized": addLayer});
     plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", GlobeParameter.plotUrl);
+    plottingLayer.events.on({"symbolcreated": createSymbolSuccess});
     function addLayer() {
         map.addLayers([layer, plottingLayer]);
         map.setCenter(new SuperMap.LonLat(0, 0), 0);
 
-        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints, createSymbolSuccess, createSymbolFail);
+        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints);
     }
 
     function createSymbolSuccess(evt) {
         dotSymbol = evt.feature.geometry;
         dotSymbol.setScale(0.5);
-    }
-
-    function createSymbolFail() {
-
     }
 
     setTimeout(function () {
@@ -102,7 +132,7 @@ asyncTest("testDotSymbol_setScale", 1, function () {
             equal(setScaleTest, 0.5, "Function.getScale");
             start();
         } catch(exception){
-            ok(false, "exception occcurs,message is:" + excepion.message)
+            ok(false, "exception occcurs,message is:" + exception.message);
             start();
         } finally {
             map.destroy();
@@ -118,19 +148,16 @@ asyncTest("testDotSymbol_setTextContent", 1, function () {
     layer = new SuperMap.Layer.TiledDynamicRESTLayer("World", GlobeParameter.WorldURL, null, {maxResolution: "auto"});
     layer.events.on({"layerInitialized": addLayer});
     plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", GlobeParameter.plotUrl);
+    plottingLayer.events.on({"symbolcreated": createSymbolSuccess});
     function addLayer() {
         map.addLayers([layer, plottingLayer]);
         map.setCenter(new SuperMap.LonLat(0, 0), 0);
-        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints, createSymbolSuccess, createSymbolFail);
+        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints);
     }
 
     function createSymbolSuccess(evt) {
         dotSymbol = evt.feature.geometry;
         dotSymbol.setTextContent("setTextContentTest");
-    }
-
-    function createSymbolFail() {
-
     }
 
     setTimeout(function () {
@@ -139,7 +166,7 @@ asyncTest("testDotSymbol_setTextContent", 1, function () {
             equal(setTextContentTest, "setTextContentTest", "Function.setTextContent");
             start();
         } catch(exception){
-            ok(false, "exception occcurs,message is:" + excepion.message)
+            ok(false, "exception occcurs,message is:" + exception.message);
             start();
         } finally {
             map.destroy();
@@ -155,19 +182,17 @@ asyncTest("testDotSymbol_setSymbolRank", 1, function () {
     layer = new SuperMap.Layer.TiledDynamicRESTLayer("World", GlobeParameter.WorldURL, null, {maxResolution: "auto"});
     layer.events.on({"layerInitialized": addLayer});
     plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", GlobeParameter.plotUrl);
+    plottingLayer.events.on({"symbolcreated": createSymbolSuccess});
+
     function addLayer() {
         map.addLayers([layer, plottingLayer]);
         map.setCenter(new SuperMap.LonLat(0, 0), 0);
-        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints, createSymbolSuccess, createSymbolFail);
+        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints);
     }
 
     function createSymbolSuccess(evt) {
         dotSymbol = evt.feature.geometry;
         dotSymbol.setSymbolRank(0);
-    }
-
-    function createSymbolFail() {
-
     }
 
     setTimeout(function () {
@@ -176,7 +201,7 @@ asyncTest("testDotSymbol_setSymbolRank", 1, function () {
             equal(setSymbolRankTest, 0, "Function.setSymbolRank");
             start();
         } catch(exception){
-            ok(false, "exception occcurs,message is:" + excepion.message)
+            ok(false, "exception occcurs,message is:" + exception.message);
             start();
         } finally {
             map.destroy();
@@ -192,19 +217,17 @@ asyncTest("testDotSymbol_setNegativeImage", 1, function () {
     layer = new SuperMap.Layer.TiledDynamicRESTLayer("World", GlobeParameter.WorldURL, null, {maxResolution: "auto"});
     layer.events.on({"layerInitialized": addLayer});
     plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", GlobeParameter.plotUrl);
+    plottingLayer.events.on({"symbolcreated": createSymbolSuccess});
+
     function addLayer() {
         map.addLayers([layer, plottingLayer]);
         map.setCenter(new SuperMap.LonLat(0, 0), 0);
-        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints, createSymbolSuccess, createSymbolFail);
+        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints);
     }
 
     function createSymbolSuccess(evt) {
         dotSymbol = evt.feature.geometry;
         dotSymbol.setNegativeImage(false);
-    }
-
-    function createSymbolFail() {
-
     }
 
     setTimeout(function () {
@@ -213,7 +236,7 @@ asyncTest("testDotSymbol_setNegativeImage", 1, function () {
             equal(setNegativeImageTest, false, "Function.setNegativeImage");
             start();
         } catch(exception){
-            ok(false, "exception occcurs,message is:" + excepion.message)
+            ok(false, "exception occcurs,message is:" + exception.message);
             start();
         } finally {
             map.destroy();
@@ -229,18 +252,17 @@ asyncTest("testDotSymbol_setTextPosition", function () {
     layer = new SuperMap.Layer.TiledDynamicRESTLayer("World", GlobeParameter.WorldURL, null, {maxResolution: "auto"});
     layer.events.on({"layerInitialized": addLayer});
     plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", GlobeParameter.plotUrl);
+    plottingLayer.events.on({"symbolcreated": createSymbolSuccess});
+
     function addLayer() {
         map.addLayers([layer, plottingLayer]);
         map.setCenter(new SuperMap.LonLat(0, 0), 0);
-        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints, createSymbolSuccess, createSymbolFail);
+        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints);
     }
 
     function createSymbolSuccess(evt) {
         dotSymbol = evt.feature.geometry;
         dotSymbol.setTextPosition(10);
-    }
-
-    function createSymbolFail() {
     }
 
     setTimeout(function () {
@@ -249,7 +271,7 @@ asyncTest("testDotSymbol_setTextPosition", function () {
             equal(setTextPosition, 10, "Function.setTextPosition");
             start();
         } catch(exception){
-            ok(false, "exception occcurs,message is:" + excepion.message)
+            ok(false, "exception occcurs,message is:" + exception.message);
             start();
         } finally {
             map.destroy();
@@ -257,3 +279,75 @@ asyncTest("testDotSymbol_setTextPosition", function () {
 
     }, 400);
 });
+
+asyncTest("testDotSymbol_setSymbolSize", function () {
+    var libID = 421, code2 = 10200, locationPoints = [new SuperMap.Geometry.Point(20, 30)];
+    var map, layer, dotSymbol, plottingLayer;
+    map = new SuperMap.Map("map");
+    layer = new SuperMap.Layer.TiledDynamicRESTLayer("World", GlobeParameter.WorldURL, null, {maxResolution: "auto"});
+    layer.events.on({"layerInitialized": addLayer});
+    plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", GlobeParameter.plotUrl);
+    plottingLayer.events.on({"symbolcreated": createSymbolSuccess});
+    function addLayer() {
+        map.addLayers([layer, plottingLayer]);
+        map.setCenter(new SuperMap.LonLat(0, 0), 0);
+        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints);
+    }
+
+    function createSymbolSuccess(evt) {
+        dotSymbol = evt.feature.geometry;
+        dotSymbol.setSymbolSize(38,66);
+    }
+
+
+    setTimeout(function () {
+        try{
+            equal(dotSymbol.getSymbolSize().w, 38, "Function.getSymbolSize width ");
+            equal(dotSymbol.getSymbolSize().h, 66, "Function.getSymbolSize height ");
+            start();
+        } catch(exception){
+            ok(false, "exception occcurs,message is:" + exception.message);
+            start();
+        } finally {
+            map.destroy();
+        }
+
+    }, 400);
+});
+
+asyncTest("testDotSymbol_setSurroundLineType", function () {
+    var libID = 421, code2 = 10200, locationPoints = [new SuperMap.Geometry.Point(20, 30)];
+    var map, layer, dotSymbol, plottingLayer;
+    map = new SuperMap.Map("map");
+    layer = new SuperMap.Layer.TiledDynamicRESTLayer("World", GlobeParameter.WorldURL, null, {maxResolution: "auto"});
+    layer.events.on({"layerInitialized": addLayer});
+    plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", GlobeParameter.plotUrl);
+    plottingLayer.events.on({"symbolcreated": createSymbolSuccess});
+    function addLayer() {
+        map.addLayers([layer, plottingLayer]);
+        map.setCenter(new SuperMap.LonLat(0, 0), 0);
+        dotSymbol = plottingLayer.createSymbol(libID, code2, locationPoints);
+    }
+
+    function createSymbolSuccess(evt) {
+        dotSymbol = evt.feature.geometry;
+        dotSymbol.setSurroundLineType(1);
+    }
+
+
+    setTimeout(function () {
+        try{
+            equal(dotSymbol.getSurroundLineType(), 1, "Function.setSurroundLineType ");
+            start();
+        } catch(exception){
+            ok(false, "exception occcurs,message is:" + exception.message);
+            start();
+        } finally {
+            map.destroy();
+        }
+
+    }, 400);
+});
+
+
+

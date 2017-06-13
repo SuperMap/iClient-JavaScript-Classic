@@ -6,7 +6,7 @@ test("testTiledVectorLayerTest_constructorDefault",function(){
     equals(layer.CLASS_NAME,"SuperMap.Layer.TiledVectorLayer","Property:CLASS_NAME");
     var cartocss="@color:#123;";
     layer.setCartoCSS(cartocss);
-    equals(layer.getCartoCSS(),cartocss,"Method:getCartoCSS");
+    equals(layer.getClientCartoCSS(),cartocss,"Method:getClientCartoCSS");
     equals(layer.useLocalStorage,false,"Property:useLocalStorage");
     layer.destroy();
 });
@@ -25,16 +25,16 @@ test("testTiledVectorLayerTest_constructor",function(){
     var newName="China400";
     layer.setName(newName);
     equals(layer.name,newName,"Method:setName");
-    var cartoCss_get=layer.getCartoCSS();
-    equals(cartoCss_get,cartoCss0,"Method:getCartoCSS");
+    var cartoCss_get=layer.getClientCartoCSS();
+    equals(cartoCss_get,cartoCss0,"Method:getClientCartoCSS");
     layer.setCartoCSS(cartoCss1);
-    cartoCss_get=layer.getCartoCSS();
+    cartoCss_get=layer.getClientCartoCSS();
     equals(cartoCss_get,cartoCss1,"Method:setCartoCSS");
 
     layer.destroy();
 });
-test("testTiledVectorLayerTest_getCartoCSS",function(){
-    var cartoCss0="@width:2;",cartoCss1="@color:#123;";
+test("testTiledVectorLayerTest_getClientCartoCSS",function(){
+    var cartoCss0="@width:2;";
     var param={
         name:"China",
         url:GlobeParameter.ChinaURL,
@@ -47,8 +47,8 @@ test("testTiledVectorLayerTest_getCartoCSS",function(){
           var center = new SuperMap.LonLat(0,0);
           map.setCenter(center, 1);
     }
-    var carto = layer.getCartoCSS();
-    equals(carto,cartoCss0,"function:getCartoCSS");
+    var carto = layer.getClientCartoCSS();
+    equals(carto,cartoCss0,"function:getClientCartoCSS");
     layer.destroy();
 });
 test("testTiledVectorLayerTest_calculateResolutionsLeveldefault",function()
@@ -356,7 +356,7 @@ test("testTiledVectorLayerTest_addTile",function()
 });
 test("testTiledVectorLayerTest_getFeaturedefault",function()
 {
-    expect(1);
+    expect(3);
     var cartoCss0="@width:2;";
     var param={
         name:"China",
@@ -374,13 +374,15 @@ test("testTiledVectorLayerTest_getFeaturedefault",function()
     var pixel = new SuperMap.Pixel();
     var i = pixel.x;
     var j = pixel.y;
-    var featureinfo = layer.getFeature(i,j);
-    equal(featureinfo,null,"");
+    var featureinfoes = layer.getFeature(i,j);
+    equal(featureinfoes.length,0,"");
+    equal(featureinfoes.xy.x,i,"");
+    equal(featureinfoes.xy.y,j,"");
 
     layer.destroy();
     map.destroy();
 });
-asyncTest("testTiledVectorLayerTest_layersInfo",2,function(){
+asyncTest("testTiledVectorLayerTest_layersInfo",function(){
     var param={
         name:"China",
         url:GlobeParameter.ChinaURL,
@@ -392,6 +394,7 @@ asyncTest("testTiledVectorLayerTest_layersInfo",2,function(){
         setTimeout(function(){
             ok(layer.layersInfo,"Property:layersInfo");
             ok(layer.layersInfo["World_Division_pl@China"],"Property:layersInfo detail");
+            ok(layer.getServerCartoCSS(),'ServerCartoCss');
             start();
         },3000);
     }});
@@ -495,13 +498,13 @@ test("testTiledVectorLayerTest_SetCartoCSS_1",function(){
     var cartoCss=cartoCssStr.value;
     var layer=new SuperMap.Layer.TiledVectorLayer("layer",GlobeParameter.ChinaURL,{cacheEnabled:true},{useLocalStorage:true,cartoCss:cartoCss});
     layer.setCartoCSS(cartoCss);
-    equals(layer.getCartoCSS(),cartoCss,"Method:getCartoCSS");
+    equals(layer.getClientCartoCSS(),cartoCss,"Method:getClientCartoCSS");
     layer.destroy();
 });
 
 test("testTiledVectorLayerTest_SetCartoCSS_2",function(){
     var layer=new SuperMap.Layer.TiledVectorLayer("layer",GlobeParameter.ChinaURL,{cacheEnabled:true},{useLocalStorage:true,cartoCss:""});
     layer.setCartoCSS("");
-    equals(layer.getCartoCSS(),"","Method:getCartoCSS");
+    equals(layer.getClientCartoCSS(),"","Method:getClientCartoCSS");
     layer.destroy();
 });

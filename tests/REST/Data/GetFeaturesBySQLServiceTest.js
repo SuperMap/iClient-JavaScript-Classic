@@ -79,7 +79,7 @@ asyncTest("GetFeaturesBySQLService_returnContent_Test",function(){
             ok(getFeaturesBySQLService !== null,"getFeaturesEventArgsSystem");
             var getFeaturesResult = getFeaturesBySQLService.lastResult;
             ok(getFeaturesResult !== null,"getFeaturesBySQLService.lastResult");
-            equal(getFeaturesResult.featureCount,9,"getFeaturesResult.featureCount")
+            equal(getFeaturesResult.featureCount,9,"getFeaturesResult.featureCount");
             
             var getFeaturesResultFrom = getFeaturesResult;
             ok(getFeaturesResultFrom !== null,"getFeaturesResultFrom");

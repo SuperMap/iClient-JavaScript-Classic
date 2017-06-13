@@ -40,7 +40,7 @@ SuperMap.Graphic = SuperMap.Class({
 
     /**
      * APIProperty: style
-     * {<SuperMap.Still>} 要素的样式属性,目前支持<SuperMap.Still.Circle>和<SuperMap.Still.RegularShape>。
+     * {<SuperMap.Style>} 要素的样式属性,目前支持<SuperMap.Style.Circle>和<SuperMap.Style.RegularShape>。
      */
     style: null,
 

@@ -261,10 +261,11 @@ SuperMap.Control.Measure = SuperMap.Class(SuperMap.Control, {
      *
      * Parameters:
      * point - {<SuperMap.Geometry.Point>} The last point added.
-     * geometry - {<SuperMap.Geometry>} The sketch geometry.
+     * feature - {<SuperMap.Feature.Vecotr>} The sketch feature.
      */
-    measurePartial: function(point, geometry) {
+    measurePartial: function(point, feature) {
         this.cancelDelay();
+        var geometry = feature.geometry;
         geometry = geometry.clone();
         // when we're wating for a dblclick, we have to trigger measurepartial
         // after some delay to deal with reflow issues in IE

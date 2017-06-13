@@ -34,6 +34,17 @@ SuperMap.REST.MeasureParameters = SuperMap.Class({
     prjCoordSys: null,
 
     /**
+     * APIProperty: distanceMode
+     * {String} 在MeasureParameters的options中设置，用来指定量算的方式为按球面长度'Geodesic'或者平面长度'Planar'来计算，默认为'Geodesic'
+     * 
+     * Exampels:
+     * (start code)
+     * var param = new Supermap.REST.MeasureParameters(getmetry,{distanceMode:'Planar'});
+     * (end)
+     */
+     distanceMode: null,
+
+    /**
      * Constructor: SuperMap.REST.MeasureParameters
      * 量算参数类构造函数。
      *

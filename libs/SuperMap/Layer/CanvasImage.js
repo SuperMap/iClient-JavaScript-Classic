@@ -206,6 +206,9 @@ SuperMap.Tile.CanvasImage = SuperMap.Class(SuperMap.Tile, {
     renderTile: function() {
         var me = this;    
         me.url = me.layer.getURL(me.bounds);
+        if(!me.url){
+            return false;
+        }
         me.positionImage(); 
         return true;
     },
@@ -283,17 +286,17 @@ SuperMap.Tile.CanvasImage = SuperMap.Class(SuperMap.Tile, {
     },
     
     getMethodName:function(){
-    var dateTime=new Date();
-    var yy=dateTime.getFullYear();
-    var MM1=dateTime.getMonth()+1;  //因为1月这个方法返回为0，所以加1
-    var dd=dateTime.getDate();
-        var hh=dateTime.getHours();
-        var mm=dateTime.getMinutes();
-    var ss=dateTime.getSeconds();
-    var ms = dateTime.getMilliseconds();
-    
-    var name = "getImgFromLocal_"+yy+MM1+dd+hh+mm+ss+ms+(Math.round(Math.random()*10000));
-    return name;
+        var dateTime=new Date();
+        var yy=dateTime.getFullYear();
+        var MM1=dateTime.getMonth()+1;  //因为1月这个方法返回为0，所以加1
+        var dd=dateTime.getDate();
+            var hh=dateTime.getHours();
+            var mm=dateTime.getMinutes();
+        var ss=dateTime.getSeconds();
+        var ms = dateTime.getMilliseconds();
+        
+        var name = "getImgFromLocal_"+yy+MM1+dd+hh+mm+ss+ms+(Math.round(Math.random()*10000));
+        return name;
     },
     
     //重置本地URL，加载图片
@@ -303,18 +306,18 @@ SuperMap.Tile.CanvasImage = SuperMap.Class(SuperMap.Tile, {
         if(me.newImgTag !== nowImgTag){
             return;
         }
-    if(r.data){
-        if(r.data=="null"){
-        return false;
+        if(r.data){
+            if(r.data=="null"){
+            return false;
+            }
+            var src = "data:image/jpeg;base64,"+r.data;
         }
-        var src = "data:image/jpeg;base64,"+r.data;
-    }
-    else{
-        var src = me.layer.sdcardPath + "SuperMap/" + me.layer.name + "/" + 
-                    canvasImageContext.Z + "/" + canvasImageContext.X + "_" + canvasImageContext.Y + ".png";
-    }
-        me.url = src;
-        me.loadTileImage();
+        else{
+            var src = me.layer.sdcardPath + "SuperMap/" + me.layer.name + "/" + 
+                        canvasImageContext.Z + "/" + canvasImageContext.X + "_" + canvasImageContext.Y + ".png";
+        }
+            me.url = src;
+            me.loadTileImage();
     },
     
     /**
@@ -346,9 +349,10 @@ SuperMap.Tile.CanvasImage = SuperMap.Class(SuperMap.Tile, {
             
         image.onload = SuperMap.Function.bind(onLoadFunctionProxy, context); 
         image.onerror = SuperMap.Function.bind(onErrorFunctionProxy, context);
-        //跨域请求瓦片，暂时只支持非重定向的SUPERMAP_REST服务的地图
-        if(this.layer.useCORS&&!SuperMap.Util.isInTheSameDomain(me.url)&&(me.url.indexOf("redirect=true")<0)&&((SuperMap.Layer.SimpleCachedLayer && me.layer instanceof SuperMap.Layer.SimpleCachedLayer)||
-            (SuperMap.Layer.TiledDynamicRESTLayer && me.layer instanceof SuperMap.Layer.TiledDynamicRESTLayer))){
+        //跨域请求瓦片，暂时只支持非重定向的SUPERMAP_REST服务的地图，及其他Grid图层
+        if((me.layer instanceof SuperMap.Layer.SimpleCachedLayer || me.layer instanceof SuperMap.Layer.TiledDynamicRESTLayer) && !SuperMap.Util.isInTheSameDomain(me.url)&&(me.url.indexOf("redirect=true")<0) && me.layer.useCORS){
+            image.crossOrigin="anonymous";
+        }else if(me.layer instanceof SuperMap.Layer.Grid && me.layer.useCORS){
             image.crossOrigin="anonymous";
         }
         //图片的url赋予给image后就会从服务器获取到图片
@@ -551,6 +555,12 @@ SuperMap.Tile.CanvasImage = SuperMap.Class(SuperMap.Tile, {
             this.draw();
         }
     },
+
+    /**
+     * Method: createBackBuffer
+     *
+     */
+    createBackBuffer: function() {},
 
     CLASS_NAME: "SuperMap.Tile.CanvasImage"
   });  

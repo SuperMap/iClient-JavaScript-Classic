@@ -22,37 +22,71 @@
     </style>
     <link href='./css/bootstrap.min.css' rel='stylesheet' />
     <link href='./css/bootstrap-responsive.min.css' rel='stylesheet' />
-    <script src = '../libs/SuperMap.Include.js'></script>
     <script type="text/javascript">
-        var map,layer,drawPoint, drawLine,drawPolygon,pointLayer,lineLayer,polygonLayer,
-                host = document.location.toString().match(/file:\/\//) ? "http://localhost:8090" : 'http://' + document.location.host;
-        url = host + "/iserver/services/map-world/rest/maps/World";
+        var map,layer,drawPoint, drawLine,drawPolygon,vecotrLayer,selectCtrl,
+                host = document.location.toString().match(/file:\/\//) ? "http://support.supermap.com.cn:8090" : 'http://' + document.location.host;
+        url = host + "/iserver/services/map-china400/rest/maps/China_4326";
         function init()
         {
-            //新建点矢量图层
-            pointLayer = new SuperMap.Layer.Vector("pointLayer");
-
-            //新建线矢量图层
-            lineLayer = new SuperMap.Layer.Vector("lineLayer");
-
             //新建面矢量图层
-            polygonLayer = new SuperMap.Layer.Vector("polygonLayer");
-            drawPoint = new SuperMap.Control.DrawFeature(pointLayer, SuperMap.Handler.Point, { multi: true});
-            drawLine = new SuperMap.Control.DrawFeature(lineLayer, SuperMap.Handler.Path, { multi: true});
-            drawPolygon = new SuperMap.Control.DrawFeature(polygonLayer, SuperMap.Handler.Polygon);
+            vecotrLayer = new SuperMap.Layer.Vector("polygonLayer");
+            drawPoint = new SuperMap.Control.DrawFeature(vecotrLayer, SuperMap.Handler.Point, { multi: true});
+            drawLine = new SuperMap.Control.DrawFeature(vecotrLayer, SuperMap.Handler.Path, { multi: true});
+            drawPolygon = new SuperMap.Control.DrawFeature(vecotrLayer, SuperMap.Handler.Polygon);
+            modifyCtrl = new SuperMap.Control.ModifyFeature(vecotrLayer);
+            selectCtrl = new SuperMap.Control.SelectFeature(vecotrLayer,{
+                onSelect:function(feature){
+                    console.log('click');
+                    console.log(feature);
+                },
+                onUnselect:function(feature){
+                    console.log('unselect');
+                    console.log(feature);
+                },
+                callbacks:{
+                    dblclick:function(feature){
+                        console.log('dblclick');
+                        console.log(feature);
+                    }
+                },
+                hover:false,
+                repeat:false
+            });
             map = new SuperMap.Map("map",{controls:[
                 new SuperMap.Control.Zoom() ,
                 new SuperMap.Control.Navigation() ,
                 new SuperMap.Control.LayerSwitcher()
-            ,drawPoint,drawLine,drawPolygon]});
-            layer= new SuperMap.Layer.TiledDynamicRESTLayer("World", url, null,{maxResolution:"auto"});
-            layer.events.on({"layerInitialized":addLayer});
-
-
+            ,drawPoint,drawLine,drawPolygon,selectCtrl,modifyCtrl]});
+            layer= new SuperMap.Layer.CloudLayer();
+            addLayer();
+            //layer.events.on({"layerInitialized":addLayer});
+            vecotrLayer.style = {
+                fillColor: "blue",
+                fillOpacity: 1,
+                hoverFillColor: "white",
+                hoverFillOpacity: 0.8,
+                strokeColor: "#ee9900",
+                strokeOpacity: 1,
+                strokeWidth: 1,
+                strokeLinecap: "round",
+                strokeDashstyle: "solid",
+                hoverStrokeColor: "red",
+                hoverStrokeOpacity: 1,
+                hoverStrokeWidth: 0.2,
+                pointRadius: 6,
+                hoverPointRadius: 1,
+                hoverPointUnit: "%",
+                pointerEvents: "visiblePainted",
+                cursor: "inherit",
+                fontColor: "#000000",
+                labelAlign: "cm",
+                labelOutlineColor: "white",
+                labelOutlineWidth: 3
+            };
         }
         function addLayer(){
 
-            map.addLayers([layer,pointLayer,lineLayer,polygonLayer]);
+            map.addLayers([layer,vecotrLayer]);
             //显示地图范围
             map.setCenter(new SuperMap.LonLat(0, 0), 0);
         }
@@ -74,13 +108,31 @@
             drawPoint.deactivate();
             drawLine.deactivate();
             drawPolygon.deactivate();
-
+            selectCtrl.deactivate();
+            modifyCtrl.deactivate();
         }
+
+        function selectFeature(){
+            deactiveAll();
+            selectCtrl.activate();
+        }
+
+        function modifyFeature(){
+            deactiveAll();
+            modifyCtrl.activate();
+        }
+
+        function undo (){
+            modifyCtrl.undo();
+        }
+
+        function redo (){
+            modifyCtrl.redo();
+        }
+
         function clearFeatures(){
             deactiveAll();
-            pointLayer.removeAllFeatures();
-            lineLayer.removeAllFeatures();
-            polygonLayer.removeAllFeatures();
+            vecotrLayer.removeAllFeatures();
         }
 
 
@@ -91,9 +143,13 @@
     <input type="button" class="btn" value="绘点" onclick="draw_point()" />
     <input type="button" class="btn" value="绘线" onclick="draw_line()" />
     <input type="button" class="btn" value="绘面" onclick="draw_polygon()" />
+    <input type="button" class="btn" value="选择" onclick="selectFeature()" />
+    <input type="button" class="btn" value="编辑" onclick="modifyFeature()" />
+    <input type="button" class="btn" value="undo" onclick="undo()" />
+    <input type="button" class="btn" value="redo" onclick="redo()" />
     <input type="button" class="btn" value="清除" onclick="clearFeatures()" />
 </div>
 <div id="map"></div>
-
+<script src = '../libs/SuperMap.Include.js'></script>
 </body>
 </html>

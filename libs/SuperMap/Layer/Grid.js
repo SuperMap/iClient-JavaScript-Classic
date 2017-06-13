@@ -14,6 +14,13 @@
  *  - <SuperMap.Layer.HTTPRequest>
  */
 SuperMap.Layer.Grid = SuperMap.Class(SuperMap.Layer.HTTPRequest, {
+    /**
+     * APIProperty: useCORS
+     * 使用跨域资源共享策略，这时请求的瓦片必须带有"access-control-allow-origin"响应头，
+     * 但是此时瓦片不带cookies信息，如果要带上cookies的信息，还要加一个响应头——"access-control-allow-credentials",
+     * 如果"access-control-allow-origin"响应头不能为"*"，否则也没有cookies信息。默认为:false。
+     * */
+    useCORS: false,
     
     /**
      * APIProperty: tileSize
@@ -183,6 +190,10 @@ SuperMap.Layer.Grid = SuperMap.Class(SuperMap.Layer.HTTPRequest, {
         
         if (this.removeBackBufferDelay === null) {
             this.removeBackBufferDelay = this.singleTile ? 0 : 2500;
+        }
+
+        if(!!options && !!options.buffer) {
+            this.buffer = options.buffer;
         }
         
         //grid layers will trigger 'tileloaded' when each new tile is 

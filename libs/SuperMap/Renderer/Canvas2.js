@@ -469,6 +469,9 @@ SuperMap.Renderer.Canvas2 = SuperMap.Class(SuperMap.Renderer, {
      */
     setHitContextStyle: function(type, featureId, symbolizer) {
         var hex = this.featureIdToHex(featureId);
+        if(symbolizer && symbolizer.strokeLinecap) {
+            this.hitContext.lineCap = symbolizer.strokeLinecap;
+        }
         if (type === "fill") {
             this.hitContext.globalAlpha = 1.0;
             this.hitContext.fillStyle = hex;
@@ -912,7 +915,12 @@ SuperMap.Renderer.Canvas2 = SuperMap.Class(SuperMap.Renderer, {
                         this.setCanvasStyle(context,"stroke", style);
                     }
                 }
-                context.stroke();
+                if(style.lineWidthLimit && style.strokeWidth === 0){
+                    context.closePath();
+                }else{
+                    context.stroke();
+                }
+
             }
         }
         if(typeof context.setLineDash==="function"){
@@ -1200,7 +1208,7 @@ SuperMap.Renderer.Canvas2 = SuperMap.Class(SuperMap.Renderer, {
         var feature = null;
         if (this.hitDetection) {
             // this dragging check should go in the feature handler
-            if (!this.map.dragging) {
+            if ( this.map && !this.map.dragging) {
                 var xy = evt.xy;
                 var x = xy.x | 0;
                 var y = xy.y | 0;

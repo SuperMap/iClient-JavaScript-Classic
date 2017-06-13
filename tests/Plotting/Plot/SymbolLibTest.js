@@ -1,7 +1,7 @@
 /**
  * Created by Administrator on 2016/5/6.
  */
-libId = 421;
+libID = 421;
 libName = "警用标号";
 count = 140;
 code = 30101;
@@ -207,7 +207,7 @@ test("testSymbolLib_getSymbolLibID", function () {
 //        setTimeout(function () {
 //            var symbolLib = symbolLibManager.getSymbolLibByIndex(0);
 //            var getLibId = symbolLib.getSymbolLibID();
-//            equal(getLibId,libId, "Function:getSymbolLibID");
+//            equal(getLibId,libID, "Function:getSymbolLibID");
 //            start();
 //            symbolLibManager.events.un({"initializeCompleted": complete});
 //        }, 100);
@@ -346,7 +346,7 @@ test("testSymbolLib_getRootSymbolInfo", function () {
 //        setTimeout(function () {
 //            var symbolLib = symbolLibManager.getSymbolLibByIndex(0);
 //            var info = symbolLib.getRootSymbolInfo();
-//            equal(info.libID, libId, "Property:libID");
+//            equal(info.libID, libID, "Property:libID");
 //            equal(info.symbolNodeType, "SYMBOL_GROUP", "Property:symbolNodeType");
 //            equal(info.symbolType, "SYMBOL_DOT", "Property:symbolType");
 //            start();

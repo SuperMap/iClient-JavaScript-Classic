@@ -211,7 +211,10 @@ SuperMap.Control.SelectGraphic = SuperMap.Class(SuperMap.Control, {
             graphic: new SuperMap.Handler.Graphic(
                 this,
                 this.layer,
-                this.callbacks
+                this.callbacks,
+                {
+                    stopDown:false
+                }
             )
         };
     },
@@ -283,7 +286,9 @@ SuperMap.Control.SelectGraphic = SuperMap.Class(SuperMap.Control, {
       * graphic - {<SuperMap.Graphic.Vector>}
       */
     overGraphic: function() {
-       this.layer.map.eventsDiv.style.cursor="pointer";
+        if(this.layer.map){
+            this.layer.map.eventsDiv.style.cursor="pointer";
+        }
     },
 
     /**
@@ -295,7 +300,9 @@ SuperMap.Control.SelectGraphic = SuperMap.Class(SuperMap.Control, {
      * feature - {<SuperMap.Graphic>}
      */
     outGraphic: function() {
-        this.layer.map.eventsDiv.style.cursor='';
+        if(this.layer.map){
+            this.layer.map.eventsDiv.style.cursor="";
+        }
     },
 
 

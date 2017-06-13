@@ -20,6 +20,10 @@ SuperMap.Handler.MouseWheel = SuperMap.Class(SuperMap.Handler, {
      */
     wheelListener: null,
 
+    trackpadEventGap_:400,
+
+    trackpadIntervalGap_:150,
+
     /** 
      * Property: mousePosition
      * {<SuperMap.Pixel>} mousePosition is necessary because
@@ -60,8 +64,8 @@ SuperMap.Handler.MouseWheel = SuperMap.Class(SuperMap.Handler, {
      *
      * Parameters:
      * control - {<SuperMap.Control>} 构建事件处理器对象的控件，如果控件拥有一个有效的地图属性引用，
-	 * 则会被事件处理器的seMap方法使用。如果在options中明确指定了map属性，则以
-	 * 后者为准传入setMap方法。
+     * 则会被事件处理器的seMap方法使用。如果在options中明确指定了map属性，则以
+     * 后者为准传入setMap方法。
      * callbacks - {Object} 回调对象函数，包含一个单一的函数回调。这个回调接受鼠标滚珠事件event作为参数。
      * options - {Object} 一个可选对象，其属性将会赋值到事件处理器对象上。     
      */
@@ -70,6 +74,12 @@ SuperMap.Handler.MouseWheel = SuperMap.Class(SuperMap.Handler, {
         this.wheelListener = SuperMap.Function.bindAsEventListener(
             this.onWheelEvent, this
         );
+        //ICL-893，新版的safari的wheelDelta属性从120变成了12，导致了鼠标慢慢滚轮时地图不能缩放
+        var browserName = SuperMap.Browser.name;
+        var version = +SuperMap.Browser.version.split('.')[0];
+        if(browserName === 'safari' && version >= 7){
+            this.hasSafari = true;
+        }
     },
 
     /**
@@ -168,26 +178,75 @@ SuperMap.Handler.MouseWheel = SuperMap.Class(SuperMap.Handler, {
                 if (!e) {
                     e = window.event;
                 }
-                if (e.wheelDelta) {
-                    delta = e.wheelDelta/120; 
-                    if (window.opera && window.opera.version() < 9.2) {
-                        delta = -delta;
-                    }
-                } else if (e.detail) {
-                    delta = -e.detail / 3;
+                //对Mac上的触摸板进行兼容处理
+                var now = Date.now();
+                if (this.startTime_ === undefined) {
+                    this.startTime_ = now;
                 }
-                this.delta = this.delta + delta;
-
-                if(this.interval) {
-                    window.clearTimeout(this._timeoutId);
-                    this._timeoutId = window.setTimeout(
-                        SuperMap.Function.bind(function(){
-                            this.wheelZoom(e);
-                        }, this),
-                        this.interval
-                    );
-                } else {
-                    this.wheelZoom(e);
+                //假如是连续触发，并且wheelDelta参数小于4，则判断为触摸板
+                if (!this.mode_ || now - this.startTime_ > this.trackpadEventGap_) {
+                    this.mode_ = Math.abs(e.wheelDelta) < 4 ? 'trackpad' : 'wheel';
+                    this.mousePosition_ = {
+                        x:this.mousePosition.x,
+                        y:this.mousePosition.y
+                    };
+                }
+                if(this.mode_ === 'trackpad') {
+                    //因为触摸板上的wheelDelta事件比较小，而且是连续触发事件，基于这两点对wheelDelta进行累加，
+                    // 累加到一定程序再触发下事件;
+                    delta = e.wheelDelta;
+                    this.delta += delta;
+                    var GAP_ = 50;
+                    if(this.hasSafari){
+                        //safari下的事件触发的相对频繁一点，做下处理
+                        GAP_ = 60
+                    }
+                    if(this.delta >= GAP_ || this.delta <= -GAP_){
+                        this.delta /= GAP_;
+                        this.wheelZoom(e, this.mousePosition_);
+                        var me = this;
+                        if(this.trackpadIntervalId_){
+                            window.clearInterval(this.trackpadIntervalId_);
+                            this.trackpadIntervalId_ = null;
+                        }
+                        //延迟一段时间清空参数
+                        this.trackpadIntervalId_ = setInterval(function(){
+                            me.startTime_ = undefined;
+                            me.mode_ = undefined;
+                            me.mousePosition_ = undefined;
+                            me.delta = 0;
+                        },this.trackpadIntervalGap_);
+                    }
+                }else{
+                    if (e.wheelDelta) {
+                        delta = e.wheelDelta/120;
+                        if (window.opera && window.opera.version() < 9.2) {
+                            delta = -delta;
+                        }else if(this.hasSafari){
+                            //safari下这个数值小了10倍，做下特殊处理
+                            delta *= 10;
+                        }
+                    } else if (e.detail) {
+                        delta = -e.detail / 3;
+                    }
+                    this.delta = this.delta + delta;
+                    if(this.interval) {
+                        window.clearTimeout(this._timeoutId);
+                        this._timeoutId = window.setTimeout(
+                            SuperMap.Function.bind(function(){
+                                this.startTime_ = undefined;
+                                this.mode_ = undefined;
+                                this.mousePosition_ = undefined;
+                                this.wheelZoom(e);
+                            }, this),
+                            this.interval
+                        );
+                    } else {
+                        this.startTime_ = undefined;
+                        this.mode_ = undefined;
+                        this.mousePosition_ = undefined;
+                        this.wheelZoom(e);
+                    }
                 }
             }
             SuperMap.Event.stop(e);
@@ -202,7 +261,7 @@ SuperMap.Handler.MouseWheel = SuperMap.Class(SuperMap.Handler, {
      * Parameters:
      * e - {Event}
      */
-    wheelZoom: function(e) {
+    wheelZoom: function(e, mousePosition) {
         var delta = this.delta;
         this.delta = 0;
         
@@ -211,8 +270,8 @@ SuperMap.Handler.MouseWheel = SuperMap.Class(SuperMap.Handler, {
             // a bug with clientX and clientY (see 
             // https://bugzilla.mozilla.org/show_bug.cgi?id=352179)
             // getLonLatFromViewPortPx(e) returns wrong values
-            if (this.mousePosition) {
-                e.xy = this.mousePosition;
+            if (mousePosition || this.mousePosition) {
+                e.xy = mousePosition || this.mousePosition;
             } 
             if (!e.xy) {
                 // If the mouse hasn't moved over the map yet, then

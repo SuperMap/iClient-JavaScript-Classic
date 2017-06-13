@@ -161,6 +161,12 @@ SuperMap.Events = SuperMap.Class({
     clearMouseListener: null,
 
     /**
+     * Property: doubleClickTimeCap_
+     * {Integer} - 区分单击与双击的时间间隔，默认为260ms
+     */
+    doubleClickTimeCap_: 260,
+
+    /**
      * Constructor: SuperMap.Events
      * SuperMap.Events 构造函数。
      *
@@ -533,8 +539,21 @@ SuperMap.Events = SuperMap.Class({
         }
         if (this.includeXY) {
             evt.xy = this.getMousePosition(evt);
-        } 
-        this.triggerEvent(type, evt);
+        }
+        var me = this;
+        if(type === 'click'){
+            this.clickTimeOutId_ && window.clearTimeout(this.clickTimeOutId_);
+            this.clickTimeOutId_ = window.setTimeout(function(type,evt){
+                return function (){
+                    me.triggerEvent(type, evt);
+                };
+            }(type,evt),this.doubleClickTimeCap_);
+        }else{
+            if(type === 'dblclick'){
+                this.clickTimeOutId_ && window.clearTimeout(this.clickTimeOutId_);
+            }
+            this.triggerEvent(type, evt);
+        }
     },
 
     /**

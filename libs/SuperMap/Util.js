@@ -74,10 +74,11 @@ SuperMap.Util.isArray = function(a) {
 
 /** 
  * Maintain existing definition of $.
+ * $已经公认为jquery，这里不对$进行定义，暂时注释掉
  */
-if(typeof window.$  === "undefined") {
+/*if(typeof window.$  === "undefined") {
     window.$ = SuperMap.Util.getElement;
-};
+};*/
 
 /** 
  * Function: removeItem
@@ -1824,19 +1825,34 @@ SuperMap.Util.isInTheSameDomain = function (url) {
     if (index === -1) {
         return true;
     } else {
-        var substring = url.substring(0, index);
+        var protocol;
+        var substring = protocol = url.substring(0, index);
         var documentSubString = documentUrl.substring(documentIndex + 2);
         documentIndex = documentSubString.indexOf("/");
+        var documentPortIndex = documentSubString.indexOf(":");
         var documentDomainWithPort = documentSubString.substring(0, documentIndex);
+        var documentPort;
+
         var documentprotocol = document.location.protocol;
+        if(documentPortIndex !== -1){
+            documentPort = +documentSubString.substring(documentPortIndex, documentIndex);
+        }else{
+            documentDomainWithPort += ':' + (documentprotocol.toLowerCase() === 'http:'? 80 : 443);
+        }
         if (documentprotocol.toLowerCase() !== substring.toLowerCase()) {
             return false;
         }
         substring = url.substring(index + 2);
         var portIndex = substring.indexOf(":");
         index = substring.indexOf("/");
-        var domain = substring.substring(0, portIndex);
         var domainWithPort = substring.substring(0, index);
+        var domain;
+        if(portIndex !== -1){
+            domain = substring.substring(0, portIndex);
+        }else{
+            domain = substring.substring(0, index);
+            domainWithPort +=  ':' + (protocol.toLowerCase() === 'http:'? 80 : 443);
+        }
         var documentDomain = document.domain;
         if (domain === documentDomain && domainWithPort === documentDomainWithPort) {
             return true;
@@ -2089,6 +2105,12 @@ SuperMap.Util.committer = function (options) {
         options.url = window.encodeURI(options.url);
         options.isInTheSameDomain = options.isInTheSameDomain || SuperMap.Util.isInTheSameDomain(options.url);
         if (options.isInTheSameDomain){
+            if(options.proxy && options.method === 'POST'){
+                options.method = 'GET';
+                options.url += separator + "_method=POST";
+                separator = options.url.indexOf("?") > -1 ? "&" : "?";
+                options.url += separator + 'requestEntity='+encodeURIComponent(options.data) || '';
+            }
             if (options.method ==="GET" && options.params) {
                 var params = options.params,
                     paramString = SuperMap.Util.getParameterString(params);
@@ -2111,6 +2133,9 @@ SuperMap.Util.committer = function (options) {
                 }
                 delete options.params;
             }
+            /*if(options.proxy){
+                options.url = options.proxy + encodeURIComponent(options.url);
+            }*/
             
             //iServer 6R 服务端只支持["Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"] 的post
             //现在只加在POST的请求头里面，PUT和DELETE有需要再加。
@@ -2171,7 +2196,11 @@ SuperMap.Util.committer = function (options) {
         if (urlParams) {
             options.url += separator + urlParams;
         }
-        options.url = window.encodeURI(options.url);
+        if(options.proxy){
+            options.url = options.proxy + encodeURIComponent(options.url);
+        }else{
+            options.url = window.encodeURI(options.url);
+        }
         WinJS.xhr({
             url: options.url,
             type: options.method,
@@ -2310,7 +2339,7 @@ SuperMap.Util.RequestJSONP = {
             splitQuestUrl = new Array();
         }
         sectionURL !== url && splitQuestUrl.push(sectionURL);
-        me.send(splitQuestUrl);
+        me.send(splitQuestUrl,config && config.proxy);
     },
 
     
@@ -2320,7 +2349,7 @@ SuperMap.Util.RequestJSONP = {
         return uid * 1000 + random;
     },
     
-    send: function(splitQuestUrl) {
+    send: function(splitQuestUrl,proxy) {
         var len = splitQuestUrl.length;
         if (len > 0) {
             var jsonpUserID = new Date().getTime();
@@ -2335,6 +2364,10 @@ SuperMap.Util.RequestJSONP = {
                 url += "sectionCount=" + len;
                 url += "&sectionIndex=" + i;
                 url += "&jsonpUserID=" + jsonpUserID;
+                url = decodeURIComponent(url);
+                if(proxy){
+                	url = proxy + encodeURIComponent(url);
+                }
                 script.setAttribute("src", url);
                 script.setAttribute("type", "text/javascript");
                 
@@ -2899,6 +2932,26 @@ SuperMap.Util.getIntersectLineArray = function(rect1,rect2){
     return [leftLine,topLine,rightLine,bottomLine];
 }
 
+SuperMap.Util.isInside = function(point, rect, side) {
+    if((side==0) &&  point.x>=rect.left)
+    {
+        return true;
+    }
+    else if((side===1) &&  point.y<=rect.top)
+    {
+        return true;
+    }
+    else if((side===2) &&  point.x<=rect.right)
+    {
+        return true;
+    }
+    else if((side===3) &&  point.y>=rect.bottom)
+    {
+        return true;
+    }
+    return false;
+}
+
 /**
  * Method: SuperMap.Util.clipPolygonRect
  * 用矩形对多边形进行裁剪
@@ -2937,55 +2990,64 @@ SuperMap.Util.clipPolygonRect = function(polygon,rect,isCloneId){
         //将矩形的四个点取出根据面的bounds计算出一个能够延长到面的bounds边缘的四条线，给后面线线求交提供基础
         var intersectLines = SuperMap.Util.getIntersectLineArray(rect,linearRings[i].getBounds());
         var pointArray = linearRings[i].components;
-        var resultPoints = pointArray;
-        //循环四条边
-        for(var j = 0;j<intersectLines.length;j++)
-        {
-            pointArray = resultPoints;
+
+        var cur = [],
+            result = [],
             resultPoints = [];
-            var lineString = intersectLines[j];
-            for(var k = 0;k<pointArray.length-1;k++)
-            {
-                var a1 = pointArray[k];
-                var a2 = pointArray[k+1] ;
-                var b1 = lineString.components[0];
-                var b2 = lineString.components[1];
-                var obj = SuperMap.Util.lineIntersection(a1,a2,b1,b2);
-                //先看线段的起始点是否在矩形内部，在的话存入
-                if((j==0) &&  a1.x>=rect.left)
-                {
-                    resultPoints.push(a1);
-                }
-                else if((j===1) &&  a1.y<=rect.top)
-                {
-                    resultPoints.push(a1);
-                }
-                else if((j===2) &&  a1.x<=rect.right)
-                {
-                    resultPoints.push(a1);
-                }
-                else if((j===3) &&  a1.y>=rect.bottom)
-                {
-                    resultPoints.push(a1);
-                }
 
-                //有如果有交点，则将交点存入
-                if(obj.CLASS_NAME === "SuperMap.Geometry.Point")
-                {
-                    resultPoints.push(obj);
-                }
-                //没有交点不作处理
-                else
-                {
+        var rectSize = 4,
+            pointSize = pointArray.length;
 
-                }
-            }
-            //最后的时候需要把第一个点负值到最后一个点
-            if(resultPoints.length>0)
-            {
-                resultPoints.push(resultPoints[0]);
-            }
+        var S = pointArray[pointSize - 1];
+
+        for(var j = 0; j < pointSize; j ++) {
+            result.push(pointArray[j]);
         }
+
+        var flag;
+        // flag=false点在内侧，true点在外侧
+        for(var j = 0; j < rectSize; j ++) {
+            if(SuperMap.Util.isInside(S, rect, j)) {
+                flag = false;
+            } else {
+                flag = true;
+            }
+
+            var resultSize = result.length;
+            for(var k = 0; k < resultSize; k ++) {
+                //证明其在vector内
+                if(SuperMap.Util.isInside(result[k], rect, j)) {
+                    //如果前一个点在外侧，则将他们的交点加入结果集
+                    if(flag) {
+                        flag = false;
+                        cur.push(SuperMap.Util.lineIntersection(S, result[k], intersectLines[j].components[0], intersectLines[j].components[1]));
+                    }
+                    //并将他们当前节点加入结果集
+                    cur.push(result[k]);
+                } else {
+                    if(!flag) {
+                        //如果前一个点在内侧，则将他们的交点加入结果集
+                        flag = true;
+                        cur.push(SuperMap.Util.lineIntersection(S, result[k], intersectLines[j].components[0], intersectLines[j].components[1]));
+                    }
+                }
+                //更新首次比较的节点
+                S = result[k];
+            }
+
+            var curLength = cur.length;
+            result.length = 0;
+            //将本次结果拷贝出来作为下次对比的样本
+            for(var l = 0; l < curLength; l ++) {
+                result.push(cur[l]);
+            }
+            cur.length = 0;
+        }
+
+        for(var j = 0; j < result.length; j ++) {
+            resultPoints.push(result[j]);
+        }
+
         if(resultPoints.length>2)
         {
             var linear =  new SuperMap.Geometry.LinearRing(resultPoints);

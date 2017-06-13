@@ -30,15 +30,13 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
 
         /**
          * Property: canvas
-         * {DOMElement} The div element which wraps the image.
+         * {Array} The div element which wraps the image.
          */
-        canvas: null,
+        canvasPool: null,
 
-        context:null,
 
-        hitCanvas:null,
+        hitCanvasPool:null,
 
-        hitContext:null,
 
         /**
          * Property: frame
@@ -121,6 +119,8 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
             this.frame = document.createElement('div');
             this.frame.style.overflow = 'hidden';
             this.frame.style.position = 'absolute';
+            this.canvasPool = [];
+            this.hitCanvasPool = [];
 
             this.cartoLayers=[];
             this.sortedCartoLayers=[];
@@ -138,20 +138,16 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
             if (this.canvas != null) {
                 this.removeCanvas();
             }
-            this.canvas = null;
-            this.context=null;
-            this.hitCanvas = null;
-            this.hitContext=null;
             if ((this.frame != null) && (this.frame.parentNode === this.layer.div)) {
                 this.layer.div.removeChild(this.frame);
+            }
+            for(var i= 0,len=this.cartoLayers.length;i<len;i++){
+                var cartoLayer = this.cartoLayers[i];                
+                this.cartoLayers[i].destroy();
             }
             this.frame = null;
             this.layer.events.unregister("loadend", this, this.showTile);
             SuperMap.Tile.prototype.destroy.apply(this, arguments);
-
-            for(var i= 0,len=this.cartoLayers.length;i<len;i++){
-                this.cartoLayers[i].destroy();
-            }
             this.lockedDraw=true;
             this.loadedCallback=null;
             this.cartoLayers=null;
@@ -240,8 +236,7 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
                 this.bounds = this.getBoundsFromBaseLayer(this.position);
             }
             var drawTile = SuperMap.Tile.prototype.draw.apply(this, arguments);
-
-            this.cartoLayers=[];
+            this.clear();
             if ((SuperMap.Util.indexOf(this.layer.SUPPORTED_TRANSITIONS, this.layer.transitionEffect) !== -1) ||
                 this.layer.singleTile) {
                 if (drawTile) {
@@ -278,7 +273,9 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
             var urlInfo = this.layer.getURL(this.bounds);
             this.url = urlInfo.url;
             //this.events.triggerEvent(this._loadEvent);
-            this.initCanvas();
+            //this.initCanvas();
+            this.frame.style.zIndex = this.isBackBuffer ? 0 : 1;
+            this.layer.div.appendChild(this.frame);
             this.positionTile(urlInfo.xyz);
             return true;
         },
@@ -309,7 +306,23 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
             //this.frame.style.display = 'none';
             this.loadedCallback=function(){};
             this.lockedDraw=true;
-            if (this.context) {
+            if(this.cartoLayers){
+                for(var i = 0, len = this.cartoLayers.length; i < len; i++){
+                    var cartolayer = this.cartoLayers[i];
+                    var canvas = cartolayer.context && cartolayer.context.canvas;
+                    var hitCanvas = cartolayer.hitContext && cartolayer.hitContext.canvas;
+                    if(canvas){
+                        this.canvasPool.push(canvas);
+                    }
+                    if(hitCanvas){
+                        this.hitCanvasPool.push(hitCanvas);
+                    }
+                    cartolayer.clear();
+                    cartolayer.context && this.frame.removeChild(cartolayer.context.canvas);
+                }
+            }
+            this.cartoLayers=[];
+           /* if (this.context) {
                 var w=this.canvas.width,h= this.canvas.height;
                 this.context.globalAlpha=0;
                 this.context.clearRect(0, 0, w,h);
@@ -317,50 +330,58 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
                     this.hitContext.globalAlpha=0;
                     this.hitContext.clearRect(0,0,w,h);
                 }
-            }
+            }*/
         },
 
         /**
-         * Method: initImgDiv
+         * Method: initCanvas
          * Creates the canvas property on the tile.
          */
         initCanvas: function () {
-            if (this.canvas == null) {
-                var offset = this.layer.imageOffset||{x:0,y:0};
-                var size = this.layer.getImageSize(this.bounds);
-
-                this.canvas = this.createCanvas(null,
+            var canvas,context,hitCanvas,hitContext;
+            var offset = this.layer.imageOffset||{x:0,y:0};
+            var size = this.layer.getImageSize(this.bounds);
+            if(this.canvasPool && this.canvasPool.length > 0){
+                canvas = this.canvasPool.shift();
+            }else{
+                canvas = this.createCanvas(null,
                     offset,
                     size,
                     null,
-                    "relative",
+                    "absolute",
                     null,
                     null,
                     true);
-                this.context=this.canvas.getContext("2d");
-                if(this.hitDetection){
-                    this.hitCanvas=this.createCanvas(null,
+            }
+            context=canvas.getContext("2d");
+            if(this.hitDetection){
+                if(this.hitCanvasPool && this.hitCanvasPool.length > 0){
+                    hitCanvas = this.hitCanvasPool.shift();
+                }else{
+                    hitCanvas = this.createCanvas(null,
                         offset,
                         size,
                         null,
-                        "relative",
+                        "absolute",
                         null,
                         null,
                         true);
-                    this.hitContext=this.hitCanvas.getContext("2d");
                 }
-                this.frame.style.zIndex = this.isBackBuffer ? 0 : 1;
-                this.frame.appendChild(this.canvas);
-                this.layer.div.appendChild(this.frame);
-
-                if (this.layer.opacity != null) {
-
-                    SuperMap.Util.modifyDOMElement(this.canvas, null, null, null,
-                        null, null, null,
-                        this.layer.opacity);
-                }
+                hitContext=hitCanvas.getContext("2d");
             }
 
+            if (this.layer.opacity != null) {
+
+                SuperMap.Util.modifyDOMElement(canvas, null, null, null,
+                    null, null, null,
+                    this.layer.opacity);
+            }
+            return {
+                canvas:canvas,
+                context:context,
+                hitCanvas:hitCanvas,
+                hitContext:hitContext
+            };
         },
         /**
          * Method: createCanvas
@@ -369,10 +390,10 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
         createCanvas: function (id, px, sz, imgURL, position, border, opacity) {
             var canvas = document.createElement("canvas");
             if (!id) {
-                id = SuperMap.Util.createUniqueID("SuperMapDiv");
+                id = SuperMap.Util.createUniqueID("SuperMapCanvas");
             }
             if (!position) {
-                position = "relative";
+                position = "absolute";
             }
             SuperMap.Util.modifyDOMElement(canvas, id, px, sz, position,
                 border, null, opacity);
@@ -481,16 +502,18 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
                 var serverFeatures=recordSet.features;
                 var layerName=recordSet.layerName;
                 var layerInfo=this.getLayerInfo(layerName);
+                var obj = this.initCanvas();
                 //一个数据集对应一个Carto图层
                 var cartoLayer=new SuperMap.CartoLayer(layerName,this,{
                     layer:this.layer,
                     originIndex:i,
-                    ugcLayerType:layerInfo.ugcLayerType,
-                    context:this.context,
-                    hitContext:this.hitContext,
+                    index:i,
+                    ugcLayerType:layerInfo && layerInfo.ugcLayerType,
+                    context:obj.context,
+                    hitContext:obj.hitContext,
                     cartoRenderer:renderer});
                 cartoLayer.addFeatures(serverFeatures);
-                this.setCartoLayerShaderer(cartoLayer,layerInfo.layerStyle);
+                this.setCartoLayerShaderer(cartoLayer,layerInfo && layerInfo.layerStyle);
                 this.addCartoLayer(cartoLayer);
                 //cartoLayer.redraw();      //carto图层默认按照数据集中的顺序进行绘制
             }
@@ -506,7 +529,8 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
          * */
         setCartoLayerShaderer:function(cartoLayer,layerStyle){
             if(!layerStyle){
-                layerStyle=this.getLayerInfo(cartoLayer.layerName).layerStyle;
+                var layerInfo = this.getLayerInfo(cartoLayer.layerName);
+                layerStyle=layerInfo && layerInfo.layerStyle;
             }
             var renderer=this.layer&&this.layer.cartoRenderer;
             var symbol=new SuperMap.CartoSymbolizer(cartoLayer,null,null,
@@ -519,7 +543,8 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
                     cartoRenderer:renderer
                 });
             cartoLayer.addSymbolizer(symbol);
-            this.pickShader(cartoLayer);
+            this.layer && this.layer.serverCartoShaders && this.pickShader(cartoLayer,this.layer.serverCartoShaders,true);
+            this.layer && this.layer.clientCartoShaders && this.pickShader(cartoLayer,this.layer.clientCartoShaders,false);
         },
 
         /**
@@ -528,10 +553,7 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
          * Parameters：
          * cartoLayer - {<SuperMap.CartoLayer>} Carto图层
          * */
-        pickShader:function(cartoLayer){
-            if(!this.layer||!this.layer.cartoShaders)return false;
-            var shaders=this.layer.cartoShaders;
-            var fromServer = this.layer.cartoShaders.fromServer;
+        pickShader:function(cartoLayer,shaders,fromServer){
             var renderer=this.layer&&this.layer.cartoRenderer;
             var picked=false;
             var isPC=SuperMap.Browser.device==="pc";
@@ -589,26 +611,42 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
         },
 
         /**
-         * Method: getFeatureInfo
-         * 要看坐标获取要素信息，即获取hitCanvas所记录在其RGB里面的要素ID与图层ID
-         * Parameters：
+         * Method: getFeatureInfoes
+         * 获取所有图层的要素信息
+         * Parameters:
          * x - number x坐标
          * y - number y坐标
-         * Return：
+         * return:
+         * featureInfoes - {Array} 所有图层的要素信息
+         */
+        getFeatureInfoes:function(x,y){
+            var selectedLayers = [];
+            if(this.sortedCartoLayers){
+                for(var i = 0 , len = this.sortedCartoLayers.length; i<len;i++){
+                    var cartolayer = this.sortedCartoLayers[i];
+                    var featureInfo = cartolayer.getFeatureInfo(x,y);
+                    if(featureInfo && featureInfo.feature){
+                        selectedLayers.push(featureInfo);
+                    }
+                }
+            }
+            return selectedLayers.reverse();
+        },
+
+        /**
+         * Method: getTopFeatureInfo
+         * 获取顶上的图层的坐标获取要素信息，即获取hitCanvas所记录在其RGB里面的要素ID与图层ID
+         * Parameters:
+         * x - number x坐标
+         * y - number y坐标
+         * Return:
          * featureInfo - {Object} 要素信息，包含featureId与layer两个信息
          * */
-        getFeatureInfo:function(x,y){
-            if(this.hitContext){
-                x=x|0;
-                y=y|0;
-                var data=this.hitContext.getImageData(x,y,1,1).data;    //从要素选择Canvas上读取要素信息
-                if(data[3]===255){
-                    var id=256*data[1]+data[2]-1;        //后四位组成要素ID
-                    var layerIndex=data[0]-1;            //前两位组成图层index
-                    if(id&&this.cartoLayers[layerIndex]){
-                        var cartoLayer = this.cartoLayers[layerIndex];
-                        return {feature:cartoLayer.getFeatureById(id),cartoLayer:cartoLayer};
-                    }
+        getTopFeatureInfo:function(x,y){
+            if(this.sortedCartoLayers){
+                var len = this.sortedCartoLayers.length;
+                if(len > 0){
+                    return this.sortedCartoLayers[len-1].getFeatureInfo(x,y);
                 }
             }
         },
@@ -619,11 +657,12 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
          * Parameters:
          * refreshCartoCSS - {boolean}  是否更新了cartoCss
          */
-        refresh: function (refreshCartoCSS) {
+        refresh: function (refreshCartoCSS, cartolayer) {
             SuperMap.Util.modifyDOMElement(this.frame,
                 null, this.position, this.size);
-            this.context&&this.clearCanvas(this.context);
-            this.hitContext&&this.clearCanvas(this.hitContext);
+
+            //this.context&&this.clearCanvas(this.context);
+            //this.hitContext&&this.clearCanvas(this.hitContext);
             if(refreshCartoCSS){
                 for(var i= 0,len=this.cartoLayers.length;i<len;i++){
                     var layer=this.cartoLayers[i];
@@ -632,16 +671,25 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
                     this.setCartoLayerShaderer(layer);
                 }
             }
-            //对carto图层排序后再重绘
-            var sortedCartoLayers=this.sortedCartoLayers=this.sortCartoLayer();
-            for(var j= 0,len1=sortedCartoLayers.length;j<len1;j++){
-                var layer=sortedCartoLayers[j];
-                //考虑到SVTile发布出来的地图没有ugcLayerType属性，取消ugcLayerType为VECTOR的限制
-                //暂时不支持除了ugcLayerType为VECTOR之外的图层的渲染
-                //if(layer.ugcLayerType!=="VECTOR")continue;
-                layer.redraw();
+            if(cartolayer){
+                cartolayer.redraw();
+            }else{
+                while (this.frame.firstChild) {
+                    this.frame.removeChild(this.frame.firstChild);
+                }
+                //对carto图层排序后再重绘
+                var sortedCartoLayers=this.sortedCartoLayers=this.sortCartoLayer();
+                for(var j= 0,len1=sortedCartoLayers.length;j<len1;j++){
+                    layer=sortedCartoLayers[j];
+                    layer.context && layer.context.canvas && this.frame.appendChild(layer.context.canvas);
+                    //考虑到SVTile发布出来的地图没有ugcLayerType属性，取消ugcLayerType为VECTOR的限制
+                    //暂时不支持除了ugcLayerType为VECTOR之外的图层的渲染
+                    //if(layer.ugcLayerType!=="VECTOR")continue;
+                    layer.redraw();
+                }
+                //this.frame.setAttribute('data-layers',len1);
+                this.frame.style.display = 'block';
             }
-            this.frame.style.display = 'block';
         },
 
         clearCanvas: function (canvasContext) {
@@ -754,7 +802,7 @@ SuperMap.Tile.VectorImage = SuperMap.Class(SuperMap.Tile, {
         },
         CLASS_NAME: "SuperMap.Tile.VectorImage"
     }
-)
+);
 
 SuperMap.Tile.VectorImage.GeometryType = {
     LINE: "LINE",
@@ -765,7 +813,7 @@ SuperMap.Tile.VectorImage.GeometryType = {
     CIRCLE: "CIRCLE",
     TEXT: "TEXT",
     UNKNOWN: "UNKNOWN"
-}
+};
 
 String.prototype.PadLeft = function (length, cha) {
     var str = this;
@@ -773,7 +821,7 @@ String.prototype.PadLeft = function (length, cha) {
         str = cha + str;
     }
     return str;
-}
+};
 SuperMap.Tile.Image.useBlankTile = (
     SuperMap.Browser.name === "safari" ||
         SuperMap.Browser.name === "opera");

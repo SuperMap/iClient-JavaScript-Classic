@@ -166,8 +166,8 @@ SuperMap.Handler.Path = SuperMap.Class(SuperMap.Handler.Point, {
             this.point.geometry, this.line.geometry.components.length
         );
         this.layer.addFeatures([this.point]);
-        this.callback("point", [this.point.geometry, this.getGeometry()]);
-        this.callback("modify", [this.point.geometry, this.getSketch()]);
+        this.callback("point", [this.point.geometry, this.getSketch(),!!this.lastUp]);
+        this.callback("modify", [this.point.geometry, this.getSketch(),!!this.lastUp]);
         this.drawFeature();
         delete this.redoStack;
     },

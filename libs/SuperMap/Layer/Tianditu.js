@@ -189,22 +189,22 @@ SuperMap.Layer.Tianditu = SuperMap.Class(SuperMap.CanvasLayer, {
      setTiandituParam:function(projection){
         var lt = this.layerType;
         if(lt=="vec"){
-            var resLen = 17;
+            var resLen = 18;
             var resStart = 0;
             this.zOffset = 1;
-            this.numZoomLevels = 17;
+            this.numZoomLevels = 18;
         }
         else if(lt=="img"){
-            var resLen = 17;
+            var resLen = 18;
             var resStart = 0;
             this.zOffset = 1;
-            this.numZoomLevels = 17;
+            this.numZoomLevels = 18;
         }
         else if(lt=="ter"){
-            var resLen = 13;
+            var resLen = 14;
             var resStart = 0;
             this.zOffset = 1;
-            this.numZoomLevels = 13;
+            this.numZoomLevels = 14;
         }
         if(projection=="EPSG:4326"){
             var minX = -180;

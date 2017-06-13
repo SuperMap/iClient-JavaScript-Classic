@@ -261,7 +261,7 @@ SuperMap.Strategy.GeoText = SuperMap.Class(SuperMap.Strategy, {
      * fea - {<SuperMap.Feature.Vector>}  需要赋予 style 的要素。
      */
     setStyle: function(fea){
-        var feature = fea;
+        var feature = fea;        
         feature.style = SuperMap.Util.copyAttributes(feature.style, this.defaultStyle);
         //将style赋给标签
         if(this.style && this.style.fontSize && parseFloat(this.style.fontSize) < 12) this.style.fontSize = "12px";
@@ -321,6 +321,11 @@ SuperMap.Strategy.GeoText = SuperMap.Class(SuperMap.Strategy, {
             var feature = labelFeatures[i];
             if(feature.geometry.CLASS_NAME === "SuperMap.Geometry.GeoText"){
                 //设置标签的Style
+                if(feature.geometry.bsInfo.w || feature.geometry.bsInfo.h) {
+                    feature.geometry.bsInfo.w = null;
+                    feature.geometry.bsInfo.h = null;
+                    feature.geometry.labelWTmp = null;
+                }
                 fea = this.setStyle(feature);
                 //为标签要素指定图层
                 fea.layer = this.layer;

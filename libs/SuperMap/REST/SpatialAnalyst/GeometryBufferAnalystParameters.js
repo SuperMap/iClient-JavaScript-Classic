@@ -59,21 +59,44 @@ SuperMap.REST.GeometryBufferAnalystParameters = SuperMap.Class(SuperMap.REST.Buf
      CLASS_NAME: "SuperMap.REST.GeometryBufferAnalystParameters"
 });
 
-SuperMap.REST.GeometryBufferAnalystParameters.toObject = function (geometryBufferAnalystParameters, tempObj) {
+SuperMap.REST.GeometryBufferAnalystParameters.toObject = function (geometryBufferAnalystParameters, geo) {
+    var tempObj = {};
     for (var name in geometryBufferAnalystParameters) {
         if (name === "bufferSetting") {
             var tempBufferSetting = {};
             for(var key in geometryBufferAnalystParameters.bufferSetting){
                 tempBufferSetting[key] = geometryBufferAnalystParameters.bufferSetting[key];
             }
-            delete tempBufferSetting.radiusUnit;
+            //delete tempBufferSetting.radiusUnit;
             tempObj.analystParameter = tempBufferSetting;
         }
         else if (name === "sourceGeometry") {
-            tempObj.sourceGeometry = SuperMap.REST.ServerGeometry.fromGeometry(geometryBufferAnalystParameters.sourceGeometry);
+            if(geo) {
+                tempObj.sourceGeometry = SuperMap.REST.ServerGeometry.fromGeometry(geo);
+            } else {
+                tempObj.sourceGeometry = SuperMap.REST.ServerGeometry.fromGeometry(geometryBufferAnalystParameters.sourceGeometry);
+            }
         }
         else {
             tempObj[name] = geometryBufferAnalystParameters[name];
         }
     }
+
+    return tempObj
+};
+
+SuperMap.REST.GeometryBufferAnalystParameters.toArray = function (geometryBufferAnalystParameters) {
+    var geos = geometryBufferAnalystParameters.sourceGeometry;
+
+    var tempObj = [];
+    for(var i = 0, len = geos.length; i < len; i ++) {
+        var paramObj = SuperMap.REST.GeometryBufferAnalystParameters.toObject(geometryBufferAnalystParameters, geos[i]);
+
+        var analystParam = {};
+        analystParam.analystName = "buffer";
+        analystParam.param = paramObj;
+        tempObj.push(analystParam);
+    }
+
+    return tempObj;
 };

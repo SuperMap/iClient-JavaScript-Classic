@@ -13,6 +13,13 @@
  * 抽象类，查询、量算等服务类均继承该类。
  */
 SuperMap.ServiceBase = SuperMap.Class({
+    /** 
+     * APIProperty: proxy
+     * {String} 服务需要用到的代理地址，这个地址会直接拼接到图层的相应的url前面，
+     * 格式为：'http://localhost:8090/proxy?url='
+     * 
+     */
+    proxy:null,
 
     /**
      * APIProperty: url
@@ -89,10 +96,11 @@ SuperMap.ServiceBase = SuperMap.Class({
      * Parameters:
      * url - {String|Array} 服务访问地址或者服务访问地址数组。
      */
-    initialize: function(url) {
+    initialize: function(url,options) {
         if(!url){
             return false;
         }
+        this.proxy = options && options.proxy;
         var me = this;
         if(SuperMap.Util.isArray(url)) {
             me.urls = url;
@@ -112,7 +120,11 @@ SuperMap.ServiceBase = SuperMap.Class({
             me.url = url[0];
             me.totalTimes = 1;
         }
-        me.isInTheSameDomain = SuperMap.Util.isInTheSameDomain (me.url);
+        if(options && options.isInTheSameDomain !== null && options.isInTheSameDomain !== undefined){
+            me.isInTheSameDomain = options.isInTheSameDomain;
+        }else{
+            me.isInTheSameDomain = (me.proxy && SuperMap.Util.isInTheSameDomain (me.proxy)) || SuperMap.Util.isInTheSameDomain (me.url);
+        }
     },
 
     /**
@@ -157,18 +169,22 @@ SuperMap.ServiceBase = SuperMap.Class({
         options.url = options.url || me.url;
         options.isInTheSameDomain = me.isInTheSameDomain;
         //为url添加安全认证信息片段
-        if (SuperMap.Credential.CREDENTIAL) {
+        if (options.credential || SuperMap.Credential.CREDENTIAL) {
             //当url中含有?，并且?在url末尾的时候直接添加token *网络分析等服务请求url会出现末尾是?的情况*
             //当url中含有?，并且?不在url末尾的时候添加&token
             //当url中不含有?，在url末尾添加?token
+            var credential = options.credential || SuperMap.Credential.CREDENTIAL;
             var endStr = options.url.substring(options.url.length - 1, options.url.length);
             if (options.url.indexOf("?") > -1 && endStr=== "?") {
-                options.url += SuperMap.Credential.CREDENTIAL.getUrlParameters();
+                options.url += credential.getUrlParameters();
             } else if (options.url.indexOf("?") > -1 && endStr !== "?") {
-                options.url += "&" + SuperMap.Credential.CREDENTIAL.getUrlParameters();
+                options.url += "&" + credential.getUrlParameters();
             } else {
-                options.url += "?" + SuperMap.Credential.CREDENTIAL.getUrlParameters();
+                options.url += "?" + credential.getUrlParameters();
             }
+        }
+        if(this.proxy){
+            options.proxy = this.proxy;
         }
         me.calculatePollingTimes();
         me._processSuccess = options.success;
@@ -201,7 +217,7 @@ SuperMap.ServiceBase = SuperMap.Class({
      */
     getUrlFailed: function(result) {
         var me = this;
-        if(me.totalTimes) {
+        if(me.totalTimes > 0) {
             me.totalTimes --;
             me.ajaxPolling();
         } else {

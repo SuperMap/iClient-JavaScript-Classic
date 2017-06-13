@@ -93,7 +93,7 @@ SuperMap.REST.QueryService = SuperMap.Class(SuperMap.ServiceBase, {
      * eventListeners - {Object} 需要被注册的监听器对象。
      */
     initialize: function(url, options) {
-        SuperMap.ServiceBase.prototype.initialize.apply(this, [url]);
+        SuperMap.ServiceBase.prototype.initialize.apply(this, [url,options]);
         if (options) {
             SuperMap.Util.extend(this, options);
         }
@@ -142,8 +142,9 @@ SuperMap.REST.QueryService = SuperMap.Class(SuperMap.ServiceBase, {
      *
      * Parameters:
      * params - {<SuperMap.REST.QueryParameters>} 查询参数。
+     * credential - {<SuperMap.Credential>} 权限信息
      */
-    processAsync: function(params) {
+    processAsync: function(params,credential) {
         if(!params){
             return;
         }
@@ -165,6 +166,7 @@ SuperMap.REST.QueryService = SuperMap.Class(SuperMap.ServiceBase, {
             method: "POST",
             data: jsonParameters,
             scope: me,
+            credential: credential,
             success: me.queryComplete,
             failure: me.queryError
         });

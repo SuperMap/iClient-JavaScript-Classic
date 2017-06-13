@@ -42,7 +42,7 @@
 		var host = document.location.toString().match(/file:\/\//)?"http://localhost:8090":'http://' + document.location.host;
         var mapurl = host + "/iserver/services/map-china400/rest/maps/China_4326";
         var serverUrl = host + "/iserver/services/plot-jingyong/rest/plot/";
-		
+
         function init() {
             map = new SuperMap.Map("map",{controls: [
                 new SuperMap.Control.LayerSwitcher(),
@@ -75,21 +75,24 @@
             treePanel = new SuperMap.Plotting.TreePanel("filetree");
             treePanel.events.on({"clickTreeNode": clickTreeNode});
             sitManager = plotting.getSitDataManager();
-
+            sitManager.events.on({"getSMLInfosCompleted": getSMLInfosSuccess,
+                "getSMLInfosFailed": getSMLInfosFail,
+                "deleteSmlFileCompleted": deleteSmlFileSuccess,
+                "deleteSmlFileFail": deleteSmlFileFail});
             getSMLInfos();
             fileFilter();
         }
 
         function getSMLInfos(){
-            function getSMLInfosSucess(result){
-                treePanel.initializeTree(result);
-            }
+            sitManager.getSMLInfos(0, 10);
+        }
 
-            function getSMLInfosFail(result) {
-                console.log(result);
-            }
+        function getSMLInfosSuccess(result){
+            treePanel.initializeTree(result);
+        }
 
-            sitManager.getSMLInfos(0, 10, getSMLInfosSucess, getSMLInfosFail);
+        function getSMLInfosFail(result) {
+            console.log(result);
         }
 
         function clickTreeNode() {
@@ -99,6 +102,7 @@
             document.getElementById("smlFileName").value = this.clickSmlFileName;
 
             sitManager.openSmlFileOnServer(this.clickSmlFileName);
+            plottingLayer.redraw();
         }
 
         function uploadSmlFile( ){
@@ -119,31 +123,38 @@
         function deleteSmlFileOnServer(){
             var smlFileName = document.getElementById("smlFileName").value;
             sitManager.deleteSmlFileOnServer(smlFileName);
-            setTimeout(function () {
-                document.getElementById("downloadUrl").value = null;
-                document.getElementById("smlFileName").value = null;
-                var allLayers = map.layers;
-                for(var j = 0; j < allLayers.length; j++)
-                {
-                    if(allLayers[j].isBaseLayer === true){
-                        continue;
-                    }
-
-                    allLayers[j].removeAllFeatures();
-                    map.removeLayer(allLayers[j],false);
-                }
-                getSMLInfos();
-            }, 10);
         }
+
+        function deleteSmlFileSuccess(){
+            document.getElementById("downloadUrl").value = null;
+            document.getElementById("smlFileName").value = null;
+            var allLayers = map.layers;
+            for(var j = 0; j < allLayers.length; j++) {
+                if(allLayers[j].isBaseLayer === true){
+                    continue;
+                }
+
+                allLayers[j].removeAllFeatures();
+                map.removeLayer(allLayers[j],false);
+            }
+            getSMLInfos();
+        }
+
+        function deleteSmlFileFail(){
+
+        }
+
         function fileFilter(){
             var file = document.getElementById('smlFile');
             file.setAttribute("accept",".sml");
 
         }
 
-        document.oncontextmenu = function(evt){
+        function stop(){
+            window.event.returnValue = false;
             return false;
         }
+
     </script>
 
 </head>
@@ -161,6 +172,6 @@
 </div>
 
 <div id="filetree" title="态势图文件列表"></div>
-<div id="map"></div>
+<div id="map"  oncontextmenu="stop()"></div>
 </body>
 </html>

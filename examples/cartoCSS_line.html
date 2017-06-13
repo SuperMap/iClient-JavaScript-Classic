@@ -52,7 +52,7 @@
                 })]
             });
             cartoCss=document.getElementById("textData").text;
-            layer = new SuperMap.Layer.TiledVectorLayer("China", url,{cacheEnabled:true,returnAttributes:true},{useLocalStorage:true,cartoCss:cartoCss});
+            layer = new SuperMap.Layer.TiledVectorLayer("China", url,{cacheEnabled:true,returnAttributes:true},{useLocalStorage:true,cartoCss:cartoCss,donotNeedServerCartoCss:true});
             layer.events.on({"layerInitialized": addLayer});
         }
 

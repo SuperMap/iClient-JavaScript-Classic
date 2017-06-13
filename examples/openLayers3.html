@@ -217,9 +217,10 @@
                 defaultStyle: style1
             });
             themeParameters = new SuperMap.REST.ThemeParameters({
-                datasetNames: ["China_Province_R"],
-                dataSourceNames: ["China400"],
-                themes: [themeUnique]
+                datasetNames: ["China_Province_pg"],
+                dataSourceNames: ["China"],
+                themes: [themeUnique],
+                types:['REGION']
             });
 
             themeService.processAsync(themeParameters);

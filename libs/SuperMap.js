@@ -1,9 +1,10 @@
 ﻿//var isWinRT = (typeof Windows === "undefined") ? false : true;
+//var isWinRT = (typeof Windows === "undefined") ? false : true;
 {
     inputScript('NameSpace.js');
     inputScript('BaseTypes/Class.js');
     inputScript('Util.js');
-    
+
     inputScript('BaseTypes.js');
     inputScript('BaseTypes/Bounds.js');
     inputScript('BaseTypes/Date.js');
@@ -14,13 +15,13 @@
     inputScript('BaseTypes/Credential.js');
 
     inputScript('Tween.js');
-    inputScript('Kinetic.js'); 
+    inputScript('Kinetic.js');
     inputScript('Event.js');
     inputScript('Events.js');
-    
+
     inputScript('Request.js');
     inputScript('Request/XMLHttpRequest.js');
-    
+
     inputScript('Projection.js');
     inputScript('Map.js');
     inputScript('Layer.js');
@@ -39,6 +40,7 @@
     inputScript('Layer/Grid.js');
     inputScript('Layer/CanvasImage.js');
     inputScript('Layer/CanvasLayer.js');
+    inputScript('Layer/XYZ.js');
     inputScript('Layer/TiledDynamicRESTLayer.js');
     inputScript('Layer/SimpleCachedLayer.js');
     inputScript('Layer/Markers.js');
@@ -54,13 +56,17 @@
     inputScript('Layer/Siweidg.js');
     inputScript('Layer/Baidu.js');
     inputScript('Layer/Tianditu.js');
+    //国内bing地图
     inputScript('Layer/Bing.js');
+    //国外bing地图
+    inputScript('Layer/BingMap.js');
     inputScript('Layer/OSM.js');
     inputScript('Layer/OSM.js');
     inputScript('Layer/EventPane.js');
     inputScript('Layer/FixedZoomLevels.js');
     inputScript('Layer/Google.js');
     inputScript('Layer/Google.v3.js');
+    inputScript('Layer/Tencent.js');
 
     inputScript('Feature.js');
     inputScript('Feature/Vector.js');
@@ -82,16 +88,16 @@
 
     inputScript('Tool/ColorPicker.js');
     inputScript('Tool/Slider.js');
-     
+
     inputScript('Control.js');
     inputScript('Control/ZoomBox.js');
     inputScript('Control/DragPan.js');
-    inputScript('Control/Navigation.js');  
-    inputScript('Control/PinchZoom.js'); 
-    inputScript('Control/TouchNavigation.js'); 
+    inputScript('Control/Navigation.js');
+    inputScript('Control/PinchZoom.js');
+    inputScript('Control/TouchNavigation.js');
     inputScript('Control/MousePosition.js');
     inputScript('Control/OverviewMap.js');
-    inputScript('Control/KeyboardDefaults.js'); 
+    inputScript('Control/KeyboardDefaults.js');
     inputScript('Control/PanZoomBar.js');
     inputScript('Control/Zoom.js');
     inputScript('Control/ScaleLine.js');
@@ -114,19 +120,19 @@
     inputScript('Geometry.js');
     inputScript('Geometry/Collection.js');
     inputScript('Geometry/Point.js');
-    inputScript('Geometry/MultiPoint.js');    
+    inputScript('Geometry/MultiPoint.js');
     inputScript('Geometry/Curve.js');
     inputScript('Geometry/LineString.js');
     inputScript('Geometry/LinearRing.js');
     inputScript('Geometry/MultiLineString.js');
     inputScript('Geometry/Polygon.js');
-    inputScript('Geometry/MultiPolygon.js');    
+    inputScript('Geometry/MultiPolygon.js');
     inputScript('Geometry/Rectangle.js');
     inputScript('Geometry/GeoText.js');
 
     inputScript('Renderer.js');
     inputScript('Renderer/Elements.js');
-    inputScript('Renderer/SVG.js'); 
+    inputScript('Renderer/SVG.js');
     inputScript('Renderer/Canvas.js');
     inputScript('Renderer/VML.js');
     inputScript('Renderer/Canvas2.js');
@@ -154,16 +160,16 @@
     inputScript('Strategy/BBOX.js');
     inputScript('Strategy/Fixed.js');
     inputScript('Strategy/GeoText.js');
-         
+
     inputScript('Symbolizer.js');
-    inputScript('Symbolizer/Point.js'); 
-    inputScript('Symbolizer/Line.js'); 
-    inputScript('Symbolizer/Polygon.js'); 
-    inputScript('Symbolizer/Raster.js'); 
-    inputScript('Symbolizer/Text.js'); 
-    
+    inputScript('Symbolizer/Point.js');
+    inputScript('Symbolizer/Line.js');
+    inputScript('Symbolizer/Polygon.js');
+    inputScript('Symbolizer/Raster.js');
+    inputScript('Symbolizer/Text.js');
+
     inputScript('Lang.js');
-    
+
     inputScript('REST/Service/ServiceBase.js');
     inputScript('REST/Service/ServiceUrls.js');
     inputScript('REST/Service/ServiceEventArgs.js');
@@ -178,6 +184,10 @@
     inputScript('REST/Measure/MeasureParameters.js');
     inputScript('REST/Measure/MeasureResult.js');
     inputScript('REST/Measure/MeasureService.js');
+    inputScript('REST/CoordTransfer/CoordTransferEventArgs.js');
+    inputScript('REST/CoordTransfer/CoordTransferParameters.js');
+    inputScript('REST/CoordTransfer/CoordTransferResult.js');
+    inputScript('REST/CoordTransfer/CoordTransferService.js');
     inputScript('REST/MapService/MapServiceResult.js');
     inputScript('REST/MapService/MapServiceEventArgs.js');
     inputScript('REST/MapService/MapService.js');
@@ -302,6 +312,10 @@
     inputScript('REST/Data/FieldStatisticResult.js');
     inputScript('REST/Data/FieldStatisticEventArgs.js');
     inputScript('REST/Data/FieldStatisticService.js');
+    inputScript('REST/Data/GetGridCellInfosResult.js');
+    inputScript('REST/Data/GetGridCellInfosEventArgs.js');
+    inputScript('REST/Data/GetGridCellInfosService.js');
+    inputScript('REST/Data/GetGridCellInfosParameter.js')
 
     //专题图
     inputScript('REST/Theme/Theme.js');
@@ -323,6 +337,7 @@
     inputScript('REST/Theme/LabelMatrixCell.js');
     inputScript('REST/Theme/ThemeLabelText.js');
     inputScript('REST/Theme/ThemeLabelItem.js');
+    inputScript('REST/Theme/ThemeLabelUniqueItem.js');
     inputScript('REST/Theme/ThemeLabelBackground.js');
     inputScript('REST/Theme/ThemeLabelAlongLine.js');
     inputScript('REST/Theme/LabelThemeCell.js');
@@ -366,7 +381,10 @@
     inputScript('REST/SpatialAnalyst/GeoRelationAnalystParameters.js');
     inputScript('REST/SpatialAnalyst/GeoRelationAnalystResult.js');
     inputScript('REST/SpatialAnalyst/GeoRelationAnalystService.js');
-	inputScript('REST/SpatialAnalyst/GeoRelationResult.js')
+    inputScript('REST/SpatialAnalyst/GeoRelationResult.js');
+    inputScript('REST/SpatialAnalyst/GeometryBatchOverlayAnalystParameters.js');
+    inputScript('REST/SpatialAnalyst/GeometryBatchOverlayAnalystResult.js');
+    inputScript('REST/SpatialAnalyst/GeometryBatchOverlayAnalystService.js');
 
     inputScript('REST/SpatialAnalyst/ThiessenAnalystEventArgs.js');
     inputScript('REST/SpatialAnalyst/ThiessenAnalystParameters.js');
@@ -527,6 +545,7 @@
 
     //热点图
     inputScript('Layer/HeatMapLayer.js');
+    inputScript('Layer/HeatMapFastLayer.js');
     inputScript('Layer/HeatMapWeight.js');
 
     //聚合
@@ -565,7 +584,7 @@
     //扩展图层
     inputScript('Layer/Elements.js');
 
-	//客户端专题图功能
+    //客户端专题图功能
     //LevelRenderer-start
     inputScript('LevelRenderer/LevelRenderer.js');
     inputScript('LevelRenderer/Tool/Area.js');
@@ -635,40 +654,41 @@
     inputScript('Feature/ShapeParameters/Rectangle.js');
     inputScript('Feature/ShapeParameters/Circle.js');
     //ThemeLayer-end
-	
-	//cloud库
-	inputScript('Cloud/Cloud.js');
+
+    //cloud库
+    inputScript('Cloud/Cloud.js');
     inputScript("Cloud/MapViewer.js");
     inputScript("Cloud/Security.js");
-	inputScript('Cloud/LocalSearch/POIInfo.js');
-	inputScript('Cloud/LocalSearch/POIInfosEventArgs.js');
-	inputScript('Cloud/LocalSearch/POIInfosParameter.js');
-	inputScript('Cloud/LocalSearch/POIInfosResult.js');
-	inputScript('Cloud/LocalSearch/POIInfosServices.js');
-	
-	inputScript('Cloud/Location/AddressComponent.js');
-	inputScript('Cloud/Location/GeocodingEventArgs.js');
-	inputScript('Cloud/Location/GeocodingParameter.js');
-	inputScript('Cloud/Location/GeocodingResult.js');
-	inputScript('Cloud/Location/GeocodingService.js');
-	
-	inputScript('Cloud/Navigation/PathAnalystEventArgs.js');
-	inputScript('Cloud/Navigation/PathAnalystParameter.js');
-	inputScript('Cloud/Navigation/PathAnalystResult.js');
-	inputScript('Cloud/Navigation/PathAnalystService.js');
-	inputScript('Cloud/Navigation/PathInfo.js');
-	
-	inputScript('Cloud/TrafficTransferAnalyst/TransferLine.js');
-	inputScript('Cloud/TrafficTransferAnalyst/TransferLines.js');
-	inputScript('Cloud/TrafficTransferAnalyst/TransferSolution.js');
-	inputScript('Cloud/TrafficTransferAnalyst/TransferSolutionEventArgs.js');
-	inputScript('Cloud/TrafficTransferAnalyst/TransferSolutionParameters.js');
-	inputScript('Cloud/TrafficTransferAnalyst/TransferSolutionResult.js');
-	inputScript('Cloud/TrafficTransferAnalyst/TransferSolutionService.js');
-	inputScript('Cloud/TrafficTransferAnalyst/TransferStopInfo.js');
-	inputScript('Cloud/TrafficTransferAnalyst/TransferWalkInfo.js');
+    inputScript('Cloud/LocalSearch/POIInfo.js');
+    inputScript('Cloud/LocalSearch/POIInfosEventArgs.js');
+    inputScript('Cloud/LocalSearch/POIInfosParameter.js');
+    inputScript('Cloud/LocalSearch/POIInfosResult.js');
+    inputScript('Cloud/LocalSearch/POIInfosServices.js');
+
+    inputScript('Cloud/Location/AddressComponent.js');
+    inputScript('Cloud/Location/GeocodingEventArgs.js');
+    inputScript('Cloud/Location/GeocodingParameter.js');
+    inputScript('Cloud/Location/GeocodingResult.js');
+    inputScript('Cloud/Location/GeocodingService.js');
+
+    inputScript('Cloud/Navigation/PathAnalystEventArgs.js');
+    inputScript('Cloud/Navigation/PathAnalystParameter.js');
+    inputScript('Cloud/Navigation/PathAnalystResult.js');
+    inputScript('Cloud/Navigation/PathAnalystService.js');
+    inputScript('Cloud/Navigation/PathInfo.js');
+
+    inputScript('Cloud/TrafficTransferAnalyst/TransferLine.js');
+    inputScript('Cloud/TrafficTransferAnalyst/TransferLines.js');
+    inputScript('Cloud/TrafficTransferAnalyst/TransferSolution.js');
+    inputScript('Cloud/TrafficTransferAnalyst/TransferSolutionEventArgs.js');
+    inputScript('Cloud/TrafficTransferAnalyst/TransferSolutionParameters.js');
+    inputScript('Cloud/TrafficTransferAnalyst/TransferSolutionResult.js');
+    inputScript('Cloud/TrafficTransferAnalyst/TransferSolutionService.js');
+    inputScript('Cloud/TrafficTransferAnalyst/TransferStopInfo.js');
+    inputScript('Cloud/TrafficTransferAnalyst/TransferWalkInfo.js');
 }
-function inputScript(inc){
+
+function inputScript(inc) {
     var script = '<' + 'script type="text/javascript" src="../libs/SuperMap/' + inc + '"' + '><' + '/script>';
     document.writeln(script);
 }

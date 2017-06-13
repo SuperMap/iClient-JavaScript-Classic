@@ -1144,7 +1144,7 @@ SuperMap.Geometry.LineString.createBezier = function (points, precision) {
  * j - {Number} 本次拆分的首点位置，从pSrcPt[j]（包括此点）点向后取4个点进行本次拆分。
  * pDstPt -{Array(<SuperMap.Geometry.Point>)} 将4个点拆分成7个点，pDstPt是包含此7个点的结果点数组。
  */
-var InciseBezier = function (pSrcPt, j, pDstPt) {
+function InciseBezier(pSrcPt, j, pDstPt) {
     var buffer = [];
     buffer[0] = [];
     buffer[1] = [];
@@ -1183,7 +1183,7 @@ var InciseBezier = function (pSrcPt, j, pDstPt) {
  * pSrcPt -{Array(<SuperMap.Geometry.Point>)} 传入的待拆分点数组。
  * j - {Number} 本次拆分的首点位置，从pSrcPt[j]（包括此点）点向后取4个点进行距离计算
  */
-var GetBezierGap = function (pSrcPt, j) {
+function GetBezierGap(pSrcPt, j) {
     var gap = 0;
     for (var i = 1; i < 4; i++) {
         if (Math.abs(pSrcPt[j + i].x - pSrcPt[j + i - 1].x) > gap)

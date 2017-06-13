@@ -18,38 +18,45 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * Property: context
      * {CanvasRenderingContext2D} 绘制Canvas上下文
      * */
-    context:null,
+    context: null,
 
     /**
      * Property: hitContext
      * {CanvasRenderingContext2D} 用于要素选择的Canvas上下文
      * */
-    hitContext:null,
+    hitContext: null,
+
+    /**
+     * Property: isSupportHoles
+     * {Boolean} 是否开启岛洞支持，默认为false
+     * 开出此属性是为了避免iServer范例数据中的China在开启岛洞支持后部分面不显示的问题，怀疑是数据问题
+     * */
+    isSupportHoles: false,
 
     /**
      * Property: symbolizer
      * {<SuperMap.CartoSymbolizer>} 渲染器对应的矢量符号
      * */
-    symbolizer:null,
+    symbolizer: null,
 
     /**
      * Property:layer
      * */
-    layer:null,
+    layer: null,
 
     /**
      * Property: pointImagesInfo
      * {Object} 这个对象用于保存已经请求过的图片，其有两个属性，分别是image和url
      * */
-    pointImagesInfo:null,
+    pointImagesInfo: null,
 
     /**
      * Property: imagesBackup
      * {Array} 用于保存image，以在clear时移除其onload事件回调
      * */
-    imagesBackup:null,
+    imagesBackup: null,
 
-    tempImage:null,
+    tempImage: null,
 
     /**
      * Constructor: SuperMap.CartoRenderer
@@ -68,11 +75,11 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * hitContext - {CanvasRenderingContext2D} 用于选择要素的Canvas上下文
      * options - {Object} 可选参数，其属性将会被赋给渲染器.
      */
-    initialize: function(context,hitContext,options) {
-        this.context=context;
-        this.hitContext=hitContext;
-        this.pointImagesInfo={};
-        this.imagesBackup=[];
+    initialize: function(context, hitContext, options) {
+        this.context = context;
+        this.hitContext = hitContext;
+        this.pointImagesInfo = {};
+        this.imagesBackup = [];
         SuperMap.Util.extend(this, options);
     },
 
@@ -82,14 +89,14 @@ SuperMap.CartoRenderer = SuperMap.Class({
      */
     destroy: function() {
         this.context = null;
-        this.symbolizer=null;
-        for(var i=this.imagesBackup.length-1;i>=0;i--){
-            if(!this.imagesBackup[i].complete){
-                this.imagesBackup[i].onload=null;
+        this.symbolizer = null;
+        for (var i = this.imagesBackup.length - 1; i >= 0; i--) {
+            if (!this.imagesBackup[i].complete) {
+                this.imagesBackup[i].onload = null;
             }
         }
-        this.pointImagesInfo=null;
-        this.imagesBackup=null;
+        this.pointImagesInfo = null;
+        this.imagesBackup = null;
     },
 
     /**
@@ -112,10 +119,10 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * ctx - {CanvasRenderingContext2D} Canvas绘制上下文
      * style - {Object} 风格属性
      * */
-    applyStyle:function(ctx,style){
-        for(var st in style){
-            if(ctx[st] && (ctx[st] !==style[st])){
-                ctx[st]=style[st];
+    applyStyle: function(ctx, style) {
+        for (var st in style) {
+            if ((st in ctx) && (ctx[st] !== style[st])) {
+                ctx[st] = style[st];
             }
         }
     },
@@ -136,15 +143,16 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * {Boolean} true代表绘制完成，false或者undefined则表示要素无geometry属性
      */
     drawFeature: function(feature, style, layerType) {
-        if(!this.context){
+        if (!this.context) {
             return;
         }
+        //使用canvas分层渲染之后，就不再需要使用临时图层这种低效率的方式了
         //临时图层，用于绘制要素，实现岛洞,在Cavvas的实现上，使用的是globalCompositeOperation属性来控制的
         //对于同一个要素，如果分为了多个面，其中一个面在另外一个面上面，那么，这个面就被当成一个岛洞来绘制
         //这时后面的面使用destination-out的方式来绘制，叠加部分就会变成透明，实现了岛洞。为了让要素之间不会
         //影响，所以使用了一个临时的canvas，来绘制要素，绘制完一个要素后就把绘制好的canvas复制到地图上的canvas
         //进行显示。
-        if(!this.tempCanvas){
+        /*if(!this.tempCanvas){
             var tempCanvas = this.tempCanvas = document.createElement("canvas");
             tempCanvas.width = 256;
             tempCanvas.height = 256;
@@ -155,42 +163,42 @@ SuperMap.CartoRenderer = SuperMap.Class({
             tempHitCanvas.width = 256;
             tempHitCanvas.height = 256;
             this.tempHitCtx = tempHitCanvas.getContext('2d');
-        }
+        }*/
         if (feature.geometry) {
             var st;
-            var type=feature.geometry.type;
-            var isRegion = type === 'REGION';
+            var type = feature.geometry.type;
+            //var isRegion = type === 'REGION';
             /*if(feature.renderType&&feature.renderType==="hightlight"){
                 st=SuperMap.CartoRenderer._expandCanvasStyle["HIGHTLIGHT"];
             }else{*/
-            st=feature.style?feature.style:style;
+            st = feature.style ? feature.style : style;
             //}
-            var ctx=isRegion?this.tempCtx:this.context;
-            if(this.hitContext){
-                var hitCtx=isRegion?this.tempHitCtx:this.hitContext;
+            var ctx = /*isRegion?this.tempCtx:*/ this.context;
+            if (this.hitContext) {
+                var hitCtx = /*isRegion?this.tempHitCtx:*/ this.hitContext;
             }
-            var hitColor=null;
-            if(hitCtx){
+            var hitColor = null;
+            if (hitCtx) {
                 //将要素ID以及图层索引转化为颜色值
-                hitColor=this.featureIdToHex(feature.id,feature.layerIndex);
+                hitColor = this.featureIdToHex(feature.id, feature.layerIndex);
             }
-            if(isRegion){
+            /*if(isRegion){
                 ctx.globalAlpha=0;
                 ctx.clearRect(0,0,256,256);
                 if(this.hitContext){
                     hitCtx.globalAlpha=0;
                     hitCtx.clearRect(0,0,256,256);
                 }
-            }
-            var rendered = this.drawGeometry(ctx,hitCtx,feature.geometry, st,hitColor, feature.attributes, layerType);
-            if(isRegion){
+            }*/
+            var rendered = this.drawGeometry(ctx, hitCtx, feature.geometry, st, hitColor, feature.attributes, layerType);
+            /*if(isRegion){
                 this.context.globalAlpha=1;
                 this.context.drawImage(this.tempCanvas,0,0,256,256);
                 if(this.hitContext){
                     this.hitContext.globalAlpha=1;
                     this.hitContext.drawImage(this.tempHitCanvas,0,0,256,256);
                 }
-            }
+            }*/
             return rendered;
         }
     },
@@ -207,45 +215,46 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * style - {Object} 渲染属性信息
      * hitColor - {String} 热点区的颜色
      */
-    drawGeometry:function(ctx,hitCtx,geometry, style,hitColor, attributes, layerType) {
-        var type=geometry.type;
-        if(!style) {
-            style= SuperMap.CartoRenderer._expandCanvasStyle[type];
+    drawGeometry: function(ctx, hitCtx, geometry, style, hitColor, attributes, layerType) {
+        var type = geometry.type;
+        if (!style) {
+            style = SuperMap.CartoRenderer._expandCanvasStyle[type];
         }
         //绘制前保存一下canvas的状态
         ctx && ctx.save();
         hitCtx && hitCtx.save();
-        this.applyStyle(ctx,style);
+        this.applyStyle(ctx, style);
 
-        if(hitColor){
-            hitCtx.fillStyle=hitColor;
-            hitCtx.strokeStyle=hitColor;
-            hitCtx.lineWidth=ctx.lineWidth+3;
-            hitCtx.globalAlpha=1;
+        if (hitColor) {
+            hitCtx.fillStyle = hitColor;
+            hitCtx.strokeStyle = hitColor;
+            hitCtx.lineWidth = ctx.lineWidth + 3;
+            hitCtx.globalAlpha = 1;
         }
         var drawed;
-        switch(type){
+        switch (type) {
             case "TEXT":
-                drawed = this.drawText(ctx,hitCtx,geometry, style);
+                drawed = this.drawText(ctx, hitCtx, geometry, style);
                 break;
             case "POINT":
-                if(attributes && layerType === "THEME"){
-                    drawed = this.drawText(ctx,hitCtx,geometry, style, attributes);
-                }else{
-                    drawed = this.drawPoint(ctx,hitCtx,geometry, style);
+                if (attributes && layerType === "THEME") {
+                    drawed = this.drawText(ctx, hitCtx, geometry, style, attributes);
+                } else {
+                    drawed = this.drawPoint(ctx, hitCtx, geometry, style);
                 }
                 break;
             case "LINE":
-                if(Math.round(parseFloat(style.lineWidth))===0){
-                    drawed=true;
+                if (Math.round(parseFloat(style.lineWidth)) === 0) {
+                    drawed = true;
                     break;
                 }
-                drawed = this.drawLine(ctx,hitCtx,geometry, style);
+                drawed = this.drawLine(ctx, hitCtx, geometry, style);
                 break;
             case "REGION":
-                drawed = this.drawRegion(ctx,hitCtx,geometry, style);
+                drawed = this.drawRegion(ctx, hitCtx, geometry, style);
                 break;
-            default:break;
+            default:
+                break;
         }
         //绘制后恢复绘制前的canvas的状态
         ctx && ctx.restore();
@@ -263,24 +272,24 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * geometry - {Object} 文本几何体，其拥有parts和points两个属性
      * style - {Object} 渲染风格
      * */
-    drawText:function(ctx,hitCtx,geometry, style, attributes) {
+    drawText: function(ctx, hitCtx, geometry, style, attributes) {
         //有些瓦片里面没有文字，就不会有这个属性，没有则直接跳过
-        if(!geometry.texts && !attributes)
-        {
+        if (!geometry.texts && !attributes) {
             return;
         }
         var textName;
-        if(style.textName){
-            textName = style.textName.substring(1,style.textName.length-1);
+        if (style.textName) {
+            textName = style.textName.substring(1, style.textName.length - 1);
         }
-        if(style.bold && !style.fontWeight){
+        if (style.bold && !style.fontWeight) {
             style.fontWeight = 700;
         }
         var fontStyle = [style.fontStyle ? style.fontStyle : "normal",
             "normal", // "font-variant" not supported
             style.fontWeight ? style.fontWeight : "normal",
             style.fontSize ? style.fontSize : "1em",
-            style.fontFamily ? style.fontFamily : "sans-serif"].join(" ");
+            style.fontFamily ? style.fontFamily : "sans-serif"
+        ].join(" ");
         ctx.font = fontStyle;
         //显示文字有问题，先不显示
         var startIndex = 0;
@@ -289,25 +298,24 @@ SuperMap.CartoRenderer = SuperMap.Class({
             //获取文本
             var text = (textName && attributes && attributes[textName]) || (geometry.texts && geometry.texts[i]);
 
-            if(!text){
+            if (!text) {
                 continue;
             }
-            var x=  geometry.points[startIndex * 2];
-            var y=  geometry.points[startIndex * 2 + 1];
-            x+=style.offsetX||0;
-            y+=style.offsetY||0;
+            var x = geometry.points[startIndex * 2];
+            var y = geometry.points[startIndex * 2 + 1];
+            x += style.offsetX || 0;
+            y += style.offsetY || 0;
             ctx.save();
-            if(style.rotation){
-                ctx.rotate(style.rotation*Math.PI/180);
+            if (style.rotation) {
+                ctx.rotate(style.rotation * Math.PI / 180);
             }
-            if(style.haloRadius)
-            {
+            if (style.haloRadius) {
                 //设置字体的轮廓，轮廓颜色使用背景色，桌面里面就是这样定义的
-                var offset = (style.haloRadius + 1)||0;
+                var offset = (style.haloRadius + 1) || 0;
                 ctx.save();
-                ctx.lineWidth=offset;
-                ctx.strokeStyle=style.backColor;
-                ctx.strokeText(text,x,y);
+                ctx.lineWidth = offset;
+                ctx.strokeStyle = style.backColor;
+                ctx.strokeText(text, x, y);
                 ctx.restore();
             }
 
@@ -316,13 +324,14 @@ SuperMap.CartoRenderer = SuperMap.Class({
             //
             ctx.fillStyle = style.foreColor;
             //绘制最上层的文字
-            ctx.fillText(text,x, y);
+            ctx.fillText(text, x, y);
             ctx.restore();
 
-            if(hitCtx){
-                var result=ctx.measureText(text);
-                var tW=result.width/ 2,tH=style.textHeight/2||6;
-                this.drawVectorPoint(hitCtx,tW,tH,x,y);
+            if (hitCtx) {
+                var result = ctx.measureText(text);
+                var tW = result.width / 2,
+                    tH = style.textHeight / 2 || 6;
+                this.drawVectorPoint(hitCtx, tW, tH, x, y);
             }
 
             startIndex += part;
@@ -342,20 +351,21 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * geometry - {Object} 点几何体，其拥有parts和points两个属性
      * style - {Object} 渲染风格
      * */
-    drawPoint:function(ctx,hitCtx,geometry, style){
-        var x= geometry.points[0],y=geometry.points[1];
-        x+=style.offsetX||0;
-        y+=style.offsetY||0;
-        if(style.pointFile&&style.pointFile!==""){
-            this.drawImagePoint(ctx,hitCtx,style,x,y);
-        }else{
-            var radius=style.pointRadius||3;
-            ctx.lineWidth=style.pointHaloRadius||1;
-            ctx.strokeStyle=style.pointHaloColor||"#c33";
-            ctx.fillStyle=style.fillStyle||"#fc0";
-            this.drawVectorPoint(ctx,radius,radius,x,y);
-            if(hitCtx){
-                this.drawVectorPoint(hitCtx,radius,radius,x,y);
+    drawPoint: function(ctx, hitCtx, geometry, style) {
+        var x = geometry.points[0],
+            y = geometry.points[1];
+        x += style.offsetX || 0;
+        y += style.offsetY || 0;
+        if (style.pointFile && style.pointFile !== "") {
+            this.drawImagePoint(ctx, hitCtx, style, x, y);
+        } else {
+            var radius = style.pointRadius || 3;
+            ctx.lineWidth = style.pointHaloRadius || 1;
+            ctx.strokeStyle = style.pointHaloColor || "#c33";
+            ctx.fillStyle = style.fillStyle || "#fc0";
+            this.drawVectorPoint(ctx, radius, radius, x, y);
+            if (hitCtx) {
+                this.drawVectorPoint(hitCtx, radius, radius, x, y);
             }
         }
         return true;
@@ -372,57 +382,57 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * x - 点的x坐标
      * y - 点的y坐标
      * */
-    drawImagePoint:function(ctx,hitCtx,style,x,y){
-        var url=style.pointFile;
+    drawImagePoint: function(ctx, hitCtx, style, x, y) {
+        var url = style.pointFile;
         var me = this;
-        var image,tempImage=this.tempImage||new Image();
+        var image, tempImage = this.tempImage || new Image();
         //tempImage.src为编码之后的url
-        tempImage.src=url;
-        if(me.pointImagesInfo[tempImage.src]){
-            image=me.pointImagesInfo[tempImage.src];
-            ctx.drawImage(image,x-image.width/2,y-image.height/2);
-            if(hitCtx){
-                me.drawVectorPoint(hitCtx,image.width/2,image.height/2,x,y);
+        tempImage.src = url;
+        if (me.pointImagesInfo[tempImage.src]) {
+            image = me.pointImagesInfo[tempImage.src];
+            ctx.drawImage(image, x - image.width / 2, y - image.height / 2);
+            if (hitCtx) {
+                me.drawVectorPoint(hitCtx, image.width / 2, image.height / 2, x, y);
             }
             return;
         }
         image = new Image();
         image.src = url;
         me.imagesBackup.push(image);
-        var level=me.layer&&me.layer.map&&me.layer.map.getZoom();
+        var level = me.layer && me.layer.map && me.layer.map.getZoom();
         //在onload事件里加入多个回调函数，以重复利用同一个image，避免相同的image的多次请求
-        image.onload = function(ctx,hitCtx,x,y,level){
-            return function(){
-                var currentLevel=me.layer&&me.layer.map&&me.layer.map.getZoom();
-                if(currentLevel===level){
-                    me.pointImagesInfo[this.src]=this;
-                    ctx&&ctx.save();
-                    ctx.globalAlpha=style.globalAlpha||1;
-                    ctx.globalCompositeOperation=style.globalCompositeOperation||"source-over";
-                    ctx.imageSmoothingEnabled=style.imageSmoothingEnabled||true;
-                    ctx.drawImage(this,x-this.width/2,y-this.height/2);
-                    if(hitCtx){
-                        me.drawVectorPoint(hitCtx,this.width/2,this.height/2,x,y);
+        image.onload = function(ctx, hitCtx, x, y, level) {
+            return function() {
+                var currentLevel = me.layer && me.layer.map && me.layer.map.getZoom();
+                if (currentLevel === level) {
+                    me.pointImagesInfo[this.src] = this;
+                    ctx && ctx.save();
+                    ctx.globalAlpha = style.globalAlpha || 1;
+                    ctx.globalCompositeOperation = style.globalCompositeOperation || "source-over";
+                    ctx.imageSmoothingEnabled = style.imageSmoothingEnabled || true;
+                    ctx.drawImage(this, x - this.width / 2, y - this.height / 2);
+                    if (hitCtx) {
+                        me.drawVectorPoint(hitCtx, this.width / 2, this.height / 2, x, y);
                     }
-                    ctx&&ctx.restore();
+                    ctx && ctx.restore();
                 }
             }
-        }(ctx,hitCtx,x,y,level);
-        image.onerror=function(me,ctx,hitCtx,x,y,level){
-            return function(){
-                var currentLevel=me.layer&&me.layer.map&&me.layer.map.getZoom();
-                if(currentLevel===level){
-                    var radius=3;
-                    ctx.lineWidth=radius;
-                    ctx.strokeStyle="#c33";
-                    ctx.fillStyle="#fc0";
-                    me.drawVectorPoint(ctx,radius,radius,x,y);
-                    if(hitCtx){
-                        me.drawVectorPoint(hitCtx,radius,radius,x,y);
+        }(ctx, hitCtx, x, y, level);
+        image.onerror = function(me, ctx, hitCtx, x, y, level) {
+            return function() {
+                var currentLevel = me.layer && me.layer.map && me.layer.map.getZoom();
+                if (currentLevel === level) {
+                    var radius = 3;
+                    ctx.lineWidth = radius;
+                    ctx.strokeStyle = "#c33";
+                    ctx.fillStyle = "#fc0";
+                    me.drawVectorPoint(ctx, radius, radius, x, y);
+                    if (hitCtx) {
+                        me.drawVectorPoint(hitCtx, radius, radius, x, y);
                     }
                 }
             }
-        }(me,ctx,hitCtx,x,y,level);
+        }(me, ctx, hitCtx, x, y, level);
     },
 
     /**
@@ -436,8 +446,8 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * x - {Number} 圆中心点x坐标
      * y - {Number} 圆中心点y坐标
      * */
-    drawVectorPoint:function(ctx,W,H,x,y){
-        var twoPI=Math.PI*2;
+    drawVectorPoint: function(ctx, W, H, x, y) {
+        var twoPI = Math.PI * 2;
         ctx.beginPath();
         ctx.arc(x, y, W, 0, twoPI, true);
         /*ctx.moveTo(x-W,y-H);
@@ -458,60 +468,48 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * geometry - {Object} 线几何体，其拥有parts和points两个属性
      * style - {Object} 渲染风格
      * */
-    drawLine:function(ctx,hitCtx,geometry, style,isRegion){
-        var points=geometry.points;
+    drawLine: function(ctx, hitCtx, geometry, style, isRegion) {
+        var points = geometry.points;
         var startIndex = 0;
-        style.offset=style.offset||{};
-        if(isRegion){
-            style.offset.x=style.offsetX||0;
-            style.offset.y=style.offsetY||0;
-        }else{
-            style.offset.x=-style.offset||0;
-            style.offset.y=0;
+        style.offset = style.offset || {};
+        if (isRegion) {
+            style.offset.x = style.offsetX || 0;
+            style.offset.y = style.offsetY || 0;
+        } else {
+            style.offset.x = -style.offset || 0;
+            style.offset.y = 0;
         }
-        for (var i = 0,len=geometry.parts.length; i < len; i++) {
+        for (var i = 0, len = geometry.parts.length; i < len; i++) {
             var part = geometry.parts[i];
             if (part < 2) {
                 startIndex += part;
                 continue;
             }
-            if(isRegion){
-                if(i===0){
-                    ctx.globalCompositeOperation = "source-over";
-                    if(hitCtx){
-                        hitCtx.globalCompositeOperation = "source-over";
+            var noline = style.lineOpacity === 0;
+            if (style.lineDasharray && style.lineDasharray.length > 0) {
+                if (ctx.setLineDash) {
+                    ctx.setLineDash(style.lineDasharray);
+                    ctx.lineDashOffset = style.lineDashOffset || 0;
+                    this.drawDotedLine(ctx, hitCtx, points, startIndex, part, style, isRegion, noline);
+                    ctx.setLineDash([]);
+                } else {
+                    if (!noline) {
+                        var lineDasharray = style.lineDasharray,
+                            lineDashOffset = style.lineDashOffset || 0;
+                        if (style.strokeOpacity /* && i!==0 */ ) {
+                            ctx.globalAlpha = style.strokeOpacity;
+                        }
+                        this._drawDoteLine(ctx, hitCtx, points, startIndex, part, style, lineDasharray, lineDashOffset);
                     }
-                }else{
-                    ctx.globalCompositeOperation = "xor";
-                    if(hitCtx){
-                        hitCtx.globalCompositeOperation = "xor";
+                    if (isRegion) {
+                        if (style.fillOpacity /* && i!==0 */ ) {
+                            ctx.globalAlpha = style.fillOpacity;
+                        }
+                        this.drawDotedLine(ctx, hitCtx, points, startIndex, part, style, true, true);
                     }
                 }
-            }
-            var noline=style.lineOpacity==0?true:false;
-            if(style.lineDasharray&&style.lineDasharray.length>0){
-               if(ctx.setLineDash){
-                   ctx.setLineDash(style.lineDasharray);
-                   ctx.lineDashOffset=style.lineDashOffset||0;
-                   this.drawDotedLine(ctx,hitCtx,points,startIndex,part,style,isRegion,noline);
-                   ctx.setLineDash([]);
-               }else{
-                   if(!noline){
-                       var lineDasharray=style.lineDasharray,lineDashOffset=style.lineDashOffset||0;
-                       if(style.strokeOpacity){
-                           ctx.globalAlpha=style.strokeOpacity;
-                       }
-                       this._drawDoteLine(ctx,hitCtx,points,startIndex,part,style,lineDasharray,lineDashOffset);
-                   }
-                   if(isRegion){
-                       if(style.fillOpacity){
-                           ctx.globalAlpha=style.fillOpacity;
-                       }
-                       this.drawDotedLine(ctx,hitCtx,points,startIndex,part,style,true,true);
-                   }
-               }
-            }else{
-                this.drawDotedLine(ctx,hitCtx,points,startIndex,part,style,isRegion,noline);
+            } else {
+                this.drawDotedLine(ctx, hitCtx, points, startIndex, part, style, isRegion, noline);
             }
             startIndex += part;
         }
@@ -530,50 +528,93 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * length - 线的点数
      * offset -线的偏移值
      * */
-    drawDotedLine:function(ctx,hitCtx,points,startIndex,length,style,isRegion,noLine){
-        var offset=style.offset;
+    drawDotedLine: function(ctx, hitCtx, points, startIndex, length, style, isRegion, noLine) {
+        var offset = style.offset;
         ctx.beginPath();
-        var x=points[startIndex * 2],y=points[startIndex * 2 + 1];
-        x+=offset.x||0;
-        y+=offset.y||0;
-        ctx.moveTo(x,y);
-        if(hitCtx){
-            hitCtx.beginPath();
-            hitCtx.moveTo(x,y);
+        var x = points[startIndex * 2],
+            y = points[startIndex * 2 + 1];
+        if ((x === 0 && y === 0) || (x === 258 && y === 0) || (x === 258 && y === 258) || (x === 0 && y === 258) && length === 4) {
+            //debugger
         }
+        x += offset.x || 0;
+        y += offset.y || 0;
+        ctx.moveTo(x, y);
+        if (hitCtx) {
+            hitCtx.beginPath();
+            hitCtx.moveTo(x, y);
+        }
+        //判断顺时针和逆时针
+        var s = y * (points[(length + startIndex - 1) * 2] - points[(startIndex + 1) * 2]);
+        var isClockWise = true;
         for (var j = 1; j < length; j++) {
             var ptIndex = startIndex + j;
-            var x1= points[  ptIndex * 2];
-            var y1=points[ ptIndex * 2 + 1];
-            x1+=offset.x||0;
-            y1+=offset.y||0;
-            ctx.lineTo(x1,y1);
-            if(hitCtx){
-                hitCtx.lineTo(x1,y1);
+            var xIdx = ptIndex * 2,
+                yIdx = ptIndex * 2 + 1;
+            var x1 = points[xIdx];
+            var y1 = points[yIdx];
+            x1 += offset.x || 0;
+            y1 += offset.y || 0;
+            ctx.lineTo(x1, y1);
+            if (hitCtx) {
+                hitCtx.lineTo(x1, y1);
             }
+            var nextPointX;
+            if (j === length - 1) {
+                nextPointX = x;
+            } else {
+                nextPointX = points[(ptIndex + 1) * 2];
+            }
+            s += y1 * (points[(ptIndex - 1) * 2] - nextPointX);
         }
-        if(!noLine){
+        if (length < 3) {
+            isClockWise = true;
+        } else {
+            s *= 0.5;
+            isClockWise = !!(s > 0);
+        }
+        if (!noLine) {
             //设置线的透明度
-            if(style.strokeOpacity){
-                ctx.globalAlpha=style.strokeOpacity;
+
+            if (style.strokeOpacity !== null || style.strokeOpacity !== undefined) {
+                ctx.globalAlpha = style.strokeOpacity;
+            } else {
+                ctx.globalAlpha = 1;
+            }
+            ctx.globalCompositeOperation = "source-over";
+            if (hitCtx) {
+                hitCtx.globalCompositeOperation = "source-over";
             }
             ctx.stroke();
         }
-        if(isRegion){
+        if (isRegion) {
             //设置面的透明度
-            if(style.fillOpacity){
-                ctx.globalAlpha=style.fillOpacity;
+            if (style.fillOpacity !== null || style.fillOpacity !== undefined) {
+                ctx.globalAlpha = style.fillOpacity;
             }
-            if(style.fillOpacity!==0){
+            if (this.isSupportHoles) {
+                if (isClockWise) {
+                    ctx.globalCompositeOperation = "source-over";
+                    if (hitCtx) {
+                        hitCtx.globalCompositeOperation = "source-over";
+                    }
+                } else {
+                    ctx.globalCompositeOperation = "destination-out";
+                    if (hitCtx) {
+                        hitCtx.globalCompositeOperation = "destination-out";
+                    }
+                    ctx.globalAlpha = 1;
+                }
+            }
+            if (ctx.globalAlpha !== 0) {
                 ctx.closePath();
                 ctx.fill();
             }
         }
-        if(hitCtx){
-            if(!noLine){
+        if (hitCtx) {
+            if (!noLine) {
                 hitCtx.stroke();
             }
-            if(isRegion){
+            if (isRegion) {
                 hitCtx.closePath();
                 hitCtx.fill();
             }
@@ -584,81 +625,83 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * Property: _drawDoteLine
      * ie9及ie10下使用的绘制虚线算法
      * */
-    _drawDoteLine:function(ctx,hitCtx,points,startIndex,length,style,lineDasharray,lineDashOffset){
-        var offset=style.offset,strokeStyle=style.strokeStyle;
-        var drawingState={lineDashOffset:lineDashOffset,drawing:true,patternIndex:0,styleInited:true};
+    _drawDoteLine: function(ctx, hitCtx, points, startIndex, length, style, lineDasharray, lineDashOffset) {
+        var offset = style.offset,
+            strokeStyle = style.strokeStyle;
+        var drawingState = { lineDashOffset: lineDashOffset, drawing: true, patternIndex: 0, styleInited: true };
 
-        for(var i=0;i<length-1;i++){
-           var ptIndex=startIndex+i;
-           var x00=points[ptIndex*2],y00=points[ptIndex*2+1],x01=points[ptIndex*2+2],y01=points[ptIndex*2+3];
-            x00+=offset.x||0;
-            y00+=offset.y||0;
-            x01+=offset.x||0;
-            y01+=offset.y||0;
-           var preStop=[x00,y00];
-           var nextStop=[x01,y01];
+        for (var i = 0; i < length - 1; i++) {
+            var ptIndex = startIndex + i;
+            var x00 = points[ptIndex * 2],
+                y00 = points[ptIndex * 2 + 1],
+                x01 = points[ptIndex * 2 + 2],
+                y01 = points[ptIndex * 2 + 3];
+            x00 += offset.x || 0;
+            y00 += offset.y || 0;
+            x01 += offset.x || 0;
+            y01 += offset.y || 0;
+            var preStop = [x00, y00];
+            var nextStop = [x01, y01];
 
-           this.drawSegment(ctx,lineDasharray,preStop,nextStop,drawingState,strokeStyle);
+            this.drawSegment(ctx, lineDasharray, preStop, nextStop, drawingState, strokeStyle);
 
-           if(hitCtx){
-               if(i===0){
-                   hitCtx.beginPath();
-                   hitCtx.moveTo(x00,y00);
-                   hitCtx.lineTo(x01,y01);
-               }else{
-                   hitCtx.lineTo(x01,y01);
-               }
-           }
+            if (hitCtx) {
+                if (i === 0) {
+                    hitCtx.beginPath();
+                    hitCtx.moveTo(x00, y00);
+                    hitCtx.lineTo(x01, y01);
+                } else {
+                    hitCtx.lineTo(x01, y01);
+                }
+            }
         }
 
-        if(hitCtx){
+        if (hitCtx) {
             hitCtx.stroke();
         }
     },
 
-    drawSegment:function(ctx,pattern,preStop,nextStop,drawingState,strokeStyle){
-        var offsetX=nextStop[0]-preStop[0];
-        var offsetY=nextStop[1]-preStop[1];
-        var distance=Math.sqrt(offsetX*offsetX+offsetY*offsetY);
-        offsetX=offsetX/distance;
-        offsetY=offsetY/distance;
+    drawSegment: function(ctx, pattern, preStop, nextStop, drawingState, strokeStyle) {
+        var offsetX = nextStop[0] - preStop[0];
+        var offsetY = nextStop[1] - preStop[1];
+        var distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+        offsetX = offsetX / distance;
+        offsetY = offsetY / distance;
 
-        var drawOffset=drawingState.lineDashOffset;
-        var drawIndex=drawingState.patternIndex;
-        var drawing=drawingState.drawing;
-        var styleInited=drawingState.styleInited;
+        var drawOffset = drawingState.lineDashOffset;
+        var drawIndex = drawingState.patternIndex;
+        var drawing = drawingState.drawing;
+        var styleInited = drawingState.styleInited;
 
-        var tempStop=preStop;
+        var tempStop = preStop;
 
-        while(drawOffset<distance){
-            if(!drawingState.linkNext){
+        while (drawOffset < distance) {
+            if (!drawingState.linkNext) {
                 ctx.beginPath();
-                ctx.moveTo(tempStop[0],tempStop[1]);
+                ctx.moveTo(tempStop[0], tempStop[1]);
             }
 
-            drawOffset+=pattern[drawIndex];
+            drawOffset += pattern[drawIndex];
 
-            if(drawOffset>=distance){
-                drawingState.lineDashOffset=drawOffset-distance-pattern[drawIndex];
+            if (drawOffset >= distance) {
+                drawingState.lineDashOffset = drawOffset - distance - pattern[drawIndex];
                 drawingState.patternIndex = drawIndex;
                 drawingState.drawing = drawing;
                 drawingState.styleInited = styleInited;
-                drawingState.linkNext=true;
+                drawingState.linkNext = true;
                 drawOffset = distance;
+            } else {
+                drawingState.linkNext = false;
             }
-            else{
-                drawingState.linkNext=false;
-            }
-            if(drawing){
-                ctx.strokeStyle=strokeStyle;
-            }
-            else{
-                ctx.strokeStyle="rgba(0,0,0,0)";
+            if (drawing) {
+                ctx.strokeStyle = strokeStyle;
+            } else {
+                ctx.strokeStyle = "rgba(0,0,0,0)";
             }
 
-            tempStop=[preStop[0]+drawOffset*offsetX,preStop[1]+drawOffset*offsetY];
-            ctx.lineTo(tempStop[0],tempStop[1]);
-            if(!drawingState.linkNext){
+            tempStop = [preStop[0] + drawOffset * offsetX, preStop[1] + drawOffset * offsetY];
+            ctx.lineTo(tempStop[0], tempStop[1]);
+            if (!drawingState.linkNext) {
                 ctx.stroke();
             }
             drawing = !drawing;
@@ -675,9 +718,9 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * hitCtx - {CanvasRenderingContext2D} Canvas绘制上下文
      * geometry - {Object} 面几何体，其拥有parts和points两个属性
      * style - {Object} 渲染风格
-    * */
-    drawRegion:function(ctx,hitCtx,geometry, style){
-        return this.drawLine(ctx,hitCtx,geometry,style,true);
+     * */
+    drawRegion: function(ctx, hitCtx, geometry, style) {
+        return this.drawLine(ctx, hitCtx, geometry, style, true);
     },
 
     /**
@@ -685,12 +728,12 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * 将异步请求点图片的回调函数设置为空，以在地图缩放级别改变后不再加载上一个缩放级别的点图片
      */
     clear: function() {
-        var imagesBackup=this.imagesBackup;
-        for(var i= 0,len=imagesBackup.length;i<len;i++){
-            var img=imagesBackup[i];
-            img&&(img.onload=null);
+        var imagesBackup = this.imagesBackup;
+        for (var i = 0, len = imagesBackup.length; i < len; i++) {
+            var img = imagesBackup[i];
+            img && (img.onload = null);
         }
-        imagesBackup.length=0;
+        imagesBackup.length = 0;
     },
 
     /**
@@ -705,19 +748,19 @@ SuperMap.CartoRenderer = SuperMap.Class({
      * Returns:
      * {String} RGB值.
      */
-    featureIdToHex: function(featureId,layerIndex) {
+    featureIdToHex: function(featureId, layerIndex) {
         var id = featureId + 1; // zero for no feature
-        var index=layerIndex+1;
+        var index = layerIndex + 1;
         if (id >= 16777216) {
             //this.hitOverflow = id - 16777215;
             id = id % 16777216 + 1;
         }
         var hex00 = "0000" + id.toString(16);
         var len = hex00.length;
-        hex00 = hex00.substring(len-4, len);
-        var hex01="00"+index.toString(16);
-        len=hex01.length;
-        hex01="#"+hex01.substring(len-2,len)+hex00;
+        hex00 = hex00.substring(len - 4, len);
+        var hex01 = "00" + index.toString(16);
+        len = hex01.length;
+        hex01 = "#" + hex01.substring(len - 2, len) + hex00;
         return hex01;
     },
 
@@ -733,87 +776,89 @@ SuperMap.CartoRenderer = SuperMap.Class({
  * 应着面要素的渲染属性，比如面填充色。其他的几个类型的属性则是共用的属性。
  */
 SuperMap.CartoRenderer._expandCanvasStyle = {
-    "TEXT":{
-        font:"10px sans-serif",
-        textAlign:"middle",
-        textBaseline:"center",
-        direction:"ltr",
+    "TEXT": {
+        font: "10px sans-serif",
+        textAlign: "middle",
+        textBaseline: "center",
+        direction: "ltr",
         /*expand*/
-        bold:false,
-        haloRadius:0,
-        backColor:"rgba(255,255,255,1)",
-        foreColor:"rgba(0,0,0,0)",
-        offsetX:0,
-        offsetY:0,
-        textHeight:0,
+        bold: false,
+        haloRadius: 0,
+        backColor: "rgba(255,255,255,1)",
+        foreColor: "rgba(0,0,0,0)",
+        offsetX: 0,
+        offsetY: 0,
+        textHeight: 0,
 
-        globalAlpha:1,
-        globalCompositeOperation:"source-over",
-        imageSmoothingEnabled:true
+        globalAlpha: 1,
+        globalCompositeOperation: "source-over",
+        imageSmoothingEnabled: true
     },
     /*expand*/
-    "POINT":{
-        pointFile:"",
+    "POINT": {
+        pointFile: "",
 
         /*expand*/
-        pointRadius:3,
-        pointHaloRadius:1,
-        pointHaloColor:"#c33",
-        offsetX:0,
-        offsetY:0,
-        fillStyle:"#fc0",
+        pointRadius: 3,
+        pointHaloRadius: 1,
+        pointHaloColor: "#c33",
+        offsetX: 0,
+        offsetY: 0,
+        fillStyle: "#fc0",
 
-        globalAlpha:1,
-        globalCompositeOperation:"source-over",
-        imageSmoothingEnabled:true
+        globalAlpha: 1,
+        globalCompositeOperation: "source-over",
+        imageSmoothingEnabled: true
     },
-    "LINE":{
-        strokeStyle:"rgba(0,0,0,0)",
-        lineWidth:1,
-        lineCap:"butt",
-        lineJoin:"round",
-        miterLimit:10,
-        lineDashOffset:0,
+    "LINE": {
+        strokeStyle: "rgba(0,0,0,0)",
+        lineWidth: 1,
+        lineCap: "butt",
+        lineJoin: "round",
+        miterLimit: 10,
+        lineDashOffset: 0,
         /*expand*/
-        lineDasharray:[],
-        offset:0,
+        lineDasharray: [],
+        strokeOpacity: 1,
+        offset: 0,
 
-        globalAlpha:1,
-        globalCompositeOperation:"source-over",
-        imageSmoothingEnabled:true
+        globalAlpha: 1,
+        globalCompositeOperation: "source-over",
+        imageSmoothingEnabled: true
     },
-    "REGION":{
+    "REGION": {
         /*包含LINE的部分*/
-        strokeStyle:"rgba(0,0,0,0)",
-        lineWidth:1,
-        lineCap:"butt",
-        lineJoin:"round",
-        miterLimit:10,
-        lineDashOffset:0,
+        strokeStyle: "rgba(0,0,0,0)",
+        lineWidth: 1,
+        lineCap: "butt",
+        lineJoin: "round",
+        miterLimit: 10,
+        lineDashOffset: 0,
         /*expand*/
-        lineOpacity:1,
-        lineDasharray:[],
+        lineOpacity: 1,
+        fillOpacity: 1,
+        lineDasharray: [],
 
         fillStyle: "rgba(0,0,0,0)",
-        polygonOpacity:1,
+        polygonOpacity: 1,
 
         /*expand*/
-        offsetX:0,
-        offsetY:0,
+        offsetX: 0,
+        offsetY: 0,
 
-        globalAlpha:1,
-        globalCompositeOperation:"source-over",
-        imageSmoothingEnabled:true
+        globalAlpha: 1,
+        globalCompositeOperation: "source-over",
+        imageSmoothingEnabled: true
     },
-    "SHADOW":{
-        shadowBlur:0,
-        shadowColor:"rgba(0,0,0,0)",
-        shadowOffsetX:0,
-        shadowOffsetY:0
+    "SHADOW": {
+        shadowBlur: 0,
+        shadowColor: "rgba(0,0,0,0)",
+        shadowOffsetX: 0,
+        shadowOffsetY: 0
     },
-    "GLOBAL":{
-        globalAlpha:1,
-        globalCompositeOperation:"source-over",
-        imageSmoothingEnabled:true
+    "GLOBAL": {
+        globalAlpha: 1,
+        globalCompositeOperation: "source-over",
+        imageSmoothingEnabled: true
     }
 };

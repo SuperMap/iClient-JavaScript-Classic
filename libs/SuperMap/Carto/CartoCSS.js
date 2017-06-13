@@ -4443,6 +4443,7 @@ SuperMap.CartoCSS.Tree.Ruleset=SuperMap.Class({
     },
     'ev': function(env) {
         var i,
+            rule,
             ruleset = new SuperMap.CartoCSS.Tree.Ruleset(this.selectors, this.rules.slice(0));
         ruleset.root = this.root;
 
@@ -4451,7 +4452,7 @@ SuperMap.CartoCSS.Tree.Ruleset=SuperMap.Class({
 
         // Evaluate everything else
         for (i = 0, rule; i < ruleset.rules.length; i++) {
-            var rule = ruleset.rules[i];
+            rule = ruleset.rules[i];
             ruleset.rules[i] = rule.ev ? rule.ev(env) : rule;
         }
 

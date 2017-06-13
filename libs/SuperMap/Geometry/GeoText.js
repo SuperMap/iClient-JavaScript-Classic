@@ -86,6 +86,7 @@ SuperMap.Geometry.GeoText = SuperMap.Class(SuperMap.Geometry, {
         this.x = parseFloat(x);
         this.y = parseFloat(y);
         this.text = text.toString();
+        this.element = document.createElement('span');
     },
 
     destroy:function(){
@@ -291,6 +292,7 @@ SuperMap.Geometry.GeoText = SuperMap.Class(SuperMap.Geometry, {
         var text,//文本内容
              fontSize,//字体大小
              spacing = 1,//两个字符间的间距（单位：px）
+             lineSpacing = 0.2,
              bgstrokeWidth = parseFloat(style.strokeWidth);//标签背景框边框的宽度
 
         text = style.label || this.text;
@@ -307,16 +309,36 @@ SuperMap.Geometry.GeoText = SuperMap.Class(SuperMap.Geometry, {
         var numRows = textRows.length;
 
         if(numRows > 1 ){
-            labelH = fontSize*numRows + numRows + bgstrokeWidth;
+            labelH = fontSize*numRows + numRows + bgstrokeWidth + lineSpacing * fontSize;
         }else{
-            labelH = fontSize + bgstrokeWidth + 1 ;
+            labelH = fontSize + bgstrokeWidth + lineSpacing * fontSize + 1 ;
         }
 
         //取最大宽度
         labelW = 0;
+        if(this.labelWTmp && labelW < this.labelWTmp){
+            labelW = this.labelWTmp;
+        }
         for (var i = 0; i < numRows; i++) {
             var textCharC = this.getTextCount(textRows[i]);
-            var labelWTmp = textCharC.cnC*fontSize + textCharC.enC*(fontSize/2) + textCharC.textC*spacing + bgstrokeWidth + 1;
+            var labelWTmp = this.labelWTmp = this.getTextWidth(style, textRows[i]) + textCharC.textC*spacing + bgstrokeWidth;
+            // var labelWTmp = textCharC.cnC*fontSize + textCharC.enC*(fontSize/2) + textCharC.textC*spacing + bgstrokeWidth + 1;
+            // var labelWTmp = this.getTextWidth(style);
+            // var labelCNWTmp = textCharC.cnC*fontSize;
+            // var labelSpacingWTmp = textCharC.textC*spacing + bgstrokeWidth + 1;
+            // var labelENWTmp = 0;
+            // for(var j=0; j < text.length; j++){
+            //     if(text.charCodeAt(i) <= 255){ //遍历判断字符串中每个字符的Unicode码,小于等于255则为英文
+            //         if(text.charCodeAt(i) == 87) {
+            //             labelENWTmp += fontSize * 0.9;
+            //         } else if (text.charCodeAt(i) == 119) {
+            //             labelENWTmp += fontSize * 0.7;
+            //         } else {
+            //             labelENWTmp += fontSize * 0.5;
+            //         }
+            //     }
+            // }
+            // var labelWTmp = labelCNWTmp + labelENWTmp + labelSpacingWTmp;
             if(labelW < labelWTmp){
                 labelW = labelWTmp;
             }
@@ -327,6 +349,92 @@ SuperMap.Geometry.GeoText = SuperMap.Class(SuperMap.Geometry, {
         labelSize.w = labelW;
 
         return labelSize;
+    },
+
+    getTextWidth: function(style, text) {
+        document.body.appendChild(this.element);
+        this.element.style.width = 'auto';
+        this.element.style.height = 'auto';
+        if(style.fontSize) this.element.style.fontSize = style.fontSize;
+        if(style.fontFamily) this.element.style.fontFamily = style.fontFamily;
+        if(style.fontWeight) this.element.style.fontWeight = style.fontWeight;
+        this.element.style.position = 'absolute';
+        this.element.style.visibility = 'hidden';
+        this.element.innerHTML = text;
+        var textWidth = this.element.clientWidth;
+        document.body.removeChild(this.element);
+        return textWidth;
+    },
+
+    /**
+     * Method: getTextBounds
+     * 获取文字地理范围。
+     */
+    getBoundsByText: function(map, style) {
+        this.labelWTmp = null;
+        var tempStyle = {};
+        tempStyle = SuperMap.Util.copyAttributes(tempStyle, style);
+        tempStyle.label = this.text;
+        tempStyle.fontSize = parseFloat(tempStyle.fontSize);
+        if(tempStyle.fontSize < 12){
+            tempStyle.fontSize = 12;
+        }
+        tempStyle.fontSize = tempStyle.fontSize.toString() + "px";
+
+        if(tempStyle.fontPercent === undefined){
+            tempStyle.fontPercent = 100;
+        }
+        if(tempStyle.fontPercent < 0){
+            tempStyle.fontPercent = 0;
+        }
+        if(tempStyle.fontPercent > 400){
+            tempStyle.fontPercent = 400;
+        }
+
+        if(tempStyle.fontSpace === undefined){
+            tempStyle.fontSpace = 0;
+        }
+        if(tempStyle.fontSpace > 30){
+            tempStyle.fontSpace = 30;
+        }
+        if(tempStyle.fontSpace < 0){
+            tempStyle.fontSpace = 0;
+        }
+
+        var locationPixel = map.getPixelFromLonLat(new SuperMap.LonLat(this.x, this.y));
+        var pixelBounds = this.getLabelPxBoundsByText(locationPixel, tempStyle);
+        var extendWidth = ((pixelBounds.getWidth() + tempStyle.fontSpace * (this.text.length -1))*(tempStyle.fontPercent/100)) - pixelBounds.getWidth();
+        if (tempStyle.labelAlign && (tempStyle.labelAlign === "lt" || tempStyle.labelAlign === "lm" || tempStyle.labelAlign === "lb")) {
+            pixelBounds.right += extendWidth;
+        } else if(tempStyle.labelAlign && (tempStyle.labelAlign === "rt" || tempStyle.labelAlign === "rm" || tempStyle.labelAlign === "rb")) {
+            pixelBounds.left -= extendWidth;
+        } else if(tempStyle.labelAlign && (tempStyle.labelAlign === "ct" || tempStyle.labelAlign === "cm" || tempStyle.labelAlign === "cb")) {
+            pixelBounds.left -= extendWidth/2;
+            pixelBounds.right += extendWidth/2;
+        }
+
+
+        var ltLonLat = map.getLonLatFromPixel(new SuperMap.Pixel(pixelBounds.left, pixelBounds.top));
+        var rbLonLat = map.getLonLatFromPixel(new SuperMap.Pixel(pixelBounds.right, pixelBounds.bottom));
+
+        var boundsNoRotation = new SuperMap.Bounds(ltLonLat.lon, rbLonLat.lat, rbLonLat.lon, ltLonLat.lat);
+
+        if(tempStyle.labelRotation){
+            var rectBounds = [];
+            rectBounds.push(new SuperMap.Geometry.Point(boundsNoRotation.left, boundsNoRotation.top));
+            rectBounds.push(new SuperMap.Geometry.Point(boundsNoRotation.right, boundsNoRotation.top));
+            rectBounds.push(new SuperMap.Geometry.Point(boundsNoRotation.right, boundsNoRotation.bottom));
+            rectBounds.push(new SuperMap.Geometry.Point(boundsNoRotation.left, boundsNoRotation.bottom));
+
+            for(var i = 0; i < rectBounds.length; i++){
+                rectBounds[i].rotate(-tempStyle.labelRotation, new SuperMap.Geometry.Point(this.x, this.y));
+            }
+
+            var rectGeo = new SuperMap.Geometry.LineString(rectBounds);
+            return rectGeo.getBounds();
+        } else {
+            return boundsNoRotation;
+        }
     },
 
     /**

@@ -130,7 +130,8 @@
                         datasetNames:[densityKernelAnalysEventArgs.result.dataset.split('@')[0]],
                         dataSourceNames: ["Changchun"],
                         joinItems: null,
-                        themes: [themeGridRange]
+                        themes: [themeGridRange],
+                        types:['REGION']
                     });
             var themeService = new SuperMap.REST.ThemeService(url, {
                 eventListeners:{

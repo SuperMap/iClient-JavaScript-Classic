@@ -50,8 +50,9 @@ SuperMap.Control.DrawFeature = SuperMap.Class(SuperMap.Control, {
      * {Array(String)} 支持的事件类型。
      * 支持的事件类型:
      * featureadded - 添加要素时触发此事件，触发此事件时会传入事件参数，事件参数包含了绘制的要素 feature 信息。
+     * beforefeatureadded - 创建要素触发此事件，触发此事件时会传入事件参数，事件参数包含了绘制的要素 feature 信息。
      */
-    EVENT_TYPES: ["featureadded"],
+    EVENT_TYPES: ["featureadded", "beforefeatureadded"],
     
     /**
      * APIProperty: multi
@@ -126,7 +127,13 @@ SuperMap.Control.DrawFeature = SuperMap.Class(SuperMap.Control, {
                         "sketchmodified", {vertex: vertex, feature: feature}
                     );
                 },
+                point: function(vertex, feature) {
+                    this.layer.events.triggerEvent(
+                        "sketchaddvertex", {vertex: vertex, feature: feature}
+                    );
+                },
                 create: function(vertex, feature) {
+                    this.events.triggerEvent("beforefeatureadded",{feature : feature});
                     this.layer.events.triggerEvent(
                         "sketchstarted", {vertex: vertex, feature: feature}
                     );

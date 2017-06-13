@@ -65,7 +65,7 @@ test("TestUTFGrid_Token", function () {
 });
 
 asyncTest("TestUTFGrid_Mapscales", function () {
-    expect(2);
+
 	SuperMap.Credential.CREDENTIAL = null;
         layer = new SuperMap.Layer.UTFGrid("utfgrid", ChinaURL,
         {
@@ -87,7 +87,10 @@ asyncTest("TestUTFGrid_Mapscales", function () {
             try{
                 ok(layer instanceof SuperMap.Layer.UTFGrid, "utfgrid instance");
                 var featureInfo= layer.getFeatureInfo(new SuperMap.LonLat(10011529.10801,4770950.00356));
-                equal(featureInfo,null, "feature is null");
+                if(featureInfo != null) {
+                    equal(featureInfo.id,'', "feature.id is ''");
+                    equal(featureInfo.data,undefined, "feature.data is undefined");
+                }
                 start();
             }
             catch(excepion){

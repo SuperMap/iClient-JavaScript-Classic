@@ -360,7 +360,7 @@
 /* icons */
 .plotting-lyphicon-save-simulationMap:before {
     content: "\e172";
-    font-size: 20px;
+    font-size: 18px;
     color: rgb(0, 0, 0);
 }
 
@@ -408,4 +408,48 @@
     color: rgb(0, 0, 0);
 }
 
+.glyphicon-pencil:before {
+    font-size: 20px;
+    color: rgb(0, 0, 0);
+}
+
+.glyphicon-edit:before {
+    font-size: 20px;
+    color: rgb(0, 0, 0);
+}
+
+.glyphicon-lock:before {
+    font-size: 20px;
+    color: rgb(0, 0, 0);
+}
+
+.glyphicon-check:before {
+    font-size: 20px;
+    color: rgb(0, 0, 0);
+}
+
+.glyphicon-align-justify:before {
+    font-size: 20px;
+    color: rgb(0, 0, 0);
+}
+
+.glyphicon-retweet:before {
+    font-size: 20px;
+    color: rgb(0, 0, 0);
+}
+
+.glyphicon-adjust:before {
+    font-size: 20px;
+    color: rgb(0, 0, 0);
+}
+
+.glyphicon-gift:before {
+    font-size: 20px;
+    color: rgb(0, 0, 0);
+}
+
+.glyphicon-cog:before {
+    font-size: 20px;
+    color: rgb(0, 0, 0);
+}
 

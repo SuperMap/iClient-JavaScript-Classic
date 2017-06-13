@@ -6,7 +6,7 @@
 module('Query');
 
 var query = new SuperMap.Plot.Query();
-var libId = 421;
+var libID = 421;
 var code = 10100;
 var symbolLibManager,layer,plottingLayer,plotting,map;
 test("testQuery_Constructor", function () {
@@ -37,13 +37,13 @@ asyncTest("testQuery_captureGObject", function () {
     function plotSymbol() {
         var pts = [];
         var polygonPoints = [new SuperMap.Geometry.Point(200, 300)];
-        plottingLayer.createSymbol(libId, code, polygonPoints);
+        plottingLayer.createSymbol(libID, code, polygonPoints);
         var polygonPoints1 = [new SuperMap.Geometry.Point(200, 100)];
-        plottingLayer.createSymbol(libId, code, polygonPoints1);
+        plottingLayer.createSymbol(libID, code, polygonPoints1);
         var polygonPoints2 = [new SuperMap.Geometry.Point(180, 150)];
-        plottingLayer.createSymbol(libId, code, polygonPoints2);
+        plottingLayer.createSymbol(libID, code, polygonPoints2);
         var polygonPoints3 = [new SuperMap.Geometry.Point(450, 320)];
-        plottingLayer.createSymbol(libId, code, polygonPoints3);
+        plottingLayer.createSymbol(libID, code, polygonPoints3);
         pts.push(polygonPoints, polygonPoints1, polygonPoints2, polygonPoints3);
     }
 
@@ -95,13 +95,13 @@ asyncTest("testQuery_getGObjectsInPolygon", function () {
 
     function plotSymbol() {
         var polygonPoints = [new SuperMap.Geometry.Point(200, 150)];
-        plottingLayer.createSymbol(libId, code, polygonPoints);
+        plottingLayer.createSymbol(libID, code, polygonPoints);
         var polygonPoints1 = [new SuperMap.Geometry.Point(200, 100)];
-        plottingLayer.createSymbol(libId, code, polygonPoints1);
+        plottingLayer.createSymbol(libID, code, polygonPoints1);
         var polygonPoints3 = [new SuperMap.Geometry.Point(180, 100)];
-        plottingLayer.createSymbol(libId, code, polygonPoints3);
+        plottingLayer.createSymbol(libID, code, polygonPoints3);
         var polygonPoints4 = [new SuperMap.Geometry.Point(450, 210)];
-        plottingLayer.createSymbol(libId, code, polygonPoints4);
+        plottingLayer.createSymbol(libID, code, polygonPoints4);
     }
 
     setTimeout(function () {
@@ -136,13 +136,13 @@ asyncTest("testQuery_getGObjectsInCircle", function () {
 
     function symbolLibInitializeCompleted() {
         var polygonPoints = [new SuperMap.Geometry.Point(200, 150)];
-        plottingLayer.createSymbol(libId, code, polygonPoints);
+        plottingLayer.createSymbol(libID, code, polygonPoints);
         var polygonPoints1 = [new SuperMap.Geometry.Point(200, 100)];
-        plottingLayer.createSymbol(libId, code, polygonPoints1);
+        plottingLayer.createSymbol(libID, code, polygonPoints1);
         var polygonPoints3 = [new SuperMap.Geometry.Point(180, 150)];
-        plottingLayer.createSymbol(libId, code, polygonPoints3);
+        plottingLayer.createSymbol(libID, code, polygonPoints3);
         var polygonPoints4 = [new SuperMap.Geometry.Point(450, 200)];
-        plottingLayer.createSymbol(libId, code, polygonPoints4);
+        plottingLayer.createSymbol(libID, code, polygonPoints4);
     }
 
     setTimeout(function () {
@@ -172,13 +172,13 @@ asyncTest("testQuery_getGObjectsInRect", function () {
     }
     function symbolLibInitializeCompleted() {
         var polygonPoints = [new SuperMap.Geometry.Point(200, 300)];
-        plottingLayer.createSymbol(libId, code, polygonPoints);
+        plottingLayer.createSymbol(libID, code, polygonPoints);
         var polygonPoints1 = [new SuperMap.Geometry.Point(120, 180)];
-        plottingLayer.createSymbol(libId, code, polygonPoints1);
+        plottingLayer.createSymbol(libID, code, polygonPoints1);
         var polygonPoints2 = [new SuperMap.Geometry.Point(230, 260)];
-        plottingLayer.createSymbol(libId, code, polygonPoints2);
+        plottingLayer.createSymbol(libID, code, polygonPoints2);
         var polygonPoints3 = [new SuperMap.Geometry.Point(450, 320)];
-        plottingLayer.createSymbol(libId, code, polygonPoints3);
+        plottingLayer.createSymbol(libID, code, polygonPoints3);
     }
 
     setTimeout(function () {

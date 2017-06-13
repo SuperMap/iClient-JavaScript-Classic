@@ -21,6 +21,23 @@ SuperMap.Layer.HTTPRequest = SuperMap.Class(SuperMap.Layer, {
      */
     URL_HASH_FACTOR: (Math.sqrt(5) - 1) / 2,
 
+
+    /** 
+     * APIProperty: proxy
+     * {String} 图层需要用到的代理地址，这个地址会直接拼接到图层的相应的url前面，
+     * 格式为：'http://localhost:8090/proxy?url='
+     * 
+     */
+    proxy:null,
+
+    /**
+     * APIProperty: tileProxy
+     * {String} 图层需要用到的瓦片代理地址，这个地址会直接拼接到图层的瓦片相应的url前面，假如此值没有被设置，则会使用proxy参数
+     * 格式为：'http://localhost:8090/proxy.png?url='
+     *
+     */
+    tileProxy:null,
+
     /** 
      * Property: url
      * {Array(String) or String} This is either an array of url strings or 

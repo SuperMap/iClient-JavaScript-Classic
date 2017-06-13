@@ -15,7 +15,7 @@
  * 地图类。
  * 用于实例化map类创建一个新地图，实现地图在客户端的交互操作，可通过给创建的map添加图层和控件来扩展应用，
  * 在创建地图时，如果没有添加指定的控件，则默认Navigation、PanZoomBar控件。
- */  
+ */
 SuperMap.Map = SuperMap.Class({
 
  /**
@@ -77,8 +77,8 @@ SuperMap.Map = SuperMap.Class({
      *  - *click* 鼠标在地图上单击时被触发。
      *  - *changebaselayer* 改变基础图层时触发事件。
      */
-    EVENT_TYPES: [ 
-        "preaddlayer", "addlayer","preremovelayer", "removelayer", 
+    EVENT_TYPES: [
+        "preaddlayer", "addlayer","preremovelayer", "removelayer",
         "changelayer", "movestart",
         "move", "moveend", "zoomend", "popupopen", "popupclose",
         "addmarker", "removemarker", "clearmarkers", "mouseover",
@@ -90,19 +90,19 @@ SuperMap.Map = SuperMap.Class({
      * {String} Unique identifier for the map
      */
     id: null,
-    
+
     /**
      * Property: isIESingleTouch
      * {String} 在IE10及windows应用商店中，主要用来解决多点触摸同时触发MSGestureChange和mousemove两个事件, 设置该变量为false，用来禁用DragPan.js中的地图平移事件。默认为true。
      */
     isIESingleTouch: true,
-    
+
     /**
      * Property: isIEMultipeTouch
      * {String} 在IE10及windows应用商店中，主要用来解决多点触摸结束时清除早期的鼠标双击和鼠标滚轮的缩放动画。默认为 false。
      */
     isIEMultipeTouch: false,
-    
+
     /**
      * APIProperty: fractionalZoom
      * {Boolean}
@@ -113,22 +113,21 @@ SuperMap.Map = SuperMap.Class({
      *当你使用fractionalZoom，你需要通过getResolutionForZoom获取Resolution，而不是layer.resolutions[zoom]
      */
     fractionalZoom: false,
-    
+
     /**
      * APIProperty: events
      * {SuperMap.Events} 事件对象,负责触发地图上的所有事件。
      */
     events: null,
-    
+
     /**
      * APIProperty: allOverlays
-     * {Boolean} 地图所有图层都被当做叠加图层来使用，默认是false。如果设置为
-     *     true，则图层相互叠加，最先绘制的图层可以被视为是底图（显示效果上的底图,其isBaseLayer为false）。
-     *     此外，如果将此属性设置为true，
-     *     所有将要添加的图层的"isBaseLayer"属性在添加的时候都会被默认修改成false。
+     * {Boolean} 地图所有图层都被当做叠加图层来使用，默认是false。如果设置为 true，则图层相互叠加，
+     * 最先绘制的图层可以被视为是底图（显示效果上的底图,但其isBaseLayer为false）；
+     * 而且所有将要添加的图层的”isBaseLayer”属性在添加的时候都会被默认修改成false。。
      *
      * 提示:
-     * 如果将map.allOverlays设置为true，则不能设置map.setBaseLayer 
+     * 如果将map.allOverlays设置为true，则不能设置map.setBaseLayer
      *     或者layer.setIsBaseLayer。当设置了allOverlays属性为true时，位于显示索引最
      *     下边的图层会被当做"base layer"，所以，如果想要更改"base layer"，使用
      *      <setLayerIndex>  或者  <raiseLayer>  将图层的index设置为0。
@@ -142,13 +141,13 @@ SuperMap.Map = SuperMap.Class({
      *     个参数。此外，构造函数也能够只接收选项(options)对象作为唯一的参
      *     数，这种情况下，div属性可能会也可能不会被提供。如果div属性没有
      *     被提供，稍后可以使用 <render> 方法指定地图渲染的地方。
-     *     
+     *
      * 提示：
      * 如果在地图定义以后使用 <render> 来指定渲染位置，不要将 <maxResolution>
      *     属性设置为auto，而是使用 <maxExtent> 指定你所期望的最大范围。
      */
     div: null,
-    
+
     /**
      * Property: dragging
      * {Boolean} The map is currently being dragged.
@@ -160,7 +159,7 @@ SuperMap.Map = SuperMap.Class({
      * {<SuperMap.Size>} Size of the main div (this.div)
      */
     size: null,
-    
+
     /**
      * Property: viewPortDiv
      * {HTMLDivElement} The element that represents the map viewport
@@ -179,7 +178,7 @@ SuperMap.Map = SuperMap.Class({
      * {HTMLDivElement} The element that contains the layers.
      */
     layerContainerDiv: null,
-    
+
     /**
      * Property: layerContainerDivCanvas
      * {HTMLDivElement} 这个div专放canvaslayer生成的图层。
@@ -214,7 +213,7 @@ SuperMap.Map = SuperMap.Class({
      * {<SuperMap.Layer>}  用来确定min/max zoom level、projection等属性。
      */
     baseLayer: null,
-    
+
     /**
      * Property: center
      * {<SuperMap.LonLat>} The current center of the map
@@ -231,25 +230,25 @@ SuperMap.Map = SuperMap.Class({
      * Property: zoom
      * {Integer} The current zoom level of the map
      */
-    zoom: 0,    
+    zoom: 0,
 
     /**
      * Property: panRatio
      * {Float} The ratio of the current extent within
      *         which panning will tween.
      */
-    panRatio: 1.5,    
+    panRatio: 1.5,
 
     /**
      * Property: viewRequestID
-     * {String} Used to store a unique identifier that changes when the map 
-     *          view changes. viewRequestID should be used when adding data 
-     *          asynchronously to the map: viewRequestID is incremented when 
-     *          you initiate your request (right now during changing of 
-     *          baselayers and changing of zooms). It is stored here in the 
-     *          map and also in the data that will be coming back 
-     *          asynchronously. Before displaying this data on request 
-     *          completion, we check that the viewRequestID of the data is 
+     * {String} Used to store a unique identifier that changes when the map
+     *          view changes. viewRequestID should be used when adding data
+     *          asynchronously to the map: viewRequestID is incremented when
+     *          you initiate your request (right now during changing of
+     *          baselayers and changing of zooms). It is stored here in the
+     *          map and also in the data that will be coming back
+     *          asynchronously. Before displaying this data on request
+     *          completion, we check that the viewRequestID of the data is
      *          still the same as that of the map. Fix for #480
      */
     viewRequestID: 0,
@@ -268,8 +267,8 @@ SuperMap.Map = SuperMap.Class({
      *           也可以选择设置maxExtent、 maxResolution、 和 units等属性。该项
      *           默认值是"EPSG:4326"。
      */
-    projection: "EPSG:4326",    
-        
+    projection: "EPSG:4326",
+
     /**
      * APIProperty: units
      * {String} 地图的单位。默认是'degrees'。可选值为'degrees'(或者 'dd'),
@@ -279,7 +278,7 @@ SuperMap.Map = SuperMap.Class({
 
     /**
      * APIProperty: resolutions
-     * {Array(Float)} 降序排列的地图分辨率数组 (地图上每个像素代表的尺寸)  
+     * {Array(Float)} 降序排列的地图分辨率数组 (地图上每个像素代表的尺寸)
      *     如果在构造图层时没有设置该属性，可通过比例尺相关的属
      *     性（例如：maxExtent, maxResolution, maxScale等）计算获得。
      */
@@ -319,13 +318,13 @@ SuperMap.Map = SuperMap.Class({
      * {<SuperMap.Bounds>} 用于地图实例化的时候设置地图的最大范围。默认是(-180, -90, 180, 90)。
      */
     maxExtent: null,
-    
+
     /**
      * APIProperty: minExtent
      * {<SuperMap.Bounds>} 用于地图实例化的时候设置地图的最小范围。 默认值是null。
      */
     minExtent: null,
-    
+
     /**
      * APIProperty: restrictedExtent
      * {<SuperMap.Bounds>} 限定地图缩放范围。
@@ -347,15 +346,15 @@ SuperMap.Map = SuperMap.Class({
      *          性（options）对象中指定为null（例如：{theme: null}）。
      */
     theme: null,
-    
-    /** 
+
+    /**
      * APIProperty: displayProjection
      * {<SuperMap.Projection>} 将投影设置为除EPSG:4326 或
      *      EPSG:900913/EPSG:3857以外的投影，需要proj4js的支持。该投影用
      *      于通过控件（controls）向用户展示数据。如果设置了该属性，它就会
      *      被设置到任何一个在添加到地图上的时候displayProjection属性为null的
      *      控件上。
-     * 
+     *
      */
     displayProjection: null,
 
@@ -364,7 +363,7 @@ SuperMap.Map = SuperMap.Class({
      * {Boolean} 用来设置页面元素是否会接收地图触发的事件，默认是 true.
      */
     fallThrough: true,
-    
+
     /**
      * Property: panTween
      * {SuperMap.Tween} Animated panning tween object, see panTo()
@@ -382,7 +381,7 @@ SuperMap.Map = SuperMap.Class({
      * {Function} 作用于平移时的动画效果方法，设置为null时，动画平移将关闭。
      */
     panMethod: SuperMap.Easing.Expo.easeOut,
-    
+
     /**
      * Property: panDuration
      * {Integer} The number of steps to be passed to the
@@ -391,14 +390,14 @@ SuperMap.Map = SuperMap.Class({
      * Default is 50.
      */
     panDuration: 50,
-    
+
     /**
      * Property: paddingForPopups
-     * {<SuperMap.Bounds>} Outside margin of the popup. Used to prevent 
+     * {<SuperMap.Bounds>} Outside margin of the popup. Used to prevent
      *     the popup from getting too close to the map border.
      */
     paddingForPopups : null,
-    
+
     /**
      * Property: minPx
      * {<SuperMap.Pixel>} Lower left of maxExtent in viewport pixel space.
@@ -407,7 +406,7 @@ SuperMap.Map = SuperMap.Class({
      *     of Layer.
      */
     minPx: null,
-    
+
     /**
      * Property: maxPx
      * {<SuperMap.Pixel>} Top right of maxExtent in viewport pixel space.
@@ -437,7 +436,7 @@ SuperMap.Map = SuperMap.Class({
     * （自 8.1 新增）
     */
     maxZoom: null,
-    
+
     /**
      * Constructor: SuperMap.Map
      * 实例化 Map 类。
@@ -480,37 +479,37 @@ SuperMap.Map = SuperMap.Class({
      * //用addControls方法为地图添加控件
      * var map = new SuperMap.Map('map', {controls: []});
      * map.addControl(new SuperMap.Control.Navigation());
-     * 
+     *
      * //创建map地图对象，通过设置options参数添加指定控件
      * var map = new SuperMap.Map('map', {controls: [
      *               new SuperMap.Control.LayerSwitcher(),
      *               new SuperMap.Control.ScaleLine(),
      *               new SuperMap.Control.PanZoomBar(),
-     *               new SuperMap.Control.Navigation()              
+     *               new SuperMap.Control.Navigation()
      * ]});
      * (end)
-     */    
+     */
     initialize: function (div, options) {
-        
+
         // If only one argument is provided, check if it is an object.
         if(arguments.length === 1 && typeof div === "object") {
             options = div;
             div = options && options.div;
         }
 
-        // Simple-type defaults are set in class definition. 
-        //  Now set complex-type defaults 
+        // Simple-type defaults are set in class definition.
+        //  Now set complex-type defaults
         this.tileSize = new SuperMap.Size(SuperMap.Map.TILE_WIDTH,
                                             SuperMap.Map.TILE_HEIGHT);
-        
+
         //this.maxExtent = new SuperMap.Bounds(-180, -90, 180, 90);
-        
+
         this.paddingForPopups = new SuperMap.Bounds(15, 15, 15, 15);
 
         //style..css已在SuperMap.Include.js里面默认引入，这里就不用再引用了
         //this.theme = SuperMap._getScriptLocation() + '../theme/default/style.css';
 
-        // now override default options 
+        // now override default options
         SuperMap.Util.extend(this, options);
 
         var projCode = this.projection instanceof SuperMap.Projection ?
@@ -569,7 +568,7 @@ SuperMap.Map = SuperMap.Class({
         this.viewPortDiv.appendChild(eventsDiv);
         this.eventsDiv = eventsDiv;
         this.events = new SuperMap.Events(
-            this, this.eventsDiv, this.EVENT_TYPES, this.fallThrough, 
+            this, this.eventsDiv, this.EVENT_TYPES, this.fallThrough,
             {includeXY: true}
         );
 
@@ -583,11 +582,11 @@ SuperMap.Map = SuperMap.Class({
         this.shadowContainerDiv.style.zIndex=this.Z_INDEX_BASE['Feature']-1;
 
         this.layerContainerDiv.appendChild(this.shadowContainerDiv);
-        
+
         //生成转为canvas的div。
         //this.layerContainerDivCanvas = SuperMap.Util.createDiv(id);
         //this.layerContainerDivCanvas.style.zIndex=this.Z_INDEX_BASE['Popup']-1;
-        
+
         //this.eventsDiv.appendChild(this.layerContainerDivCanvas);
         this.eventsDiv.appendChild(this.layerContainerDiv);
 
@@ -595,27 +594,27 @@ SuperMap.Map = SuperMap.Class({
         if(this.eventListeners instanceof Object) {
             this.events.on(this.eventListeners);
         }
- 
+
         // update the map size and location before the map moves
         this.events.register("movestart", this, this.updateSize);
 
-        // Because Mozilla does not support the "resize" event for elements 
-        // other than "window", we need to put a hack here. 
+        // Because Mozilla does not support the "resize" event for elements
+        // other than "window", we need to put a hack here.
         //if (SuperMap.String.contains(navigator.appName, "Microsoft")) {
             // If IE, register the resize on the div
-            // but IE9 can not call resize event on the div, so comment 
+            // but IE9 can not call resize event on the div, so comment
             // this and regist the event on window。
             //this.events.register("resize", this, this.updateSize);
         //} else {
             // Else updateSize on catching the window's resize
-            //  Note that this is ok, as updateSize() does nothing if the 
+            //  Note that this is ok, as updateSize() does nothing if the
             //  map's size has not actually changed.
-            this.updateSizeDestroy = SuperMap.Function.bind(this.updateSize, 
+            this.updateSizeDestroy = SuperMap.Function.bind(this.updateSize,
                 this);
             SuperMap.Event.observe(window, 'resize',
                             this.updateSizeDestroy);
         //}
-        
+
         // only append link stylesheet if the theme property is set
         if(this.theme) {
             // check existing links for equivalent url
@@ -638,7 +637,7 @@ SuperMap.Map = SuperMap.Class({
                 document.getElementsByTagName('head')[0].appendChild(cssNode);
             }
         }
-        
+
         if (this.controls == null) {
             if (SuperMap.Control != null) { // running full or lite?
                 this.controls = [ new SuperMap.Control.Navigation(),
@@ -657,22 +656,22 @@ SuperMap.Map = SuperMap.Class({
         this.popups = [];
 
         this.unloadDestroy = SuperMap.Function.bind(this.destroy, this);
-        
+
 
         // always call map.destroy()
         SuperMap.Event.observe(window, 'unload', this.unloadDestroy);
-        
+
         // add any initial layers
         if (options && options.layers) {
-            /** 
+            /**
              * If you have set options.center, the map center property will be
              * set at this point.  However, since setCenter has not been caleld,
-             * addLayers gets confused.  So we delete the map center in this 
+             * addLayers gets confused.  So we delete the map center in this
              * case.  Because the check below uses options.center, it will
              * be properly set below.
              */
             delete this.center;
-            this.addLayers(options.layers);        
+            this.addLayers(options.layers);
             // set center (and optionally zoom)
             if (options.center && !this.getCenter()) {
                 // zoom can be undefined here
@@ -680,11 +679,11 @@ SuperMap.Map = SuperMap.Class({
             }
         }
     },
-    
+
     /**
      * APIMethod: render
      * 在指定的容器中渲染地图。
-     * 
+     *
      * Parameters:
      * div - {String|DOMElement} 指定要渲染地图的DOM元素容器。如果与当前地图
      *     容器不同，则地图视口将会被移动到新的容器。
@@ -703,11 +702,11 @@ SuperMap.Map = SuperMap.Class({
      *     so that if map is manually destroyed, we can unregister this.
      */
     unloadDestroy: null,
-    
+
     /**
      * Method: updateSizeDestroy
      * When the map is destroyed, we need to stop listening to updateSize
-     *    events: this method stores the function we need to unregister in 
+     *    events: this method stores the function we need to unregister in
      *    non-IE browsers.
      */
     updateSizeDestroy: null,
@@ -722,7 +721,7 @@ SuperMap.Map = SuperMap.Class({
         if (!this.unloadDestroy) {
             return false;
         }
-        
+
         // make sure panning doesn't continue after destruction
         if(this.panTween) {
             this.panTween.stop();
@@ -734,26 +733,26 @@ SuperMap.Map = SuperMap.Class({
         this.unloadDestroy = null;
 
         if (this.updateSizeDestroy) {
-            SuperMap.Event.stopObserving(window, 'resize', 
+            SuperMap.Event.stopObserving(window, 'resize',
                                            this.updateSizeDestroy);
         } else {
             this.events.unregister("resize", this, this.updateSize);
-        }    
-        
-        this.paddingForPopups = null;    
+        }
+
+        this.paddingForPopups = null;
 
         if (this.controls != null) {
             for (var i = this.controls.length - 1; i>=0; --i) {
                 this.controls[i].destroy();
-            } 
+            }
             this.controls = null;
         }
         if (this.layers != null) {
             for (var i = this.layers.length - 1; i>=0; --i) {
-                //pass 'false' to destroy so that map wont try to set a new 
+                //pass 'false' to destroy so that map wont try to set a new
                 // baselayer after each baselayer is removed
                 this.layers[i].destroy(false);
-            } 
+            }
             this.layers = null;
         }
         if (this.viewPortDiv) {
@@ -911,7 +910,7 @@ SuperMap.Map = SuperMap.Class({
   /*     The following functions deal with adding and     */
   /*        removing Layers to and from the Map           */
   /*                                                      */
-  /********************************************************/         
+  /********************************************************/
 
     /**
      * APIMethod: getLayer
@@ -937,11 +936,11 @@ SuperMap.Map = SuperMap.Class({
 
     /**
     * Method: setLayerZIndex
-    * 
+    *
     * Parameters:
-    * layer - {<SuperMap.Layer>} 
-    * zIdx - {int} 
-    */    
+    * layer - {<SuperMap.Layer>}
+    * zIdx - {int}
+    */
     setLayerZIndex: function (layer, zIdx) {
 //        if((layer instanceof SuperMap.Layer.Vector) || (layer instanceof SuperMap.Layer.Markers) )
 //        if(layer instanceof SuperMap.Layer.Vector)
@@ -980,11 +979,11 @@ SuperMap.Map = SuperMap.Class({
     *
     * Parameters:
     * layer - {<SuperMap.Layer>} 指定向地图中添加的图层。
-    */    
+    */
     addLayer: function (layer) {
         for(var i=0, len=this.layers.length; i <len; i++) {
             if (this.layers[i] === layer) {
-                var msg = SuperMap.i18n('layerAlreadyAdded', 
+                var msg = SuperMap.i18n('layerAlreadyAdded',
                                                       {'layerName':layer.name});
                 //SuperMap.Console.warn(msg);
                 return false;
@@ -997,7 +996,7 @@ SuperMap.Map = SuperMap.Class({
             layer.isBaseLayer = false;
         }
 
-        
+
         layer.div.className = "smLayerDiv";
         layer.div.style.overflow = "";
         this.setLayerZIndex(layer, this.layers.length);
@@ -1031,18 +1030,18 @@ SuperMap.Map = SuperMap.Class({
     *
     * Parameters:
     * layers - {Array(<SuperMap.Layer>)} 指定向地图中添加的多个图层的数组。
-    */    
+    */
     addLayers: function (layers) {
         for (var i=0, len=layers.length; i<len; i++) {
             this.addLayer(layers[i]);
         }
     },
 
-    /** 
+    /**
      * APIMethod: removeLayer
      * 通过删除可见元素（即layer.div属性）来移除地图上的图层。然后从地图的
      * 图层列表中移除该图层，同时设置图层的map属性为null。
-     * 
+     *
      * Parameters:
      * layer - {<SuperMap.Layer>}  指定要被移除的图层。
      * setNewBaseLayer - {Boolean} 是否设置新的底图，默认值为true。
@@ -1083,7 +1082,7 @@ SuperMap.Map = SuperMap.Class({
     /**
      * APIMethod: getNumLayers
      * 获取地图上的图层数量。
-     * 
+     *
      * Returns:
      * {Int} 返回地图上加载的图层数量的整数值。
      */
@@ -1091,7 +1090,7 @@ SuperMap.Map = SuperMap.Class({
         return this.layers.length;
     },
 
-    /** 
+    /**
      * APIMethod: getLayerIndex
      * 获取图层在地图上的索引值（索引值从零开始）。
      *
@@ -1105,8 +1104,8 @@ SuperMap.Map = SuperMap.Class({
     getLayerIndex: function (layer) {
         return SuperMap.Util.indexOf(this.layers, layer);
     },
-    
-    /** 
+
+    /**
      * APIMethod: setLayerIndex
      * 移动图层到图层列表中的指定索引值（索引值从零开始）的位置。改变
      *     它在地图显示时的z-index值。使用map.getLayerIndex()方法查看图层
@@ -1142,7 +1141,7 @@ SuperMap.Map = SuperMap.Class({
         }
     },
 
-    /** 
+    /**
      * APIMethod: raiseLayer
      * 通过给定的增量值（delta参数）来改变给定图层的索引值。如果增量值为
      *     正，图层就会在图层堆栈中向上移；如果增量值为负，图层就会向下移。
@@ -1156,18 +1155,18 @@ SuperMap.Map = SuperMap.Class({
         var idx = this.getLayerIndex(layer) + delta;
         this.setLayerIndex(layer, idx);
     },
-    
-    /** 
+
+    /**
      * APIMethod: setBaseLayer
      * 允许用户指定当前加载的某一图层为地图新的底图。
-     * 
+     *
      * Parameters:
      * newBaseLayer - {<SuperMap.Layer>} 要被设置成新底图的图层。
      */
     setBaseLayer: function(newBaseLayer) {
-        
+
         if (newBaseLayer !== this.baseLayer) {
-          
+
             // ensure newBaseLayer is already loaded
             if (SuperMap.Util.indexOf(this.layers, newBaseLayer) !== -1) {
 
@@ -1177,7 +1176,7 @@ SuperMap.Map = SuperMap.Class({
                     this.getScale(), newBaseLayer.units
                 );
 
-                // make the old base layer invisible 
+                // make the old base layer invisible
                 if (this.baseLayer != null && !this.allOverlays) {
                     this.baseLayer.setVisibility(false);
                 }
@@ -1196,9 +1195,9 @@ SuperMap.Map = SuperMap.Class({
                         }
                     }
                 }
-                
+
                 // Increment viewRequestID since the baseLayer is
-                // changing. This is used by tiles to check if they should 
+                // changing. This is used by tiles to check if they should
                 // draw themselves.
                 this.viewRequestID++;
                 if(!this.allOverlays || this.baseLayer.visibility) {
@@ -1223,7 +1222,7 @@ SuperMap.Map = SuperMap.Class({
                 this.events.triggerEvent("changebaselayer", {
                     layer: this.baseLayer
                 });
-            }        
+            }
         }
     },
 
@@ -1235,31 +1234,31 @@ SuperMap.Map = SuperMap.Class({
   /*     The following functions deal with adding and     */
   /*        removing Controls to and from the Map         */
   /*                                                      */
-  /********************************************************/         
+  /********************************************************/
 
     /**
      * APIMethod: addControl
      * 为地图添加控件。可选的位置参数用来指定控件的像素位置。
-     * 
+     *
      * Parameters:
      * control - {<SuperMap.Control>} 要添加的控件。
      * px - {<SuperMap.Pixel>} 控件添加的像素位置。
-     */    
+     */
     addControl: function (control, px) {
         this.controls.push(control);
         this.addControlToMap(control, px);
     },
-    
+
     /**
      * APIMethod: addControls
      * 将控件添加到map上。
      * 可以通过options的第二个数组通过像素对象控制控件的位置
-     * 两个数组应该匹配，如果pixel设为null，控件会显示在默认位置。 
-     *     
+     * 两个数组应该匹配，如果pixel设为null，控件会显示在默认位置。
+     *
      * Parameters:
      * controls - {Array(<SuperMap.Control>)} 要添加的控件数组。
      * pixels - {Array(<SuperMap.Pixel>)} 对应控件的像素位置数组。
-     */    
+     */
     addControls: function (controls, pixels) {
         var pxs = (arguments.length === 1) ? [] : pixels;
         for (var i=0, len=controls.length; i<len; i++) {
@@ -1271,23 +1270,23 @@ SuperMap.Map = SuperMap.Class({
 
     /**
      * Method: addControlToMap
-     * 
+     *
      * Parameters:
-     * 
+     *
      * control - {<SuperMap.Control>}
      * px - {<SuperMap.Pixel>}
-     */    
+     */
     addControlToMap: function (control, px) {
         // If a control doesn't have a div at this point, it belongs in the
         // viewport.
         control.outsideViewport = (control.div != null);
-        
-        // If the map has a displayProjection, and the control doesn't, set 
+
+        // If the map has a displayProjection, and the control doesn't, set
         // the display projection.
         if (this.displayProjection && !control.displayProjection) {
             control.displayProjection = this.displayProjection;
-        }    
-        
+        }
+
         control.setMap(this);
         var div = control.draw(px);
         if (div) {
@@ -1301,17 +1300,17 @@ SuperMap.Map = SuperMap.Class({
             control.activate();
         }
     },
-    
+
     /**
      * APIMethod: getControl
      * 通过id值获取控件对象。
-     * 
+     *
      * Parameters:
      * id - {String} 要获取的控件的id。
-     * 
+     *
      * Returns:
      * {<SuperMap.Control>} 根据id从map上的控件列表中匹配到控件。如果没有找到则返回null。
-     */    
+     */
     getControl: function (id) {
         var returnControl = null;
         for(var i=0, len=this.controls.length; i<len; i++) {
@@ -1323,14 +1322,14 @@ SuperMap.Map = SuperMap.Class({
         }
         return returnControl;
     },
-    
-    /** 
+
+    /**
      * APIMethod: removeControl
      * 移除控件。该方法不会使控件失效，若要使其失效，需调用该控件的deactivate方法。
-     * 
+     *
      * Parameters:
      * control - {<SuperMap.Control>} 将被移除的控件。
-     */    
+     */
     removeControl: function (control) {
         //make sure control is non-null and actually part of our map
         if ( (control) && (control === this.getControl(control.id)) ) {
@@ -1348,12 +1347,12 @@ SuperMap.Map = SuperMap.Class({
   /*     The following functions deal with adding and     */
   /*        removing Popups to and from the Map           */
   /*                                                      */
-  /********************************************************/         
+  /********************************************************/
 
-    /** 
+    /**
      * APIMethod: addPopup
      * 在地图中添加弹出窗口。
-     * 
+     *
      * Parameters:
      * popup - {<SuperMap.Popup>} 要添加的弹出窗口。
      * exclusive - {Boolean} 如果设为true，则首先关闭所有其他弹出窗口。
@@ -1376,11 +1375,11 @@ SuperMap.Map = SuperMap.Class({
             this.layerContainerDiv.appendChild(popupDiv);
         }
     },
-    
-    /** 
+
+    /**
     * APIMethod: removePopup
     * 移除指定的弹出窗口。
-    * 
+    *
     * Parameters:
     * popup - {<SuperMap.Popup>} 将删除的弹出窗口对象。
     */
@@ -1419,12 +1418,12 @@ SuperMap.Map = SuperMap.Class({
   /*   The following functions deal with the access to    */
   /*    and maintenance of the size of the container div  */
   /*                                                      */
-  /********************************************************/     
+  /********************************************************/
 
     /**
      * APIMethod: getSize
      * 获取当前地图容器大小。
-     * 
+     *
      * Returns:
      * {<SuperMap.Size>} 返回加载当前地图的容器 Div 的大小size，以像素为单位。注意：返回的对象是本地Size
      * 对象的副本，意味着不允许用户修改。
@@ -1451,37 +1450,37 @@ SuperMap.Map = SuperMap.Class({
                 this.size = oldSize = newSize;
             }
             if (!newSize.equals(oldSize)) {
-                
+
                 // store the new size
                 this.size = newSize;
-    
+
                 //notify layers of mapresize
                 for(var i=0, len=this.layers.length; i<len; i++) {
-                    this.layers[i].onMapResize();                
+                    this.layers[i].onMapResize();
                 }
-    
+
                 var center = this.getCachedCenter();
-    
+
                 if (this.baseLayer != null && center != null) {
                     var zoom = this.getZoom();
                     this.zoom = null;
                     this.setCenter(center, zoom);
                 }
-    
+
             }
         }
     },
-    
+
     /**
      * Method: getCurrentSize
-     * 
+     *
      * Returns:
-     * {<SuperMap.Size>} A new <SuperMap.Size> object with the dimensions 
+     * {<SuperMap.Size>} A new <SuperMap.Size> object with the dimensions
      *                     of the map div
      */
     getCurrentSize: function() {
 
-        var size = new SuperMap.Size(this.div.clientWidth, 
+        var size = new SuperMap.Size(this.div.clientWidth,
                                        this.div.clientHeight);
 
         if (size.w == 0 && size.h == 0 || isNaN(size.w) && isNaN(size.h)) {
@@ -1495,37 +1494,37 @@ SuperMap.Map = SuperMap.Class({
         return size;
     },
 
-    /** 
+    /**
      * Method: calculateBounds
-     * 
+     *
      * Parameters:
      * center - {<SuperMap.LonLat>} Default is this.getCenter()
-     * resolution - {float} Default is this.getResolution() 
-     * 
+     * resolution - {float} Default is this.getResolution()
+     *
      * Returns:
-     * {<SuperMap.Bounds>} A bounds based on resolution, center, and 
+     * {<SuperMap.Bounds>} A bounds based on resolution, center, and
      *                       current mapsize.
      */
     calculateBounds: function(center, resolution) {
 
         var extent = null;
-        
+
         if (center == null) {
             center = this.getCachedCenter();
-        }                
+        }
         if (resolution == null) {
             resolution = this.getResolution();
         }
-    
+
         if ((center != null) && (resolution != null)) {
             var halfWDeg = (this.size.w * resolution) / 2;
             var halfHDeg = (this.size.h * resolution) / 2;
-        
+
             extent = new SuperMap.Bounds(center.lon - halfWDeg,
                                            center.lat - halfHDeg,
                                            center.lon + halfWDeg,
                                            center.lat + halfHDeg);
-        
+
         }
 
         return extent;
@@ -1544,7 +1543,7 @@ SuperMap.Map = SuperMap.Class({
     /**
      * APIMethod: getCenter
      * 获取当前地图的中心点坐标。
-     * 
+     *
      * Returns:
      * {<SuperMap.LonLat>} 返回 <SuperMap.LonLat> 对象。
      */
@@ -1576,18 +1575,18 @@ SuperMap.Map = SuperMap.Class({
     /**
      * APIMethod: getZoom
      * 获取当前地图的缩放比例级别。
-     * 
+     *
      * Returns:
      * {Integer} 返回代表当前地图缩放级别的整数值。
      */
     getZoom: function () {
         return this.zoom;
     },
-    
+
     /**
      * Method: zoomFinished
      *    监测图层缩放动画是否完成
-     * Returns:{Boolean} 
+     * Returns:{Boolean}
      */
     zoomFinished: function() {
         if(this.layers === null) return true;
@@ -1601,11 +1600,11 @@ SuperMap.Map = SuperMap.Class({
         }
         return isZoomming;
     },
-    
-    /** 
+
+    /**
      * APIMethod: pan
      * 根据指定的屏幕像素值平移地图
-     * 
+     *
      * Parameters:
      * dx - {Integer} 屏幕的x像素位置。
      * dy - {integer} 屏幕的y像素位置。
@@ -1643,12 +1642,12 @@ SuperMap.Map = SuperMap.Class({
             }
         }
    },
-   
-   /** 
+
+   /**
      * APIMethod: panTo
      * 平移地图到新的位置
      * 如果新的位置在地图的当前范围内，地图将平滑地移动。
-     * 
+     *
      * Parameters:
      * lonlat - {<SuperMap.LonLat>} 要移动到的新位置。
      */
@@ -1693,7 +1692,7 @@ SuperMap.Map = SuperMap.Class({
     /**
    * APIMethod: setCenter
      * 设置地图中心点。
-     * 
+     *
      * Parameters:
      * lonlat - {<SuperMap.LonLat>} 要设置的中心点。
      * zoom - {Integer} 缩放级别。
@@ -1701,14 +1700,14 @@ SuperMap.Map = SuperMap.Class({
      * forceZoomChange - {Boolean} 指定是否触发zoomchange事件，依赖于baseLayer的变化。
      */
     setCenter: function(lonlat, zoom, dragging, forceZoomChange) {
-        this.panTween && this.panTween.stop();             
+        this.panTween && this.panTween.stop();
         this.moveTo(lonlat, zoom, {
             'dragging': dragging,
             'forceZoomChange': forceZoomChange
         });
     },
-    
-    /** 
+
+    /**
      * Method: moveByPx
      * Drag the map by pixels.
      *
@@ -1770,10 +1769,10 @@ SuperMap.Map = SuperMap.Class({
                 if (layer.visibility &&
                     (layer === this.baseLayer || layer.inRange)) {
                     layer.moveByPx(dx, dy);
-                    layer.events.triggerEvent("move",{});
+                    layer.events.triggerEvent("move",{x: dx, y: dy});
                 }
             }
-            this.events.triggerEvent("move",{});
+            this.events.triggerEvent("move",{x: dx, y: dy});
         }
     },
 
@@ -1806,37 +1805,42 @@ SuperMap.Map = SuperMap.Class({
                 zoom = Math.round(zoom);
             }
         }
-        if(zoom !== this.getZoom())
-        {
-           var inRange = true;
-           var newRes  = this.baseLayer.getResolutionForZoom(zoom);
-           //最大最小分辨率判断
-           if(this.minResolution !== null && this.maxResolution !== null)
-           {
-              inRange = ( (newRes >= this.minResolution) && (newRes <= this.maxResolution) );
-           }
-           else if(this.minResolution !== null && this.maxResolution === null)
-           {
-              inRange = (newRes >= this.minResolution);
-           }
-           else if(this.minResolution === null && this.maxResolution !== null)
-           {
-              inRange = (newRes <= this.maxResolution);
-           }
+        var inRange = true;
+        if(zoom !== undefined) {
+            if (zoom !== this.getZoom()) {
 
-           //最大最小zoom判断
-           if(this.minZoom !== null && this.maxZoom !== null){
-                inRange = ((zoom >= this.minZoom) && (zoom <= this.maxZoom));
-           }
-           else if(this.minZoom !== null && this.maxZoom === null){
-              inRange = zoom >= this.minZoom;
-           }
-           else if(this.minZoom === null && this.maxZoom !== null){
-              inRange = zoom <= this.maxZoom;
-           }
+                var newRes = this.baseLayer.getResolutionForZoom(zoom);
+                var maxResolution = this.maxResolution;
+                if (this.maxResolution === 'auto') {
+                    maxResolution = this.getMaxResolution();
+                }
+                //最大最小分辨率判断
+                if (this.minResolution !== null && maxResolution !== null) {
+                    inRange = ( (newRes >= this.minResolution) && (newRes <= maxResolution) );
+                }
+                else if (this.minResolution !== null && maxResolution === null) {
+                    inRange = (newRes >= this.minResolution);
+                }
+                else if (this.minResolution === null && maxResolution !== null) {
+                    inRange = (newRes <= maxResolution);
+                }
 
-           if(!inRange)
-              return;
+                //最大最小zoom判断
+                if (this.minZoom !== null && this.maxZoom !== null) {
+                    inRange = ((zoom >= this.minZoom) && (zoom <= this.maxZoom));
+                }
+                else if (this.minZoom !== null && this.maxZoom === null) {
+                    inRange = zoom >= this.minZoom;
+                }
+                else if (this.minZoom === null && this.maxZoom !== null) {
+                    inRange = zoom <= this.maxZoom;
+                }
+
+                if (!inRange)
+                    return;
+            }
+        } else {
+            zoom = this.getZoom();
         }
 
         if (lonlat != null && !(lonlat instanceof SuperMap.LonLat)) {
@@ -2177,7 +2181,7 @@ SuperMap.Map = SuperMap.Class({
     /**
      * APIMethod: getExtent
      * 获取当前地图的范围。
-     * 
+     *
      * Returns:
      * {<SuperMap.Bounds>} 当前地图的范围，如果baseLayer未设置，则返回null。
      */
@@ -2192,7 +2196,7 @@ SuperMap.Map = SuperMap.Class({
     /**
      * APIMethod: getResolution
      * 获取当前地图的分辨率。
-     * 
+     *
      * Returns:
      * {Float} 当前地图的分别率， 如果baseLayer未设置，则返回null。
      */
@@ -2227,7 +2231,7 @@ SuperMap.Map = SuperMap.Class({
      /**
       * APIMethod: getScale
       * 获取当前地图的缩放比例。
-      * 
+      *
       * Returns:
       * {Float} 当前地图的缩放比例。如果baseLayer未设置，则返回null。
       */
@@ -2315,11 +2319,11 @@ SuperMap.Map = SuperMap.Class({
   /*               the setCenter() function               */
   /*                                                      */
   /********************************************************/
-  
-    /** 
+
+    /**
      * APIMethod: zoomTo
      * 缩放到指定的级别。
-     * 
+     *
      * Parameters:
      * zoom - {Integer}  指定缩放级别的整数值。
      */
@@ -2328,20 +2332,20 @@ SuperMap.Map = SuperMap.Class({
             this.setCenter(null, zoom);
         }
     },
-    
+
     /**
      * APIMethod: zoomIn
      * 在当前缩放级别的基础上放大一级。
-     * 
+     *
      */
     zoomIn: function() {
         this.zoomTo(this.getZoom() + 1);
     },
-    
+
     /**
      * APIMethod: zoomOut
      * 在当前缩放级别的基础上缩小一级。
-     * 
+     *
      */
     zoomOut: function() {
         this.zoomTo(this.getZoom() - 1);
@@ -2350,12 +2354,12 @@ SuperMap.Map = SuperMap.Class({
     /**
      * APIMethod: zoomToExtent
      * 缩放到指定范围，重新定位中心点。
-     * 
+     *
      * Parameters:
      * bounds - {<SuperMap.Bounds>} 要缩放到的指定范围。
      * closest - {Boolean} 是否找到最符合指定范围的比例级别。注意这样可能会
      *     导致返回的级别不完全包含指定范围。默认值是false。
-     * 
+     *
      */
     zoomToExtent: function(bounds, closest) {
         if (!(bounds instanceof SuperMap.Bounds)) {
@@ -2366,21 +2370,21 @@ SuperMap.Map = SuperMap.Class({
         if (this.baseLayer.wrapDateLine) {
             var maxExtent = this.getMaxExtent();
 
-            //fix straddling bounds (in the case of a bbox that straddles the 
-            // dateline, it's left and right boundaries will appear backwards. 
+            //fix straddling bounds (in the case of a bbox that straddles the
+            // dateline, it's left and right boundaries will appear backwards.
             // we fix this by allowing a right value that is greater than the
-            // max value at the dateline -- this allows us to pass a valid 
+            // max value at the dateline -- this allows us to pass a valid
             // bounds to calculate zoom)
             //
             bounds = bounds.clone();
             while (bounds.right < bounds.left) {
                 bounds.right += maxExtent.getWidth();
             }
-            //if the bounds was straddling (see above), then the center point 
+            //if the bounds was straddling (see above), then the center point
             // we got from it was wrong. So we take our new bounds and ask it
-            // for the center. Because our new bounds is at least partially 
-            // outside the bounds of maxExtent, the new calculated center 
-            // might also be. We don't want to pass a bad center value to 
+            // for the center. Because our new bounds is at least partially
+            // outside the bounds of maxExtent, the new calculated center
+            // might also be. We don't want to pass a bad center value to
             // setCenter, so we have it wrap itself across the date line.
             //
             center = bounds.getCenterLonLat().wrapDateLine(maxExtent);
@@ -2404,23 +2408,23 @@ SuperMap.Map = SuperMap.Class({
         var restricted = (options) ? options.restricted : true;
 
         var maxExtent = this.getMaxExtent({
-            'restricted': restricted 
+            'restricted': restricted
         });
         this.zoomToExtent(maxExtent);
     },
 
-    /** 
+    /**
      * APIMethod: zoomToScale
-     * 缩放到指定的比例  
-     * 
+     * 缩放到指定的比例
+     *
      * Parameters:
      * scale - {float}  指定要缩放到得比例级别。
      * closest - {Boolean} 查找与指定比例尺最接近的缩放级别(zoomLevel)
      *     默认为 false。
-     * 
+     *
      */
     zoomToScale: function(scale, closest) {
-        var res = SuperMap.Util.getResolutionFromScale(scale, 
+        var res = SuperMap.Util.getResolutionFromScale(scale,
                                                          this.baseLayer.units);
         var halfWDeg = (this.size.w * res) / 2;
         var halfHDeg = (this.size.h * res) / 2;
@@ -2432,7 +2436,7 @@ SuperMap.Map = SuperMap.Class({
                                            center.lat + halfHDeg);
         this.zoomToExtent(extent, closest);
     },
-    
+
   /********************************************************/
   /*                                                      */
   /*             Translation Functions                    */
@@ -2441,24 +2445,24 @@ SuperMap.Map = SuperMap.Class({
   /*           LonLat, LayerPx, and ViewPortPx            */
   /*                                                      */
   /********************************************************/
-      
+
   //
   // TRANSLATION: LonLat <-> ViewPortPx
   //
 
     /**
      * Method: getLonLatFromViewPortPx
-     * 
+     *
      * Parameters:
      * viewPortPx - {<SuperMap.Pixel>}
-     * 
+     *
      * Returns:
-     * {<SuperMap.LonLat>} An SuperMap.LonLat which is the passed-in view 
+     * {<SuperMap.LonLat>} An SuperMap.LonLat which is the passed-in view
      *                       port <SuperMap.Pixel>, translated into lon/lat
      *                       by the current base layer.
      */
     getLonLatFromViewPortPx: function (viewPortPx) {
-        var lonlat = null; 
+        var lonlat = null;
         if (this.baseLayer != null) {
             lonlat = this.baseLayer.getLonLatFromViewPortPx(viewPortPx);
         }
@@ -2471,19 +2475,19 @@ SuperMap.Map = SuperMap.Class({
      *
      * Parameters:
      * lonlat - {<SuperMap.LonLat>} 地理位置坐标。
-     * 
+     *
      * Returns:
      * {<SuperMap.Pixel>} 返回指定地理位置相对于地图窗口左上角的像素坐标。
      */
     getViewPortPxFromLonLat: function (lonlat) {
-        var px = null; 
+        var px = null;
         if (this.baseLayer != null) {
             px = this.baseLayer.getViewPortPxFromLonLat(lonlat);
         }
         return px;
     },
 
-    
+
   //
   // CONVENIENCE TRANSLATION FUNCTIONS FOR API
   //
@@ -2506,11 +2510,11 @@ SuperMap.Map = SuperMap.Class({
      * APIMethod: getPixelFromLonLat
      * 获取地图上的像素坐标。依照当前baselayer，将指定的地理点位置坐标，
      * 转换成其相对于地图窗口左上角点的像素坐标。
-     * 
+     *
      * Parameters:
      * lonlat - {<SuperMap.LonLat>} 地图位置。
-     * 
-     * Returns: 
+     *
+     * Returns:
      * {<SuperMap.Pixel>} 返回视图窗口像素坐标位置，
      *     此坐标是根据当前地图的经纬度坐标转换成的视图窗口像素点坐标。
      */
@@ -2520,14 +2524,14 @@ SuperMap.Map = SuperMap.Class({
         px.y = Math.round(px.y);
         return px;
     },
-    
+
     /**
      * Method: getGeodesicPixelSize
-     * 
+     *
      * Parameters:
      * px - {<SuperMap.Pixel>} The pixel to get the geodesic length for. If
      *     not provided, the center pixel of the map viewport will be used.
-     * 
+     *
      * Returns:
      * {<SuperMap.Size>} The geodesic size of the pixel in kilometers.
      */
@@ -2547,7 +2551,7 @@ SuperMap.Map = SuperMap.Class({
             bottom.transform(source, dest);
             top.transform(source, dest);
         }
-        
+
         return new SuperMap.Size(
             SuperMap.Util.distVincenty(left, right),
             SuperMap.Util.distVincenty(bottom, top)
@@ -2563,10 +2567,10 @@ SuperMap.Map = SuperMap.Class({
     /**
      * APIMethod: getViewPortPxFromLayerPx
      * 根据图层像素点坐标获取视图窗口像素点坐标。
-     * 
+     *
      * Parameters:
      * layerPx - {<SuperMap.Pixel>}
-     * 
+     *
      * Returns:
      * {<SuperMap.Pixel>} 将图层像素点转换成视图窗口像素点坐标。
      */
@@ -2575,18 +2579,18 @@ SuperMap.Map = SuperMap.Class({
         if (layerPx != null) {
             var dX = parseInt(this.layerContainerDiv.style.left);
             var dY = parseInt(this.layerContainerDiv.style.top);
-            viewPortPx = layerPx.add(dX, dY);            
+            viewPortPx = layerPx.add(dX, dY);
         }
         return viewPortPx;
     },
-    
+
     /**
      * APIMethod: getLayerPxFromViewPortPx
      * 根据视图窗口像素点坐标获取图层像素点坐标。
-     * 
+     *
      * Parameters:
      * viewPortPx - {<SuperMap.Pixel>}
-     * 
+     *
      * Returns:
      * {<SuperMap.Pixel>} 视图窗口像素点坐标转换成图层像素点坐标。
      */
@@ -2602,14 +2606,14 @@ SuperMap.Map = SuperMap.Class({
         }
         return layerPx;
     },
-    
+
   //
   // TRANSLATION: LonLat <-> LayerPx
   //
 
     /**
      * Method: getLonLatFromLayerPx
-     * 
+     *
      * Parameters:
      * px - {<SuperMap.Pixel>}
      *
@@ -2619,13 +2623,13 @@ SuperMap.Map = SuperMap.Class({
     getLonLatFromLayerPx: function (px) {
        //adjust for displacement of layerContainerDiv
        px = this.getViewPortPxFromLayerPx(px);
-       return this.getLonLatFromViewPortPx(px);         
+       return this.getLonLatFromViewPortPx(px);
     },
-    
+
     /**
      * APIMethod: getLayerPxFromLonLat
      * 根据传入的大地坐标获取图层坐标对象。
-     * 
+     *
      * Parameters:
      * lonlat - {<SuperMap.LonLat>} 坐标点参数。
      *
@@ -2635,7 +2639,7 @@ SuperMap.Map = SuperMap.Class({
     getLayerPxFromLonLat: function (lonlat) {
        //adjust for displacement of layerContainerDiv
        var px = this.getPixelFromLonLat(lonlat);
-       return this.getLayerPxFromViewPortPx(px);         
+       return this.getLayerPxFromViewPortPx(px);
     },
 
     CLASS_NAME: "SuperMap.Map"

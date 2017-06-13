@@ -243,7 +243,7 @@ SuperMap.Layer.HeatMapLayer = SuperMap.Class(SuperMap.Layer, {
         if(0 == this.features.length){
             this.features = features;
         }else{
-            this.features.concat(features);
+            this.features = this.features.concat(features);
         }
         this.events.triggerEvent("featuresadded", {features: features, succeed: true});
         this.refresh();
@@ -289,12 +289,12 @@ SuperMap.Layer.HeatMapLayer = SuperMap.Class(SuperMap.Layer, {
      * 移除全部的热点信息。
      */
     removeAllFeatures: function(){//removeAllHeatPoints
-        if(this.features && this.features.length > 0){
+        /*if(this.features && this.features.length > 0){
             for(var i=0, len= this.features.length; i < len; i++){
                 this.features[i].destroy();
                 this.features[i] = null;
             }
-        }
+        }*/
         this.features = [];
         this.refresh();
     },
@@ -429,7 +429,12 @@ SuperMap.Layer.HeatMapLayer = SuperMap.Class(SuperMap.Layer, {
             //过滤，只显示当前范围
             if(bounds.contains(point.x, point.y)){
                 var pixelPoint = this.getPixelXY(point.x, point.y, bounds, resolution);
-                pixelPoint.weight = f.attributes[this.featureWeight];//point.value;
+                if(this.featureWeight){
+                    pixelPoint.weight = f.attributes[this.featureWeight];//point.value;
+                }else {
+                    //无权重属性处理
+                    pixelPoint.weight = 1;
+                }
                 var geoRadius = this.featureRadius&&f.attributes[this.featureRadius]?f.attributes[this.featureRadius]:null;
                 //半径只考虑非整型
                 pixelPoint.geoRadius = geoRadius? parseInt(geoRadius/resolution): geoRadius;

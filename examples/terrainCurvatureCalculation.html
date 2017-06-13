@@ -116,7 +116,8 @@
                         datasetNames:[terrainCurvatureCalculation.result.averageCurvatureResult.dataset.split('@')[0]],
                         dataSourceNames: ["Jingjin"],
                         joinItems: null,
-                        themes: [themeGridRange]
+                        themes: [themeGridRange],
+                        types:['REGION']
                     });
             var themeService = new SuperMap.REST.ThemeService(url, {eventListeners:{"processCompleted": themeCompleted, "processFailed": themeFailed}});
             themeService.processAsync(themeParameters);

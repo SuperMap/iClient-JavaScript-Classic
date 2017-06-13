@@ -27,7 +27,7 @@
     <script src='./js/jquery.js'></script>
     <script src='./js/jquery.colorpicker.js'></script>
     <script type="text/javascript">
-        var map, baseLayer, plottingLayer, drawFeature, plotting;
+        var map, baseLayer, plottingLayer, drawFeature, plotting,plottingEdit;
         var host = document.location.toString().match(/file:\/\//) ? "http://localhost:8090" : 'http://' + document.location.host;
         var mapurl = host + "/iserver/services/map-world/rest/maps/World";
         var serverUrl = host + "/iserver/services/plot-jingyong/rest/plot/";
@@ -52,7 +52,10 @@
 
             plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", serverUrl);
             drawFeature = new SuperMap.Control.DrawFeature(plottingLayer, SuperMap.Handler.GraphicObject);
-            map.addControls([drawFeature]);
+
+            //态势标绘编辑
+            plottingEdit = new SuperMap.Control.PlottingEdit();
+            map.addControls([drawFeature,plottingEdit]);
         }
 
         function addLayer(){
@@ -60,7 +63,7 @@
             map.setCenter(new SuperMap.LonLat(0, 0), 0);
 
             plotting = SuperMap.Plotting.getInstance(map, serverUrl);
-
+            plottingEdit.activate();
             var symbolLibManager = plotting.getSymbolLibManager();
             if(symbolLibManager.isInitializeOK()){
                 initHtml();
@@ -77,12 +80,12 @@
         }
 
         function initHtml(){
-            document.getElementById("lineWidth").value = plotting.getDefaultStyle().getLineWidth();
-            document.getElementById("lineStyle").value = plotting.getDefaultStyle().getLineType();
-            document.getElementById("lineColor").value = plotting.getDefaultStyle().getLineColor();
-            document.getElementById("symbolWidth").value = plotting.getDefaultStyle().getSymbolWidth();
-            document.getElementById("symbolHeight").value = plotting.getDefaultStyle().getSymbolHeight();
-            if(plotting.getDefaultStyle().getDefaultFlag())
+            document.getElementById("lineWidth").value = plotting.getDefaultStyle().lineWidth;
+            document.getElementById("lineStyle").value = plotting.getDefaultStyle().lineType;
+            document.getElementById("lineColor").value = plotting.getDefaultStyle().lineColor;
+            document.getElementById("symbolWidth").value = plotting.getDefaultStyle().dotSymbolSize;
+            document.getElementById("symbolHeight").value = plotting.getDefaultStyle().dotSymbolSize;
+            if(plotting.getDefaultStyle().defaultFlag)
                 document.getElementById("defaultStyleFlag").value = 1;
             else
                 document.getElementById("defaultStyleFlag").value = 0;
@@ -94,31 +97,34 @@
 
         function lineWidthChanges(){
             cancel();
-            plotting.getDefaultStyle().setLineWidth(document.getElementById("lineWidth").value);
+            plotting.getDefaultStyle().lineWidth = document.getElementById("lineWidth").value;
         }
 
         function lineStyleChanges(){
             cancel();
-            plotting.getDefaultStyle().setLineType(document.getElementById("lineStyle").value);
+            plotting.getDefaultStyle().lineType = document.getElementById("lineStyle").value;
         }
 
         function symbolWidthChanges(){
             cancel();
-            plotting.getDefaultStyle().setSymbolWidth(document.getElementById("symbolWidth").value);
-            plotting.getDefaultStyle().setSymbolHeight(document.getElementById("symbolWidth").value);
-            document.getElementById("symbolHeight").value = plotting.getDefaultStyle().getSymbolHeight();
+            plotting.getDefaultStyle().dotSymbolSize = document.getElementById("symbolWidth").value;
+            document.getElementById("symbolHeight").value = plotting.getDefaultStyle().dotSymbolSize;
         }
 
         function symbolHeightChanges(){
             cancel();
-            plotting.getDefaultStyle().setSymbolWidth(document.getElementById("symbolHeight").value);
-            plotting.getDefaultStyle().setSymbolHeight(document.getElementById("symbolHeight").value);
-            document.getElementById("symbolWidth").value = plotting.getDefaultStyle().getSymbolWidth();
+            plotting.getDefaultStyle().dotSymbolSize = document.getElementById("symbolHeight").value;
+            document.getElementById("symbolWidth").value = plotting.getDefaultStyle().dotSymbolSize;
         }
 
         function defaultStyleFlagChanges(){
             cancel();
-            plotting.getDefaultStyle().setDefaultFlag(document.getElementById("defaultStyleFlag").selectedIndex);
+            if(document.getElementById("defaultStyleFlag").selectedIndex === 0){
+                plotting.getDefaultStyle().defaultFlag = false;
+            }else{
+                plotting.getDefaultStyle().defaultFlag = true;
+            }
+            //plotting.getDefaultStyle().defaultFlag = document.getElementById("defaultStyleFlag").selectedIndex;
         }
 
         function drawPolygon()
@@ -146,14 +152,27 @@
 
         function lineColorChanges() {
             cancel();
-            plotting.getDefaultStyle().setLineColor(document.getElementById("lineColor").value);
+            plotting.getDefaultStyle().lineColor = document.getElementById("lineColor").value;
+        }
+        
+
+        function PlottingDrawCancel(){
+
+            drawFeature.deactivate();
+            plottingEdit.deactivate();
+            plottingEdit.activate();
+
         }
 
-        document.oncontextmenu = function(evt){
-            window.event.returnValue = false;
-            drawFeature.deactivate();
-            return false;
-        };
+        document.onmouseup = function (evt) {
+            var evt = evt || window.event;
+            if (evt.button === 2) {
+                PlottingDrawCancel();
+                return false;
+            }
+            evt.stopPropagation();
+        }
+
     </script>
 </head>
 <body onLoad = "init()">

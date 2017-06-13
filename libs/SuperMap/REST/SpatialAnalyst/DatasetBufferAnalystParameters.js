@@ -100,7 +100,8 @@ SuperMap.REST.DatasetBufferAnalystParameters = SuperMap.Class(SuperMap.REST.Buff
     CLASS_NAME: "SuperMap.REST.DatasetBufferAnalystParameters"
 });
 
-SuperMap.REST.DatasetBufferAnalystParameters.toObject =  function(datasetBufferAnalystParameters, tempObj){
+SuperMap.REST.DatasetBufferAnalystParameters.toObject =  function(datasetBufferAnalystParameters){
+    var tempObj = {};
     for (var name in datasetBufferAnalystParameters) {
         if (name === "bufferSetting") {
             datasetBufferAnalystParameters.bufferSetting.radiusUnit = datasetBufferAnalystParameters.bufferSetting.radiusUnit.toUpperCase();
@@ -115,4 +116,6 @@ SuperMap.REST.DatasetBufferAnalystParameters.toObject =  function(datasetBufferA
             tempObj[name] = datasetBufferAnalystParameters[name];
         }
     }
+
+    return tempObj;
 };

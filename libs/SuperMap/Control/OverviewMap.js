@@ -167,6 +167,13 @@ SuperMap.Control.OverviewMap = SuperMap.Class(SuperMap.Control, {
             layer.isBaseLayer = true;
             this.layers.push(layer);
             this.ovmap.addLayers(this.layers);
+            var me = this;
+            setTimeout(function(){
+                if(me.map && me.map.getExtent()){
+                    me.update();
+                    me.redrawAllLayers();
+                }
+            },0);
             this.ovmap.layerContainerOrigin = null;
             this.ovmap.zoomToMaxExtent();
             //this.update();            
@@ -233,7 +240,7 @@ SuperMap.Control.OverviewMap = SuperMap.Class(SuperMap.Control, {
      * Method: draw
      * Render the control in the browser.
      */    
-    draw: function() {
+    draw: function(options) {
         SuperMap.Control.prototype.draw.apply(this);
         if(this.ovmap !== null) {
             return this.updateLayers();
@@ -343,7 +350,7 @@ SuperMap.Control.OverviewMap = SuperMap.Class(SuperMap.Control, {
             }
         }
         if(this.map.getExtent()) {
-            this.update();
+            this.update(options);
         }
 
         this.map.events.register('moveend', this, this.update);
@@ -359,7 +366,8 @@ SuperMap.Control.OverviewMap = SuperMap.Class(SuperMap.Control, {
      * Draw the base layer - called if unable to complete in the initial draw
      */
     baseLayerDraw: function() {
-        this.draw();
+        this.baseLayerChanged = true;
+        this.draw({baseLayerChanged:true});
         //this.map.events.unregister("changebaselayer", this, this.baseLayerDraw);
     },
 
@@ -433,6 +441,18 @@ SuperMap.Control.OverviewMap = SuperMap.Class(SuperMap.Control, {
         }
         if(this.map && this.map.getExtent()){
             this.update();
+            //ICL-855  关闭鹰眼后，切换底图，打开鹰眼后一片空白的bug
+            if(this.baseLayerChanged === true){
+                this.baseLayerChanged = false;
+                this.redrawAllLayers();
+            }
+        }
+    },
+
+    redrawAllLayers:function(){
+        var lyrs = this.layers;
+        for(var i = 0, len = lyrs.length; i < len; i++) {
+            lyrs[i].redraw();
         }
     },
 
@@ -468,7 +488,7 @@ SuperMap.Control.OverviewMap = SuperMap.Class(SuperMap.Control, {
      * Method: update
      * Update the overview map after layers move.
      */
-    update: function() {
+    update: function(options) {
 
         if(this.ovmap == null) {
             if(this.maximized)
@@ -492,7 +512,7 @@ SuperMap.Control.OverviewMap = SuperMap.Class(SuperMap.Control, {
             return;
         }
         if(this.autoPan || !this.isSuitableOverview()) {
-            this.updateOverview();
+            this.updateOverview(options);
         }
         
         // update extent rectangle
@@ -529,7 +549,7 @@ SuperMap.Control.OverviewMap = SuperMap.Class(SuperMap.Control, {
      * Method updateOverview
      * Called by <update> if <isSuitableOverview> returns true
      */
-    updateOverview: function() {
+    updateOverview: function(options) {
         var mapRes = this.map.getResolution();
         var targetRes = this.ovmap.getResolution();
         var resRatio = targetRes / mapRes;
@@ -540,16 +560,18 @@ SuperMap.Control.OverviewMap = SuperMap.Class(SuperMap.Control, {
             // zoom out overview map
             targetRes = this.maxRatio * mapRes;
         }
-        var center;
-        if (this.ovmap.getProjection() !== this.map.getProjection()) {
-            center = this.map.center.clone();
-            center.transform(this.map.getProjectionObject(),
-                this.ovmap.getProjectionObject() );
-        } else {
-            center = this.map.center;
+        if(!options || !options.baseLayerChanged){
+            var center;
+            if (this.ovmap.getProjection() !== this.map.getProjection()) {
+                center = this.map.center.clone();
+                center.transform(this.map.getProjectionObject(),
+                    this.ovmap.getProjectionObject() );
+            } else {
+                center = this.map.center;
+            }
+            this.ovmap.setCenter(center, this.ovmap.getZoomForResolution(
+                targetRes * this.resolutionFactor));
         }
-        this.ovmap.setCenter(center, this.ovmap.getZoomForResolution(
-            targetRes * this.resolutionFactor));
         this.updateRectToMap();
     },
     

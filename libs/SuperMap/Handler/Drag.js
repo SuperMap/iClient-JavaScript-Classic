@@ -9,7 +9,7 @@
 /**
  * Class: SuperMap.Handler.Drag
  * 拖拽事件的事件处理器，用来处理与拖拽有关的一系列浏览器事件。控件使用该处理器获知拖拽事件的开始，发生和结束。
- * 
+ *
  * 使用拖拽事件处理器的控件通常要构建针对 down 、move和done事件的回调。这些对应key值的回调函数会在拖拽开始，
  * 每一次拖拽过程，拖拽结束时被分别调用。此外，如果用户区分符合拖拽序列结束的事件类型，
  * 控件也可以对key值为"up"和"out"的事件进行
@@ -19,8 +19,8 @@
  *  - <SuperMap.Handler>
  */
 SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
-  
-    /** 
+
+    /**
      * Property: started
      * {Boolean} When a mousedown or touchstart event is received, we want to
      * record it, but not set 'dragging' until the mouse moves after starting.
@@ -34,9 +34,9 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      */
     stopDown: true,
 
-    /** 
-     * Property: dragging 
-     * {Boolean} 
+    /**
+     * Property: dragging
+     * {Boolean}
      */
     dragging: false,
 
@@ -47,13 +47,13 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      */
     touch: false,
 
-    /** 
+    /**
      * Property: last
      * {<SuperMap.Pixel>} The last pixel location of the drag.
      */
     last: null,
 
-    /** 
+    /**
      * Property: start
      * {<SuperMap.Pixel>} The first pixel location of the drag.
      */
@@ -72,31 +72,31 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      * {Function}
      */
     oldOnselectstart: null,
-    
+
     /**
      * Property: interval
-     * {Integer} In order to increase performance, an interval (in 
-     *     milliseconds) can be set to reduce the number of drag events 
-     *     called. If set, a new drag event will not be set until the 
-     *     interval has passed. 
-     *     Defaults to 0, meaning no interval. 
+     * {Integer} In order to increase performance, an interval (in
+     *     milliseconds) can be set to reduce the number of drag events
+     *     called. If set, a new drag event will not be set until the
+     *     interval has passed.
+     *     Defaults to 0, meaning no interval.
      */
     interval: 0,
-    
+
     /**
      * Property: timeoutId
      * {String} The id of the timeout used for the mousedown interval.
      *     This is "private", and should be left alone.
      */
     timeoutId: null,
-    
+
     /**
      * APIProperty: documentDrag
      * {Boolean} 如果设置为true，则当鼠标移出当前map的viewport范围后当前事件处理器对象仍然会处理鼠标move事件。默认值为 false。
      *
      */
     documentDrag: false,
-    
+
     /**
      * Property: documentEvents
      * {Boolean} Are we currently observing document events?
@@ -106,7 +106,7 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
     /**
      * Constructor: SuperMap.Handler.Drag
      * 构造函数，创建一个拖拽事件对象。
-     * 
+     *
      * Parameters:
      * control - {<SuperMap.Control>} 构建事件的控件，如果该事件没有被控件使用，
      * 那么必须明确调用setMap方法给当前事件赋予一个有效值。
@@ -115,24 +115,24 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      * 也可以添加对"move"和"done"的回调。也可以明确添加对"down"、"up"、"out"的回调来响应处理这些事件。
      * options - {Object} 一个可选对象，其属性将会赋值到事件处理器对象上。
      */
-    initialize: function(control, callbacks, options) {
+    initialize: function (control, callbacks, options) {
         SuperMap.Handler.prototype.initialize.apply(this, arguments);
-        
+
         if (this.documentDrag === true) {
             var me = this;
-            this._docMove = function(evt) {
+            this._docMove = function (evt) {
                 me.mousemove({
                     xy: {x: evt.clientX, y: evt.clientY},
                     element: document
                 });
             };
-            this._docUp = function(evt) {
+            this._docUp = function (evt) {
                 me.mouseup({xy: {x: evt.clientX, y: evt.clientY}});
             };
         }
     },
 
-    
+
     /**
      * Method: dragstart
      * This private method is factorized from mousedown and touchstart methods
@@ -147,22 +147,22 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
         var propagate = true;
         this.dragging = false;
         if (this.checkModifiers(evt) &&
-               (SuperMap.Event.isLeftClick(evt) ||
-                SuperMap.Event.isSingleTouch(evt))&&!SuperMap.isApp) {
+            (SuperMap.Event.isLeftClick(evt) ||
+            SuperMap.Event.isSingleTouch(evt)) && !SuperMap.isApp) {
             this.started = true;
             this.start = evt.xy;
             this.last = evt.xy;
             //设置拖动时的鼠标样式
             SuperMap.Element.addClass(
-                this.map.viewPortDiv, "smDragDown" );
-            var imagesLocation=SuperMap.Util.getImagesLocation() ;
-            this.map.viewPortDiv.style.cursor="url('"+imagesLocation+"cursors/PanDown.cur'),move";
+                this.map.viewPortDiv, "smDragDown");
+            var imagesLocation = SuperMap.Util.getImagesLocation();
+            this.map.viewPortDiv.style.cursor = "url('" + imagesLocation + "cursors/PanDown.cur'),move";
             this.down(evt);
             this.callback("down", [evt.xy]);
 
             SuperMap.Event.stop(evt);
 
-            if(!this.oldOnselectstart) {
+            if (!this.oldOnselectstart) {
                 this.oldOnselectstart = document.onselectstart ?
                     document.onselectstart : SuperMap.Function.True;
             }
@@ -170,9 +170,22 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
 
             propagate = !this.stopDown;
         } else {
+            if (this.started && SuperMap.Event.isRightClick(evt)) {
+                document.oncontextmenu = function () {
+                    return false;
+                };
+                this.out(evt);
+                this.callback("out", []);
+                propagate = false;
+            } else {
+                document.oncontextmenu = function () {
+                    return true;
+                };
+            }
             this.started = false;
             this.start = null;
             this.last = null;
+
         }
         return propagate;
     },
@@ -190,9 +203,9 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
     dragmove: function (evt) {
         this.lastMoveEvt = evt;
         if (this.started && !this.timeoutId && (evt.xy.x !== this.last.x ||
-                                                evt.xy.y !== this.last.y)) {
-            if(this.documentDrag === true && this.documentEvents) {
-                if(evt.element === document) {
+            evt.xy.y !== this.last.y)) {
+            if (this.documentDrag === true && this.documentEvents) {
+                if (evt.element === document) {
                     this.adjustXY(evt);
                     // do setEvent manually because the documentEvents are not
                     // registered with the map
@@ -210,7 +223,7 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
 
             this.move(evt);
             this.callback("move", [evt.xy]);
-            if(!this.oldOnselectstart) {
+            if (!this.oldOnselectstart) {
                 this.oldOnselectstart = document.onselectstart;
                 document.onselectstart = SuperMap.Function.False;
             }
@@ -231,7 +244,7 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      */
     dragend: function (evt) {
         if (this.started) {
-            if(this.documentDrag === true && this.documentEvents) {
+            if (this.documentDrag === true && this.documentEvents) {
                 this.adjustXY(evt);
                 this.removeDocumentEvents();
             }
@@ -239,14 +252,14 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
             this.started = false;
             this.dragging = false;
             //设置拖动完成后的鼠标样式
-                SuperMap.Element.removeClass(
-                    this.map.viewPortDiv, "smDragDown" );
-               this.map.viewPortDiv.style.cursor="";
+            SuperMap.Element.removeClass(
+                this.map.viewPortDiv, "smDragDown");
+            this.map.viewPortDiv.style.cursor = "";
 
 
             this.up(evt);
             this.callback("up", [evt.xy]);
-            if(dragged) {
+            if (dragged) {
                 this.callback("done", [evt.xy]);
             }
             document.onselectstart = this.oldOnselectstart;
@@ -267,7 +280,7 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      * Parameters:
      * evt - {Event} The mouse down event
      */
-    down: function(evt) {
+    down: function (evt) {
     },
 
     /**
@@ -279,7 +292,7 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      * evt - {Event} The mouse move event
      *
      */
-    move: function(evt) {
+    move: function (evt) {
     },
 
     /**
@@ -290,7 +303,7 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      * Parameters:
      * evt - {Event} The mouse up event
      */
-    up: function(evt) {
+    up: function (evt) {
     },
 
     /**
@@ -301,7 +314,7 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      * Parameters:
      * evt - {Event} The mouse out event
      */
-    out: function(evt) {
+    out: function (evt) {
     },
 
     /**
@@ -320,7 +333,7 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      * Returns:
      * {Boolean} Let the event propagate.
      */
-    mousedown: function(evt) {
+    mousedown: function (evt) {
         return this.dragstart(evt);
     },
 
@@ -334,7 +347,7 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      * Returns:
      * {Boolean} Let the event propagate.
      */
-    touchstart: function(evt) {
+    touchstart: function (evt) {
         if (!this.touch) {
             this.touch = true;
             // unregister mouse listeners
@@ -359,7 +372,7 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      * Returns:
      * {Boolean} Let the event propagate.
      */
-    mousemove: function(evt) {
+    mousemove: function (evt) {
         return this.dragmove(evt);
     },
 
@@ -373,7 +386,7 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      * Returns:
      * {Boolean} Let the event propagate.
      */
-    touchmove: function(evt) {
+    touchmove: function (evt) {
         return this.dragmove(evt);
     },
 
@@ -381,12 +394,12 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      * Method: removeTimeout
      * Private. Called by mousemove() to remove the drag timeout.
      */
-    removeTimeout: function() {
+    removeTimeout: function () {
         this.timeoutId = null;
         // if timeout expires while we're still dragging (mouseup
         // hasn't occurred) then call mousemove to move to the
         // correct position
-        if(this.dragging) {
+        if (this.dragging) {
             this.mousemove(this.lastMoveEvt);
         }
     },
@@ -401,7 +414,7 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      * Returns:
      * {Boolean} Let the event propagate.
      */
-    mouseup: function(evt) {
+    mouseup: function (evt) {
         return this.dragend(evt);
     },
 
@@ -415,7 +428,7 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      * Returns:
      * {Boolean} Let the event propagate.
      */
-    touchend: function(evt) {
+    touchend: function (evt) {
         // override evt.xy with last position since touchend does not have
         // any touch position
         evt.xy = this.last;
@@ -434,23 +447,24 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
      */
     mouseout: function (evt) {
         if (this.started && SuperMap.Util.mouseLeft(evt, this.map.eventsDiv)) {
-            if(this.documentDrag === true) {
+            if (this.documentDrag === true) {
                 this.addDocumentEvents();
             } else {
                 var dragged = (this.start !== this.last);
-                this.started = false; 
+                this.started = false;
                 this.dragging = false;
                 //设置拖动鼠标出地图后的鼠标样式
-                    SuperMap.Element.removeClass(
-                        this.map.viewPortDiv, "smDragDown" );
-              var  imagesLocation=SuperMap.Util.getImagesLocation() ;
-                   this.map.viewPortDiv.style.cursor="url('"+imagesLocation+"cursors/Pan.cur'),default";
+                SuperMap.Element.removeClass(
+                    this.map.viewPortDiv, "smDragDown");
+                var imagesLocation = SuperMap.Util.getImagesLocation();
+                this.map.viewPortDiv.style.cursor = "url('" + imagesLocation + "cursors/Pan.cur'),default";
+
                 this.out(evt);
-                this.callback("out", []);
-                if(dragged) {
+                this.callback("out", [evt]);
+                if (dragged) {
                     this.callback("done", [evt.xy]);
                 }
-                if(document.onselectstart) {
+                if (document.onselectstart) {
                     document.onselectstart = this.oldOnselectstart;
                 }
             }
@@ -461,12 +475,12 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
     /**
      * Method: click
      * The drag handler captures the click event.  If something else registers
-     *     for clicks on the same element, its listener will not be called 
+     *     for clicks on the same element, its listener will not be called
      *     after a drag.
-     * 
-     * Parameters: 
-     * evt - {Event} 
-     * 
+     *
+     * Parameters:
+     * evt - {Event}
+     *
      * Returns:
      * {Boolean} Let the event propagate.
      */
@@ -478,13 +492,13 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
     /**
      * Method: activate
      * Activate the handler.
-     * 
+     *
      * Returns:
      * {Boolean} The handler was successfully activated.
      */
-    activate: function() {
+    activate: function () {
         var activated = false;
-        if(SuperMap.Handler.prototype.activate.apply(this, arguments)) {
+        if (SuperMap.Handler.prototype.activate.apply(this, arguments)) {
             this.dragging = false;
             activated = true;
         }
@@ -492,15 +506,15 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
     },
 
     /**
-     * Method: deactivate 
+     * Method: deactivate
      * Deactivate the handler.
-     * 
+     *
      * Returns:
      * {Boolean} The handler was successfully deactivated.
      */
-    deactivate: function() {
+    deactivate: function () {
         var deactivated = false;
-        if(SuperMap.Handler.prototype.deactivate.apply(this, arguments)) {
+        if (SuperMap.Handler.prototype.deactivate.apply(this, arguments)) {
             this.touch = false;
             this.started = false;
             this.dragging = false;
@@ -510,39 +524,39 @@ SuperMap.Handler.Drag = SuperMap.Class(SuperMap.Handler, {
         }
         return deactivated;
     },
-    
+
     /**
      * Method: adjustXY
      * Converts event coordinates that are relative to the document body to
      * ones that are relative to the map viewport. The latter is the default in
      * SuperMap.
-     * 
+     *
      * Parameters:
      * evt - {Object}
      */
-    adjustXY: function(evt) {
+    adjustXY: function (evt) {
         var pos = SuperMap.Util.pagePosition(this.map.viewPortDiv);
         evt.xy.x -= pos[0];
         evt.xy.y -= pos[1];
     },
-    
+
     /**
      * Method: addDocumentEvents
      * Start observing document events when documentDrag is true and the mouse
      * cursor leaves the map viewport while dragging.
      */
-    addDocumentEvents: function() {
+    addDocumentEvents: function () {
         this.documentEvents = true;
         SuperMap.Event.observe(document, "mousemove", this._docMove);
         SuperMap.Event.observe(document, "mouseup", this._docUp);
     },
-    
+
     /**
      * Method: removeDocumentEvents
      * Stops observing document events when documentDrag is true and the mouse
      * cursor re-enters the map viewport while dragging.
      */
-    removeDocumentEvents: function() {
+    removeDocumentEvents: function () {
         this.documentEvents = false;
         SuperMap.Event.stopObserving(document, "mousemove", this._docMove);
         SuperMap.Event.stopObserving(document, "mouseup", this._docUp);

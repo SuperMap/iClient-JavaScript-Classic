@@ -167,6 +167,7 @@ SuperMap.Control.ChangeTilesVersion = SuperMap.Class(SuperMap.Control,{
      * 解构TiledDynamicRESTLayer类，释放资源。
      */
     destroy: function () {
+        var me = this;
         this.body = null;
         this.infDiv = null;
         this.layer = null;
@@ -175,6 +176,7 @@ SuperMap.Control.ChangeTilesVersion = SuperMap.Class(SuperMap.Control,{
         this.btnWidth = null;
         this.slider = null;
         this.sliderHeight = null;
+        this.sliderBarHeight = null;
         this.sliderBar = null;
         this.changeElements= null;
         this.elementLefts = null;
@@ -196,7 +198,7 @@ SuperMap.Control.ChangeTilesVersion = SuperMap.Class(SuperMap.Control,{
         this.tileWidth = null;
         this.popInfDiv = null;
 
-        SuperMap.Control.Prototype.destory.apply(this,arguments);
+        SuperMap.Control.prototype.destroy.apply(this,arguments);
     },
 
     /**

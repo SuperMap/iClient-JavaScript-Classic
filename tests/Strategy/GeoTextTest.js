@@ -24,6 +24,12 @@ test("Test_GeoText_constructorDefault", function () {
     layer.destroy();
 });
 
+test("testGeoText_clone",function(){
+    expect(1);
+    var geoText = new SuperMap.Strategy.GeoText();
+    equal(geoText.clone().length,geoText.length,"clone");
+});
+
 test("test_Layer_Vector_addFeatures_with_Strategy_GeoText", function () {
     expect(10);
     var strategy = new SuperMap.Strategy.GeoText(),

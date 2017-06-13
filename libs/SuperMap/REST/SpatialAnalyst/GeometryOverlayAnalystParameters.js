@@ -42,7 +42,7 @@ SuperMap.REST.GeometryOverlayAnalystParameters = SuperMap.Class(SuperMap.REST.Ov
      * sourceGeometry - {SuperMap.Geometry} 叠加分析的源几何对象。必设字段。
      * operation - {<SuperMap.REST.OverlayOperationType>} 叠加操作枚举值。
      */
-    initialize: function (options) {
+    initialize: function(options) {
         SuperMap.REST.OverlayAnalystParameters.prototype.initialize.apply(this, arguments);
         if (options) {
             SuperMap.Util.extend(this, options);
@@ -53,7 +53,7 @@ SuperMap.REST.GeometryOverlayAnalystParameters = SuperMap.Class(SuperMap.REST.Ov
      * APIMethod: destroy
      * 释放资源，将引用资源的属性置空。 
      */
-    destroy: function () {
+    destroy: function() {
         SuperMap.REST.OverlayAnalystParameters.prototype.destroy.apply(this, arguments);
 
         var me = this;
@@ -71,16 +71,18 @@ SuperMap.REST.GeometryOverlayAnalystParameters = SuperMap.Class(SuperMap.REST.Ov
     CLASS_NAME: "SuperMap.REST.GeometryOverlayAnalystParameters"
 });
 
-SuperMap.REST.GeometryOverlayAnalystParameters.toObject = function (geometryOverlayAnalystParameters, tempObj) {
+SuperMap.REST.GeometryOverlayAnalystParameters.toObject = function(geometryOverlayAnalystParameters) {
+    var tempObj = {};
+
     for (var name in geometryOverlayAnalystParameters) {
         if (name === "sourceGeometry") {
             tempObj.sourceGeometry = SuperMap.REST.ServerGeometry.fromGeometry(geometryOverlayAnalystParameters.sourceGeometry);
-        }
-        else if (name === "operateGeometry") {
+        } else if (name === "operateGeometry") {
             tempObj.operateGeometry = SuperMap.REST.ServerGeometry.fromGeometry(geometryOverlayAnalystParameters.operateGeometry);
-        }
-        else {
+        } else {
             tempObj[name] = geometryOverlayAnalystParameters[name];
         }
     }
+
+    return tempObj;
 };

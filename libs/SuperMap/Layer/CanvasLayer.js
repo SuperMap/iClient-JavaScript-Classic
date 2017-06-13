@@ -11,7 +11,7 @@
  */
 
 SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
-    
+
     /**
      * APIProperty: useCanvas
      * {Boolean} 设置是否将一个图层用Canvas元素显示，默认为true，使用Canvas显示。
@@ -20,7 +20,21 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * 
      */
     useCanvas: true,
-    
+
+    /**
+     * Property: tempCanvas
+     * 临时的Canvas，用于保存缩放之前的图层的image，用于缩放的动画
+     *
+     */
+    tempCanvas: null,
+
+    /**
+     * Property: tempContext
+     * 临时的Canvas的上下文
+     *
+     */
+    tempContext: null,
+
     /**
      * Property: canvas
      * 当useCanvas为true时，此Canvas作为所有瓦片的现实容器。
@@ -28,17 +42,9 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
     canvas: null,
 
     /**
-     * APIProperty: useCORS
-     * 使用跨域资源共享策略，这时请求的瓦片必须带有"access-control-allow-origin"响应头，
-     * 但是此时瓦片不带cookies信息，如果要带上cookies的信息，还要加一个响应头——"access-control-allow-credentials",
-     * 如果"access-control-allow-origin"响应头不能为"*"，否则也没有cookies信息。默认为:false。
-     * */
-    useCORS:false,
-    
-    /**
      * Property: canvasContext
      * {Canvas} Canvas的上下文。
-     */    
+     */
     canvasContext: null,
 
     /**
@@ -46,13 +52,13 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * canvas最后一次绘制的分辨率。
      */
     lastResolution: null,
-    
+
     /**
      * Property: lastCanvasPosition
      * canvas最后一次绘制时，距左上角的位置。
      */
     //lastCanvasPosition: null,
-    
+
     /**
      * Property: redrawCanvas
      * Indicates if the canvas element should be reset before
@@ -67,27 +73,27 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      *     默认值为 png ，目前支持 png、jpg、bmp、gif。
      */
     format: "png",
-    
+
     /**
      * APIProperty: dpi
      * {Float} 屏幕上每英寸包含像素点的个数。
      * 该参数结合图层比例尺可以推算出该比例尺下图层的分辨率。
      */
     dpi: null,
-    
+
     /**
      * Property: isBaseLayer
      * {Boolean} 图层是否为底图，默认为true。
      */
-    isBaseLayer: true, 
-    
+    isBaseLayer: true,
+
     /**
      * Property: tileOriginCorner
      * {String} 网格的原点位置。(当<tileOrigin>属性未被设置时，此属性有效)。
      *     可选的值包括"tl" (左上), "tr" (右上), "bl" (左下), and "br"(右下)， 默认为 "tl"。
      */
     tileOriginCorner: "tl",
-    
+
     /**
      * Property: datumAxis
      * {Number} 地理坐标系统椭球体长半轴。用户自定义地图的Options时，若未指定该参数的值，
@@ -98,9 +104,9 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
     /**
      * Property: timeoutID
      * {Number} 记录setTimeout的索引值。
-     */    
-    timeoutID :null,
-    
+     */
+    timeoutID: null,
+
     /**
      * Property: memoryImg
      * {Object} 存放已经加载的图片作为缓存。
@@ -109,14 +115,14 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * 这样可以提高效率，并且在断网状态下也可以查看缓存的图片。
      */
     memoryImg: null,
-    
+
     /**
      * Property: memoryKeys
      * {Array} 保存已经缓存图片的key值。
      * 每一张图片有对应一个key，如x0y1z2，
      * 代表缩放级别为2下的第一横排，第二竖排的图片（从左上角开始计算）.
      */
-    memoryKeys:[],
+    memoryKeys: [],
 
     /**
      * APIProperty: bufferImgCount
@@ -124,37 +130,37 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * 为了减少网络访问量，在使用 Canvas 模式时，图层会将访问过的图片保存在内存中，
      * 如果访问的图片数量超过该属性定义的值，那么新访问的图片会替换已经缓存的图片。
      */
-    bufferImgCount:1000,
+    bufferImgCount: 1000,
 
     /**
      * Property: isFirstLoad
      * {Bool} 记录是否第一次加载，默认为true。
-     */    
+     */
     isFirstLoad: true,
-    
+
     /**
      * APIProperty: zoomDuration
-     * {Number} 设置两次滚轮事件触发的间隔，如果两次滚轮触发时间差小于300ms。
+     * {Number} 设置两次滚轮事件触发的间隔，如果两次滚轮触发时间差小于250ms。
      * 则放弃前一次滚轮事件，以防止缩放幅度大的时候，中间不需要的级别也会请求瓦片数据（设置此属性的同时设置<SuperMap.Handler.MouseWheel>的interval属性，会产生错误）
-     */  
-    zoomDuration:300,
-    
+     */
+    zoomDuration: 250,
+
     /**
      * Property: isZoomming
      * {bool} 记录是否在缩放。
-     */  
+     */
     isZoomming: null,
-          
+
     /**
      * Property: useHighSpeed
      * {bool} 记录是否采用高速读图策略。
-     */ 
-    useHighSpeed:true,
-    
+     */
+    useHighSpeed: true,
+
     /**
      * Property: changeDx
      * {Interger} 记录位置的改变量。
-     */ 
+     */
     changeDx: null,
     /**
      * Property: changeDy
@@ -173,18 +179,18 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * {Interger} 记录当前grid的row长度。
      */
     lenRow: null,
-    
+
     /**
      * Porperty: sdcardPath
      * {String} 记录手机当前SDCard位置。
      */
-    sdcardPath:null,
-    
+    sdcardPath: null,
+
     /**
      * Porperty: storageType
      * {String} 离线存储类型为文件格式。
      */
-    storageType:"File",
+    storageType: "File",
 
     /**
      * Porperty: transitionObj
@@ -200,7 +206,7 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
 
     // 上一次的缩放级别
     lastZoom: null,
-    
+
     /**
      * Constructor: SuperMap.CanvasLayer
      * 所有SuperMap iServer 6R 定义的图层类的基类。
@@ -211,46 +217,58 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * params - {Object} 设置到url上的可选参数。
      * options - {Object} 附加到图层属性上的可选项，父类与此类开放的属性。
      */
-    initialize: function (name, url, params, options) {
+    initialize: function(name, url, params, options) {
         //通过浏览器获取部分信息
-        var me = this, broz = SuperMap.Browser;
+        var me = this,
+            broz = SuperMap.Browser;
         //me.tileSize = new SuperMap.Size(256, 256);
         //判断是否为移动端，如果是，那么设置缓存图片上限为500，比电脑上少了一半（考虑到手持端内存）
-        if(!!SuperMap.isApp)me.bufferImgCount = 500;
+        if (!!SuperMap.isApp) me.bufferImgCount = 500;
         SuperMap.Layer.Grid.prototype.initialize.apply(me, arguments);
-        //reports the progress of a tile filter
-        if(me.useCanvas) {
+        if (!!options && !!options.useCanvas) {
+            me.useCanvas = options.useCanvas;
+            //reports the progress of a tile filter
+            if (me.useCanvas) {
+                //通过浏览器的判定决定是否支持Canvas绘制
+                me.useCanvas = SuperMap.Util.supportCanvas();
+            }
+        } else if (me.useCanvas) {
             //通过浏览器的判定决定是否支持Canvas绘制
             me.useCanvas = SuperMap.Util.supportCanvas();
         }
         //如果为android手持端，那么不能支持Canvas绘制
-        if(broz.device === 'android') {
+        if (broz.device === 'android') {
             me.useCanvas = false;
         }
-        
+
         if (SuperMap.isApp) {
             //me.sdcardPath = "file://" + window.plugins.localstoragemanager.getsdcard().sdcard + "/";
-            cordova.exec(function(obj){
-				me.sdcardPath = "file://" + obj.sdcard + "/";
-			}, function(e){}, "LocalStoragePlugin","getsdcard", []);
+            cordova.exec(function(obj) {
+                me.sdcardPath = "file://" + obj.sdcard + "/";
+            }, function(e) {}, "LocalStoragePlugin", "getsdcard", []);
             me.useCanvas = true;
         }
-        
-        if(me.useCanvas) {
+
+        if (me.useCanvas) {
             me.canvas = document.createElement("canvas");
             me.canvas.id = "Canvas_" + me.id;
-            me.canvas.style.position = "absolute";       
-            me.div.appendChild(me.canvas);                     
+            me.canvas.style.position = "absolute";
+            me.div.appendChild(me.canvas);
             me.canvasContext = me.canvas.getContext('2d');
             me.transitionObj = new SuperMap.Animal(me);
-            me.memoryImg = {};    
+            me.memoryImg = {};
+
+            me.tempCanvas = document.createElement("canvas");
+            me.tempCanvas.id = "TempCanvas_" + me.id;
+            me.tempCanvas.style.position = "absolute";
+            me.tempContext = this.tempCanvas.getContext('2d');
         }
-        
+
         //如果是Canvas策略采用高速出图 。
-        me.useHighSpeed = me.useCanvas ? true : false;            
+        me.useHighSpeed = me.useCanvas ? true : false;
         me.isFirstLoad = true;
     },
-    
+
     /**
      * Method: removeMap
      * rewrite Grid.removeMap method to clear '_timeoutId'
@@ -261,15 +279,15 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      */
     removeMap: function(map) {
         SuperMap.Layer.Grid.prototype.removeMap.apply(this, [map])
-        this._timeoutId && window.clearTimeout(this._timeoutId); 
+        this._timeoutId && window.clearTimeout(this._timeoutId);
         this._timeoutId = null;
     },
-    
+
     /**
      * APIMethod: destroy
      * 解构Layer类，释放资源。  
      */
-    destroy: function () {
+    destroy: function() {
         var me = this;
         SuperMap.Layer.Grid.prototype.destroy.apply(me, arguments);
         me.format = null;
@@ -279,16 +297,18 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         me.tileOriginCorner = null;
         me.tileSize = null;
         me.bufferContext = null;
-        if(me.transitionObj){
+        if (me.transitionObj) {
             me.transitionObj.destroy();
             me.trnasitionObj = null;
         }
         if (me.useCanvas) {
             me.canvas = null;
             me.memoryImg = null;
+            me.tempCanvas = null;
+            me.tempContext = null;
         }
     },
-    
+
     /**
      * APIMethod: clone
      * 创建当前图层的副本。
@@ -299,18 +319,18 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * Returns:
      * {<SuperMap.SuperMap.Layer>} 新创建的图层
      */
-    clone: function (obj) {
+    clone: function(obj) {
         var me = this;
         if (obj == null) {
             obj = new SuperMap.CanvasLayer(
                 me.name, me.url, me.params, me.getOptions());
         }
-       
+
         obj = SuperMap.Layer.Grid.prototype.clone.apply(me, [obj]);
 
         return obj;
     },
-    
+
     /**
      * Method: moveTo
      * 当map移动时，触发此事件. 所有的瓦片移动操作实际是
@@ -328,14 +348,18 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             style = this.map.layerContainerDiv.style,
             left = parseInt(style.left),
             top = parseInt(style.top);
-        
-        this.inZoom = zoomChanged ? true: false;
-        this.changeDx = -left; 
+
+        //图层设置singleTile，并且ratio > 1.0，使用Canvas时，图层平移请求瓦片
+        if (me.singleTile && me.useCanvas) {
+            zoomChanged = true;
+        }
+        this.inZoom = zoomChanged ? true : false;
+        this.changeDx = -left;
         this.changeDy = -top;
         //如果是缩放出发的moveto，不进行fixposition。
         //当在缩放时进行平移，不能触发fixPosition()，因为
         //新图没有读出来，会出图错误。
-        if(!zoomChanged && !me.isZoomming && me.useCanvas && !this.isFirstLoad){
+        if (!zoomChanged && !me.isZoomming && me.useCanvas && !this.isFirstLoad) {
             this.fixPosition();
         }
         SuperMap.Layer.HTTPRequest.prototype.moveTo.apply(me, arguments);
@@ -344,64 +368,60 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         // 当操作为移动时候，并不重绘整个canvas
         me.redrawCanvas = zoomChanged;
         me.dragging = dragging;
-        
+
         // the new map resolution
         var resolution = this.map.getResolution();
+        var animationValue;
 
-        // 当一切缩放属性都添加完后才能进行缩放动画。
-        if (me.useCanvas && ratio!==1) {
-            if (!zoomChanged || dragging || (this.lastResolution === null) || (this.lastZoom === null) || (this.lastCanvasPosition === null)) {
-            } else {
-                if(!this.map.isIEMultipTouch){
-                    this.transitionObj.begin(this.canvas, this.getAnimationValue());
-                }
-            }
-        }
-
-        if (bounds != null) {            
+        if (bounds != null) {
             // 当grid为空，或是进行缩放必须重绘整个canvas
             var forceReTile = !me.grid.length || zoomChanged;
             // 获取所有tiles的bounds
-            var tilesBounds = me.getTilesBounds();            
+            var tilesBounds = me.getTilesBounds();
             if (this.singleTile) {
-                if ( forceReTile || 
-                     (!dragging && !tilesBounds.containsBounds(bounds))) {
-                     if(zoomChanged && this.transitionEffect !== 'resize') {
-                         this.removeBackBuffer();
-                     }
+                if (forceReTile ||
+                    (!dragging && !tilesBounds.containsBounds(bounds))) {
+                    if (zoomChanged && this.transitionEffect !== 'resize') {
+                        this.removeBackBuffer();
+                    }
 
-                     if(!zoomChanged || this.transitionEffect === 'resize') {
-                         this.applyBackBuffer(resolution);
-                     }
-                     
+                    if (!zoomChanged || this.transitionEffect === 'resize') {
+                        this.applyBackBuffer(resolution);
+                    }
+
                     this.initSingleTile(bounds);
                 }
             } else {
                 if (forceReTile || !tilesBounds.containsBounds(bounds, true)) {
-                    if(this.useCanvas){
+                    if (this.useCanvas) {
                         //判断是否第一次加载
-                        if(this.isFirstLoad){
+                        if (this.isFirstLoad) {
                             this.redrawCanvas = true;
+                            this.resetCanvas();
                             this.inZoom = true;
                             this.isFirstLoad = false;
                             //首次加载的时候不需要延迟
                             this.initGriddedTiles(bounds);
-                        }else if(this.zoomDuration){
+                        } else if (this.zoomDuration) {
                             //延迟一段时间去加载，防止连续缩放好几级时，中间的级别了也在请求瓦片
-                            this.resetCanvas();
                             this.isZoomming = true;
-                            window.clearTimeout(this._timeoutId);
-                            this._timeoutId = window.setTimeout(
-                                SuperMap.Function.bind(function(){
-                                    this.initGriddedTiles(bounds);
-                                }, this),
-                                this.zoomDuration
-                            );
-                        }else{
+                            if (!zoomChanged || dragging || (this.lastResolution === null) || (this.lastZoom === null) || (this.lastCanvasPosition === null)) {} else {
+                                animationValue = this.getAnimationValue();
+                            }
+                            //console.log('initGriddedTiles:' + this.map.getZoom());
+                            var w = this.canvas.width,
+                                h = this.canvas.height;
+                            this.tempCanvas.width = w;
+                            this.tempCanvas.height = h;
+                            this.tempContext.clearRect(0, 0, w, h);
+                            this.canvas && w && h && this.tempContext.drawImage(this.canvas, 0, 0, w, h);
+                            this.resetCanvas();
+                            this.initGriddedTiles(bounds);
+                        } else {
                             this.initGriddedTiles(bounds);
                         }
-                    }else {
-                        if(zoomChanged && this.transitionEffect === 'resize') {
+                    } else {
+                        if (zoomChanged && this.transitionEffect === 'resize') {
                             this.applyBackBuffer(resolution);
                         }
                         this.initGriddedTiles(bounds);
@@ -410,58 +430,71 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                     this.scheduleMoveGriddedTiles();
                 }
             }
+            ////获取改变量的位置。
+            var canvasPosition = new SuperMap.Pixel(me.changeDx, me.changeDy);
+            //通过改变量计算canvas的地理位置。
+            me.lastCanvasPosition = me.map.getLonLatFromLayerPx(canvasPosition);
+            me.lastZoom = me.map.getZoom();
+        }
+
+        // 当一切缩放属性都添加完后才能进行缩放动画。
+        if (me.useCanvas && ratio !== 1 && me.useAnimation && this.zoomDuration) {
+            if (!this.map.isIEMultipTouch && animationValue && ratio) {
+                this.transitionObj.begin(this.canvas, this.tempCanvas, animationValue, ratio, this.zoomDuration, function() {
+                    me.isZoomming = false;
+                });
+            }
         }
 
         //通过改变量计算缩放前canvas左上角的地理位置。
-        if (me.useCanvas){
+        if (me.useCanvas) {
+            if (me.singleTile) {
+                var size = map.getSize();
+                me.canvasContext.clearRect(0, 0, size.w, size.h);
+            }
             this.div.style.left = this.changeDx + 'px';
             this.div.style.top = this.changeDy + 'px';
-//            if(zoomChanged)
-//            {
-//                this.div.style.left = '0px';
-//                this.div.style.top = '0px';
-//            }
+            //            if(zoomChanged)
+            //            {
+            //                this.div.style.left = '0px';
+            //                this.div.style.top = '0px';
+            //            }
 
-            ////获取改变量的位置。
-            var canvasPosition = new SuperMap.Pixel(this.changeDx, this.changeDy);
-            //通过改变量计算canvas的地理位置。
-            this.lastCanvasPosition = this.map.getLonLatFromLayerPx(canvasPosition);
-            this.lastZoom = this.map.getZoom();
+
         }
     },
 
     /**
      * 获取缩放动画偏移量 ICL-759
      */
-    getAnimationValue: function(){
-        var px ;
+    getAnimationValue: function() {
+        var px;
         var zoom = this.map.getZoom();
-
-        if(!this.wrapDateLine || zoom>4){
+        //console.log('getAniVal:' + zoom);
+        if (!this.wrapDateLine || zoom > 4) {
             px = this.getLayerPxFromLonLat(this.lastCanvasPosition);
-        }
-        else{
+        } else {
             var change = this.lastZoom - zoom;
-            var width = this.canvas.width/2;
-            var height = this.canvas.height/2;
+            var width = this.canvas.width / 2;
+            var height = this.canvas.height / 2;
             var offset = this.map.centerPixelOffset; //通过Navigation事件参数计算得来
-            if(change > 0 ){
-                px = new SuperMap.Pixel((width-offset.x)*(1 - Math.pow(0.5,change)),(height+offset.y)*(1 - Math.pow(0.5,change)));
-            }else{
-                px = new SuperMap.Pixel(-width*(Math.pow(2,-change)-1)+offset.x,-height*(Math.pow(2,-change)-1)-offset.y);
+            if (change > 0) {
+                px = new SuperMap.Pixel((width - offset.x) * (1 - Math.pow(0.5, change)), (height + offset.y) * (1 - Math.pow(0.5, change)));
+            } else {
+                px = new SuperMap.Pixel(-width * (Math.pow(2, -change) - 1) + offset.x, -height * (Math.pow(2, -change) - 1) - offset.y);
             }
         }
         return px;
     },
-    
+
     /**
      * Method: scheduleMoveGriddedTiles
      * 将移动tile加入计划当中去。
      */
     scheduleMoveGriddedTiles: function() {
-        if(this.useHighSpeed){
+        if (this.useHighSpeed) {
             this.moveGriddedTiles();
-        }else{
+        } else {
             this.timerId && window.clearTimeout(this.timerId);
             this.timerId = window.setTimeout(
                 this._moveGriddedTiles,
@@ -469,7 +502,7 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             );
         }
     },
-    
+
     /**
      * Method: moveGriddedTiles
      */
@@ -492,9 +525,9 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             shifted = false;
         }
         if (shifted) {
-            if(this.useHighSpeed){
+            if (this.useHighSpeed) {
                 this.moveGriddedTiles();
-            }else{
+            } else {
                 this.timerId = window.setTimeout(this._moveGriddedTiles, 0);
             }
         } else {
@@ -503,52 +536,53 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             //we draw nothing.
         }
     },
-    
+
     /**
      * Method: moveByPx
      * 重写父类方法。
      */
     moveByPx: function(dx, dy) {
         this._timeoutId && window.clearTimeout(this._timeoutId);
-        //记录每次的改变量。
-        this.changeDx +=dx;
-        this.changeDy +=dy;
-        if(this.useCanvas)
-        {
-            this.div.style.left = this.changeDx + 'px';
-            this.div.style.top = this.changeDy + 'px';
-        }
 
-        if(this.useHighSpeed){
-            this.fixPosition();
-            this.scheduleMoveGriddedTiles();
+        //记录每次的改变量。
+        this.changeDx += dx;
+        this.changeDy += dy;
+        if (!this.singleTile) {
+            if (this.useCanvas) {
+                this.div.style.left = this.changeDx + 'px';
+                this.div.style.top = this.changeDy + 'px';
+            }
+
+            if (this.useHighSpeed) {
+                this.fixPosition();
+                this.scheduleMoveGriddedTiles();
+            }
         }
     },
-    
+
     /**
      * Method: fixPosition
      * 平移逻辑。
      */
-    fixPosition: function(){
+    fixPosition: function() {
         var tile, tileImg, i, j,
             me = this;
-        me.canvasContext.clearRect(0,0,me.canvas.width,me.canvas.height);
-        for(i=0; i<this.lenRow; i++){
-            for(j=0; j<this.lenColumn; j++){
+        me.canvasContext.clearRect(0, 0, me.canvas.width, me.canvas.height);
+        for (i = 0; i < this.lenRow; i++) {
+            for (j = 0; j < this.lenColumn; j++) {
                 tile = me.grid[i][j];
                 tileImg = tile.lastImage;
                 //firefox，即使图片加载失败，complete属性依然为true，故用width和height判断
                 //IE，图片加载失败时，width为28，height为30，故用complete判断。
-                if((tileImg != null) && (tile.shouldDraw === true) && 
-                        (tileImg.width > 0 && tileImg.height > 0) && 
-                        tileImg.complete){
+                if ((tileImg != null) && (tile.shouldDraw === true) &&
+                    (tileImg.width > 0 && tileImg.height > 0) &&
+                    tileImg.complete) {
                     var positionX = tile.position.x - me.changeDx;
                     var positionY = tile.position.y - me.changeDy;
-                    if(tile.lastImage.firstInView){
-                        if(me.getExtent().containsLonLat(tile.bounds.getCenterLonLat())){
+                    if (tile.lastImage.firstInView) {
+                        if (me.getExtent().containsLonLat(tile.bounds.getCenterLonLat())) {
                             tile.lastImage.firstInView = false;
-                        }
-                        else if(me.getExtent().intersectsBounds(tile.bounds)){
+                        } else if (me.getExtent().intersectsBounds(tile.bounds)) {
                             tile.setFirstInView();
                         }
                     }
@@ -557,7 +591,7 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             }
         }
     },
-    
+
     /**
      * Method: addTile
      * Gives subclasses of Grid the opportunity to create an 
@@ -571,19 +605,21 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * Returns:
      * {<SuperMap.Tile>} The added SuperMap.Tile
      */
-    addTile: function(bounds,position) {
+    addTile: function(bounds, position) {
         // 修改Tile类 todo
-        if(this.useCanvas){
+        if (this.useCanvas) {
             return new SuperMap.Tile.CanvasImage(this, position, bounds, null, this.tileSize, this.useCanvas)
-        }else{
+        } else {
             var tile = new this.tileClass(
                 this, position, bounds, null, this.tileSize, this.tileOptions
             );
-            this.events.triggerEvent("addtile", {tile: tile});
+            this.events.triggerEvent("addtile", {
+                tile: tile
+            });
             return tile;
         }
     },
-    
+
     /**
      * Method: drawCanvasTile
      * 当Image加载完成后，将image显示到canvas上。
@@ -592,31 +628,34 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * image - {<Image>} The tile to draw
      * position - {<SuperMap.Pixel>} The position of the tile.
      */
-    drawCanvasTile: function(image,  position) {
-        if (this.dragging||!this.map) {
+    drawCanvasTile: function(image, position) {
+        if (this.dragging || !this.map) {
             return;
         }
-        if(this.inZoom){
+        if (this.inZoom) {
             image.firstInView = false;
         }
         this.resetCanvas();
         var mapStyle = this.map.layerContainerDiv.style;
         var left = parseInt(mapStyle.left),
-            top = parseInt(mapStyle.top); 
-        //解决ie||移动设备下canvas绘图出错。
-        if(SuperMap.Browser.name === 'msie'){
+            top = parseInt(mapStyle.top);
+        /*//解决ie||移动设备下canvas绘图出错。
+        if (SuperMap.Browser.name === 'msie') {
             var context = {
                 layer: this,
                 position: position,
                 image: image,
                 mapStyle: mapStyle
-            };    
-            var _drawCanvasIE = SuperMap.Function.bind(this.drawCanvasIE, context);
-            window.setTimeout(_drawCanvasIE,100);
-        }else{
+            };
+            //var _drawCanvasIE = SuperMap.Function.bind(this.drawCanvasIE, context);
+            //window.setTimeout(_drawCanvasIE, 100);
+            this.drawCanvasTile2(image, position.x + left, position.y + top);
+        } else {
             //通过position来绘制图片解决白线问题
             this.drawCanvasTile2(image, position.x + left, position.y + top);
-        }
+        }*/
+        //通过position来绘制图片解决白线问题
+        this.drawCanvasTile2(image, position.x + left, position.y + top);
     },
 
     /**
@@ -627,18 +666,18 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * imgData - {<String>} imgdata字符串
      * p - {<SuperMap.Pixel>} tile的位置.
      */
-    drawImgData:function(imgData,p){
+    drawImgData: function(imgData, p) {
         var mapStyle = this.map.layerContainerDiv.style;
         var left = parseInt(mapStyle.left),
             top = parseInt(mapStyle.top);
-        this.canvasContext.putImageData(imgData, p.x+left, p.y+top);
+        this.canvasContext.putImageData(imgData, p.x + left, p.y + top);
     },
-    
+
     //在ie/移动设备下解决连续绘canvas出错而设置的函数。
-    drawCanvasIE:function(){
+    drawCanvasIE: function() {
         this.layer.drawCanvasTile2(this.image, this.position.x + parseInt(this.mapStyle.left), this.position.y + parseInt(this.mapStyle.top));
     },
-    
+
     /**
      * Method: drawCanvasTile2
      * 将image显示到canvas上。
@@ -649,15 +688,15 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * positionY - {Number} tile在canvas中的y坐标
      * clear - {boolean} 是否需要重新清除。
      */
-    drawCanvasTile2: function(image, positionX, positionY, clear){
+    drawCanvasTile2: function(image, positionX, positionY, clear) {
         clear = clear || true;
-        if(image){
+        if (image) {
             clear && this.canvasContext.clearRect(positionX, positionY, image.width, image.height);
-            if(typeof this.opacity === "number"){
+            if (typeof this.opacity === "number") {
                 var firstOpacity = this.opacity > 0.3 ? this.opacity - 0.3 : 0.1;
-                this.canvasContext.globalAlpha = image.firstInView ? firstOpacity: this.opacity;
-            }else{
-                this.canvasContext.globalAlpha = image.firstInView ? 0.6: 1;
+                this.canvasContext.globalAlpha = image.firstInView ? firstOpacity : this.opacity;
+            } else {
+                this.canvasContext.globalAlpha = image.firstInView ? 0.6 : 1;
             }
             //最终把从服务器获取的每一张图片在这里按着坐标绘制在屏幕上面
             this.canvasContext.drawImage(image, positionX, positionY);
@@ -668,34 +707,36 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * Method: resetCanvas
      * 移动canvas到原点，并清除canvas上的所有东西 
      */
-    resetCanvas: function() {            
+    resetCanvas: function() {
         // because the layerContainerDiv has shifted position (for non canvas layers), reposition the canvas.
         if (this.redrawCanvas) {
             this.redrawCanvas = false;
             // clear canvas by reseting the size
             // broken in Chrome 6.0.458.1:
             // http://code.google.com/p/chromium/issues/detail?id=49151
-            this.canvas.width = this.map.viewPortDiv.clientWidth;
-            this.canvas.height = this.map.viewPortDiv.clientHeight;
+            var w = this.map.viewPortDiv.clientWidth,
+                h = this.map.viewPortDiv.clientHeight;
+            this.canvas.width = w;
+            this.canvas.height = h;
             //解决在IPAD2上设置width和height不会清空canvas的情况
-            this.canvasContext.clearRect(0,0,this.canvas.width,this.canvas.height);
+            this.canvasContext.clearRect(0, 0, w, h);
             if (this.useCanvas) {
                 // store the current resolution and canvas position for transition
-                this.lastResolution = this.map.getResolution(); 
+                this.lastResolution = this.map.getResolution();
             }
             return true;
         }
         return false;
     },
-    
+
     //重写grid里的initGriddedTiles
-    initGriddedTiles:function(bounds) {
+    initGriddedTiles: function(bounds) {
         this.isZoomming = false;
-        SuperMap.Layer.Grid.prototype.initGriddedTiles.apply(this,arguments);
+        SuperMap.Layer.Grid.prototype.initGriddedTiles.apply(this, arguments);
         this.lenRow = this.grid.length;
         this.lenColumn = this.grid[0].length;
     },
-    
+
     /**
      * Method: getLayerPxFromLonLat
      * A wrapper for the <SuperMap.Map.getLayerPxFromLonLat()> method,
@@ -709,10 +750,10 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * {<SuperMap.Pixel>}像素点
      */
     getLayerPxFromLonLat: function(lonlat) {
-        return this.usesCanvas ? this.map.getPixelFromLonLat(lonlat) : 
+        return this.usesCanvas ? this.map.getPixelFromLonLat(lonlat) :
             this.map.getLayerPxFromLonLat(lonlat);
     },
-    
+
     /**
      * Method: getLayerPxFromLonLat
      * A wrapper for the <SuperMap.Map.getViewPortPxFromLayerPx()> method.
@@ -722,11 +763,11 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * 
      * Returns:
      * {<SuperMap.Pixel>}
-     */ 
+     */
     getViewPortPxFromLayerPx: function(layerPx) {
         return this.useCanvas ? layerPx : this.map.getViewPortPxFromLayerPx(layerPx);
     },
-    
+
     /**
      * Method: getURL
      * 根据瓦片的bounds获取URL。
@@ -737,14 +778,23 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * Returns:
      * {String} 瓦片的URL。
      */
-    getURL: function (bounds) {
+    getURL: function(bounds) {
         var me = this,
             xyz;
         bounds = me.adjustBounds(bounds);
+        if (me.singleTile) {
+            return me.getTileUrlByBounds(bounds);
+        }
         xyz = me.getXYZ(bounds);
-        return me.getTileUrl(xyz);
+        var url = me.getTileUrl(xyz);
+        if(this.tileProxy){
+            url = this.tileProxy + encodeURIComponent(url);
+        }else if(this.proxy){
+            url = this.proxy + encodeURIComponent(url);
+        }
+        return url;
     },
-    
+
     /**
      * Method: getXYZ
      * 根据瓦片的bounds获取xyz值。
@@ -755,7 +805,7 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * Returns:
      * {Object} 一组键值对，表示瓦片X, Y, Z方向上的索引。
      */
-    getXYZ: function (bounds) {
+    getXYZ: function(bounds) {
         var me = this,
             x, y, z,
             map = me.map,
@@ -765,9 +815,13 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         x = Math.round((bounds.left - tOrigin.lon) / (res * tileSize.w));
         y = Math.round((tOrigin.lat - bounds.top) / (res * tileSize.h));
         z = map.getZoom();
-        return {"x": x, "y": y, "z": z};
+        return {
+            "x": x,
+            "y": y,
+            "z": z
+        };
     },
-    
+
     /**
      * Method: getMemoryImg
      * 根据瓦片的bounds获取内存中该记录的image。
@@ -778,12 +832,13 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * Returns:
      * {Object} image对象，不存在返回null
      */
-    getMemoryImg: function(bounds){
-        var me = this, key = me.getXYZ(bounds);
+    getMemoryImg: function(bounds) {
+        var me = this,
+            key = me.getXYZ(bounds);
         key = "x" + key.x + "y" + key.y + "z" + key.z;
         return me.memoryImg[key];
     },
-    
+
     /**
      * Method: addMemoryImg
      * 记录瓦片bounds和对应的图片信息。
@@ -793,17 +848,17 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * image - {<Image>} 瓦片对应的图片信息
      *
      */
-    addMemoryImg:function(bounds, image, context){
+    addMemoryImg: function(bounds, image, context) {
 
-        var me = this;// key = me.getXYZ(bounds);
+        var me = this; // key = me.getXYZ(bounds);
 
-        if(me.bufferImgCount == 0)
+        if (me.bufferImgCount == 0)
             return;
 
         var newImgTag = context.newImgTag;
-        if(newImgTag&&newImgTag!=""){
+        if (newImgTag && newImgTag != "") {
             //删除缓存图片
-            if(me.memoryKeys.length >= me.bufferImgCount){
+            if (me.memoryKeys.length >= me.bufferImgCount) {
                 var keyDel = me.memoryKeys.shift();
                 me.memoryImg[keyDel] = null;
                 delete me.memoryImg[keyDel];
@@ -820,20 +875,20 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * Method: clearMemoryImage
      * 清除所有的缓存切片
      */
-    clearMemoryImg: function(){
+    clearMemoryImg: function() {
         var me = this;
-        for(var i = 0;i < me.memoryKeys.length; i++){
+        for (var i = 0; i < me.memoryKeys.length; i++) {
             var keyDel = me.memoryKeys.shift();
             me.memoryImg[keyDel] = null;
             delete me.memoryImg[keyDel];
         }
     },
-    
+
     /** 
      * Method: initResolutions
      * 初始化Resolutions数组。（重写基类方法）
      */
-    initResolutions: function () {
+    initResolutions: function() {
         // 我们想要得到resolutions，以下是我们的策略：
         // 1. 如果在layer配置中定义了resolutions和scales，使用它们，
         // 2. 如果在layer配置中定义resolutions，使用它，
@@ -843,12 +898,12 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         // 6. 如果我们仍然没有获得resolutions，并且resolutions在map中已经定义了，使用它们，
         // 7. 否则，如果scales在map中定义了，那么从scales中得出resolutions，
         // 8. 再者，试图从在map中设置的maxResolution, minResolution, numZoomLevels, maxZoomLevel 计算出resolutions。
-        
-        var me = this, 
+
+        var me = this,
             i, len, p, startZoomLevel,
-            props = {}, 
+            props = {},
             alwaysInRange = true;
-        
+
         //如果在layer中定义了resolutions和scales，直接使用layer的resolutions和scales，并且通过它们计算出
         //maxResolution, minResolution, numZoomLevels, maxScale和minScale
         if (me.resolutions && me.scales) {
@@ -861,13 +916,13 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             }
 
             if (!me.minResolution) {
-                me.minResolution = me.resolutions[len-1];
+                me.minResolution = me.resolutions[len - 1];
             }
             me.scales.sort(function(a, b) {
                 return (a - b);
             });
             if (!me.maxScale) {
-                me.maxScale = me.scales[len-1];
+                me.maxScale = me.scales[len - 1];
             }
 
             if (!me.minScale) {
@@ -885,11 +940,11 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                 alwaysInRange = false;
             }
         }
-        
+
         if (me.alwaysInRange == null) {
             me.alwaysInRange = alwaysInRange;
         }
-        
+
         // 如果没有得到resolutions，利用scales计算resolutions。
         if (props.resolutions == null) {
             props.resolutions = me.resolutionsFromScales(props.scales);
@@ -900,7 +955,7 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         if (props.resolutions == null) {
             props.resolutions = me.calculateResolutions(props);
         }
-        
+
         //如果没有从layer的配置数据中获得resolutions，并且map中同时设置了resolutions和scales，直接使用它们，
         //并且通过它们计算出maxResolution, minResolution, numZoomLevels, maxScale和minScale
         if (me.map.resolutions && me.map.scales) {
@@ -915,13 +970,13 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             }
 
             if (!me.minResolution) {
-                me.minResolution = me.resolutions[len-1];
+                me.minResolution = me.resolutions[len - 1];
             }
             me.scales.sort(function(a, b) {
                 return (a - b);
             });
             if (!me.maxScale) {
-                me.maxScale = me.scales[len-1];
+                me.maxScale = me.scales[len - 1];
             }
 
             if (!me.minScale) {
@@ -930,10 +985,10 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             me.numZoomLevels = len;
             return;
         }
-        
+
         //如果此时仍没有计算出resolutions，那么先从baselayer上获取,之后从map中获得（方法同上），最后再计算。
         if (props.resolutions == null) {
-            for (i = 0, len = me.RESOLUTION_PROPERTIES.length; i<len; i++) {
+            for (i = 0, len = me.RESOLUTION_PROPERTIES.length; i < len; i++) {
                 p = me.RESOLUTION_PROPERTIES[i];
                 props[p] = me.options[p] != null ?
                     me.options[p] : me.map[p];
@@ -942,10 +997,10 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                 props.resolutions = me.resolutionsFromScales(props.scales);
             }
             if (props.resolutions == null) {
-                if(me.map.baseLayer!=null){
+                if (me.map.baseLayer != null) {
                     props.resolutions = me.map.baseLayer.resolutions;
                 }
-            }            
+            }
             if (props.resolutions == null) {
                 props.resolutions = me.calculateResolutions(props);
             }
@@ -972,7 +1027,7 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             props.resolutions.sort(function(a, b) {
                 return (b - a);
             });
-            
+
             if (!maxRes) {
                 maxRes = props.resolutions[0];
             }
@@ -987,14 +1042,13 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         if (me.resolutions) {
             len = me.resolutions.length;
             me.scales = [len];
-            if(me.map.baseLayer){
+            if (me.map.baseLayer) {
                 startZoomLevel = this.calculateResolutionsLevel(me.resolutions);
-            }
-            else{
+            } else {
                 startZoomLevel = 0;
             }
             for (i = startZoomLevel; i < len + startZoomLevel; i++) {
-                me.scales[i] = SuperMap.Util.getScaleFromResolutionDpi(me.resolutions[i- startZoomLevel], me.dpi, me.units, me.datumAxis);
+                me.scales[i] = SuperMap.Util.getScaleFromResolutionDpi(me.resolutions[i - startZoomLevel], me.dpi, me.units, me.datumAxis);
             }
             me.numZoomLevels = len;
         }
@@ -1007,7 +1061,7 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             me.minScale = SuperMap.Util.getScaleFromResolutionDpi(maxRes, me.dpi, me.units, me.datumAxis);
         }
     },
-    
+
     /** 
      * Method: calculateResolutionsLevel
      * 根据resolutions数组计算scale数组。
@@ -1015,14 +1069,15 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * Parameters:
      * resolutions - {Array({Number})}resolutions数组
      */
-    calculateResolutionsLevel: function(resolutions){
-        var me = this, j, len, resolution,
-                 baseLayerResolutions;
+    calculateResolutionsLevel: function(resolutions) {
+        var me = this,
+            j, len, resolution,
+            baseLayerResolutions;
         baseLayerResolutions = me.map.baseLayer.resolutions;
         len = baseLayerResolutions.length;
         resolution = resolutions[0];
-        for(j=0; j<len; j++){
-            if(resolution === baseLayerResolutions[j]){
+        for (j = 0; j < len; j++) {
+            if (resolution === baseLayerResolutions[j]) {
                 return j;
             }
         }
@@ -1036,7 +1091,7 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * Parameters:
      * scales - {Array({Number})}scales数组。
      */
-    resolutionsFromScales: function (scales) {
+    resolutionsFromScales: function(scales) {
         if (scales == null) {
             return;
         }
@@ -1046,11 +1101,11 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         resolutions = [len];
         for (var i = 0; i < len; i++) {
             resolutions[i] = SuperMap.Util.getResolutionFromScaleDpi(
-            scales[i], me.dpi, me.units, me.datumAxis);
+                scales[i], me.dpi, me.units, me.datumAxis);
         }
         return resolutions;
     },
-    
+
     /**
      * Method: calculateResolutions
      * 根据已提供的属性计算resolutions数组。（重写基类方法）
@@ -1061,7 +1116,7 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      * Return:
      * {Array({Number})} resolutions数组.
      */
-    calculateResolutions: function (props) {
+    calculateResolutions: function(props) {
         var me = this,
             maxResolution = props.maxResolution;
         if (props.minScale != null) {
@@ -1081,11 +1136,11 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             var viewSize, wRes, hRes;
             viewSize = me.map.getSize();
             wRes = me.minExtent.getWidth() / viewSize.w;
-            hRes = me.minExtent.getHeight()/ viewSize.h;
+            hRes = me.minExtent.getHeight() / viewSize.h;
             minResolution = Math.max(wRes, hRes);
         }
 
-        if(typeof maxResolution !== "number" &&
+        if (typeof maxResolution !== "number" &&
             typeof minResolution !== "number" &&
             this.maxExtent != null) {
             // maxResolution for default grid sets assumes that at zoom
@@ -1109,7 +1164,7 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
 
         if (typeof numZoomLevels !== "number" || numZoomLevels <= 0 ||
             (typeof maxResolution !== "number" &&
-               typeof minResolution !== "number")) {
+                typeof minResolution !== "number")) {
             return;
         }
 
@@ -1117,7 +1172,7 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         var base = 2;
         if (typeof minResolution === "number" && typeof maxResolution === "number") {
             base = Math.pow(
-                    (maxResolution / minResolution),
+                (maxResolution / minResolution),
                 (1 / (numZoomLevels - 1))
             );
         }
@@ -1135,7 +1190,7 @@ SuperMap.CanvasLayer = SuperMap.Class(SuperMap.Layer.Grid, {
 
         return resolutions;
     },
-    
+
     CLASS_NAME: "SuperMap.CanvasLayer"
 
 });

@@ -26,6 +26,12 @@ SuperMap.REST.ThemeParameters = SuperMap.Class({
      * {Array(String)} 要制作专题图的数据集所在的数据源数组，必设。 
      */
     dataSourceNames: null,
+
+    /**
+     * APIProperty: types
+     * {Array(String)} 要制作专题图的数据集的类型数组，必设。比如 types = ['TEXT','POINT','LINE','REGION']
+     */
+    types: null,
     
     /** 
      * APIProperty: joinItems
@@ -89,6 +95,7 @@ SuperMap.REST.ThemeParameters = SuperMap.Class({
         var me = this;
         me.datasetNames = null;
         me.dataSourceNames = null;
+        me.types = null;
         if (me.joinItems) {
             for (var i=0, joinItems=me.joinItems, len=joinItems.length; i<len; i++) {
                 joinItems[i].destroy();

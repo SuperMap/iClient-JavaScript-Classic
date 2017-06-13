@@ -212,12 +212,14 @@ SuperMap.Plotting.PlotPanel = new SuperMap.Class({
             if(me.drawFeature === null){
                 me.drawFeature = me.getDrawControl();
             }
-            me.drawFeature.handler.libID = this.libID;
-            me.drawFeature.handler.symbolCode = this.symbolCode;
-            me.drawFeature.handler.serverUrl = this.serverUrl;
+            if(me.drawFeature !== null){
+                me.drawFeature.handler.libID = this.libID;
+                me.drawFeature.handler.symbolCode = this.symbolCode;
+                me.drawFeature.handler.serverUrl = this.serverUrl;
+                me.drawFeature.deactivate();
+                me.drawFeature.activate();
 
-            me.drawFeature.deactivate();
-            me.drawFeature.activate();
+            }
         }
 
         var me = this;
@@ -265,9 +267,11 @@ SuperMap.Plotting.PlotPanel = new SuperMap.Class({
     analysisSymbolTree: function(symbolLibManager) {
         var treeData = [];
         var idIndex = this.addBasicCellTreeNodes(treeData);
+        var idIndex1 = this.addNew(treeData);
 
         for(var i = 0; i < symbolLibManager.getSymbolLibNumber(); i++){
             var symbolLib = symbolLibManager.getSymbolLibByIndex(i);
+            //console.log(symbolLib.libID);
             var rootSymbolInfo = symbolLib.getRootSymbolInfo();
             var rootSymbolIconUrl = symbolLib.getRootSymbolIconUrl();
 
@@ -281,6 +285,7 @@ SuperMap.Plotting.PlotPanel = new SuperMap.Class({
 
                 idIndex = this.innerAnalysisSymbolTree(rootSymbolInfo.childNodes, treeData, rootNode, rootSymbolIconUrl);
             }
+
         }
 
         return treeData;
@@ -290,19 +295,52 @@ SuperMap.Plotting.PlotPanel = new SuperMap.Class({
         var cellRootNode = new Object();
         cellRootNode.id = 1;
         cellRootNode.pId = 0;
-        cellRootNode.name = "基本图元";
+        cellRootNode.name = "基本标号";
         cellRootNode.fullName = "BasicCell" +"/";
         cellRootNode.drawData = {serverUrl:this.serverUrl, drawNodes:[]};
         treeData.push(cellRootNode);
 
-        var symbolCode = [24, 28, 29, 31, 34, 410, 32, 590, 360, 390, 400, 350, 26, 370, 380, 44, 48, 320];
-        var symbolName = ["折线", "平行四边形", "圆", "椭圆", "注记", "正多边形", "多边形", "贝赛尔曲线", "闭合贝赛尔曲线", "集结地", "大括号", "梯形", "矩形", "弓形", "扇形", "弧线", "平行线", "注记指示框"];
+        var symbolCode = [24, 28, 29, 31, 34, 410, 32, 590, 360, 390, 400, 350, 26, 370, 380, 44, 48, 320
+            , 1019, 1022,1024,321,1023,1025
+            ,1013, 1014, 1016, 1017,1026
+            ,1001, 1003, 1004];
+        var symbolName = ["折线", "平行四边形", "圆", "椭圆", "注记", "正多边形", "多边形", "贝赛尔曲线", "闭合贝赛尔曲线"
+            , "集结地", "大括号", "梯形", "矩形", "弓形", "扇形", "弧线", "平行线", "注记指示框"
+            , "同心圆", "组合圆","标注框","多角标注框","自由线",  "节点链"
+            , "跑道形", "八字形", "箭头线", "沿线注记","线型标注"
+            , "对象间连线", "多边形区域","扇形区域"];
         var cellId = cellRootNode.id + 1;
         for(var i = 0; i < symbolCode.length; i++){
             var drawCellNode = {
                 id: cellId++,
                 pId: 0,
                 icon:"images/" + cellRootNode.fullName + symbolCode[i] + ".png",
+                symbolCode: symbolCode[i],
+                libID: 0,
+                symbolName: symbolName[i]
+            };
+            cellRootNode.drawData.drawNodes.push(drawCellNode);
+        }
+
+        return cellId;
+    },
+
+    addNew: function(treeData){
+        var cellRootNode = new Object();
+        cellRootNode.id = 1;
+        cellRootNode.pId = 0;
+        cellRootNode.name = "航线对象";
+        cellRootNode.drawData = {serverUrl:this.serverUrl, drawNodes:[]};
+        treeData.push(cellRootNode);
+
+        var symbolCode = [1005,1006,1007];
+        var symbolName = ["航线1","航线2","航线3"];
+        var cellId = cellRootNode.id + 1;
+        for(var i = 0; i < symbolCode.length; i++){
+            var drawCellNode = {
+                id: cellId++,
+                pId: 0,
+                icon:"images/BasicCell/RouteIcon/" + symbolCode[i] + ".png",
                 symbolCode: symbolCode[i],
                 libID: 0,
                 symbolName: symbolName[i]

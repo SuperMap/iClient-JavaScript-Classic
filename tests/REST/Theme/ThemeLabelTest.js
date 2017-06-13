@@ -29,10 +29,12 @@ test("TestDefaultConstructor", function() {
 
 //测试设置参数值的有效性
 test("TestConstructor", function() {
-    expect(7);
+    expect(10);
     var themeLabelItem;
-    themeLabelItem=new SuperMap.REST.ThemeLabelItem({
+    themeLabelItem=new SuperMap.REST.ThemeLabelUniqueItem({
         unique: "黑龙江省",
+        offsetX:1,
+        offsetY:2,
         style: new SuperMap.REST.ServerStyle({
             fillBackOpaque: true,
             fillGradientAngle: 20,
@@ -44,17 +46,21 @@ test("TestConstructor", function() {
 
     var themeLabel;
     themeLabel=new SuperMap.REST.ThemeLabel({
-        items:new Array(themeLabelItem),
+        uniqueItems:new Array(themeLabelItem),
         labelExpression: "test",
+        uniqueExpression: "test1"
     });
 
     ok(themeLabel != null, "not null" );
-    equal(themeLabel.items[0].unique, "黑龙江省", "themeLabel.items");
-    equal(themeLabel.items[0].style.fillBackOpaque, true, "themeLabel.items");
-    equal(themeLabel.items[0].style.fillGradientAngle, 20, "themeLabel.items");
-    equal(themeLabel.items[0].style.fillOpaqueRate, 80, "themeLabel.items");
-    equal(themeLabel.items[0].visible, false, "themeLabel.items");
+    equal(themeLabel.uniqueItems[0].unique, "黑龙江省", "themeLabel.items");
+    equal(themeLabel.uniqueItems[0].style.fillBackOpaque, true, "themeLabel.items");
+    equal(themeLabel.uniqueItems[0].style.fillGradientAngle, 20, "themeLabel.items");
+    equal(themeLabel.uniqueItems[0].style.fillOpaqueRate, 80, "themeLabel.items");
+    equal(themeLabel.uniqueItems[0].visible, false, "themeLabel.items");
+    equal(themeLabel.uniqueItems[0].offsetX, 1, "themeLabel.items");
+    equal(themeLabel.uniqueItems[0].offsetY, 2, "themeLabel.items");
     equal(themeLabel.labelExpression, "test", "themeLabel.labelExpression");
+    equal(themeLabel.uniqueExpression, "test1", "themeLabel.labelExpression");
 });
 
 test("TestDestroy", function() {

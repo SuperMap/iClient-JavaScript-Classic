@@ -3,7 +3,7 @@
  * 未经许可，不得以任何手段擅自使用或传播。*/
 
 /**
- * @requires SuperMap/Layer/Grid.js
+ * @requires SuperMap/Layer/CanvasLayer.js
  * @requires SuperMap/Tile/Image.js
  */
 
@@ -54,9 +54,9 @@
  * (end)
  * 
  * Inherits from:
- *  - <SuperMap.Layer.Grid>
+ *  - <SuperMap.CanvasLayer>
  */
-SuperMap.Layer.WMTS = SuperMap.Class(SuperMap.Layer.Grid, {
+SuperMap.Layer.WMTS = SuperMap.Class(SuperMap.CanvasLayer, {
     
     /**
      * APIProperty: isBaseLayer
@@ -252,7 +252,7 @@ SuperMap.Layer.WMTS = SuperMap.Class(SuperMap.Layer.Grid, {
 
         config.params = SuperMap.Util.upperCaseObject(config.params);
         var args = [config.name, config.url, config.params, config];
-        SuperMap.Layer.Grid.prototype.initialize.apply(this, args);
+        SuperMap.CanvasLayer.prototype.initialize.apply(this, args);
         
 
         // determine format suffix (for REST)
@@ -278,7 +278,7 @@ SuperMap.Layer.WMTS = SuperMap.Class(SuperMap.Layer.Grid, {
      * Method: setMap
      */
     setMap: function() {
-        SuperMap.Layer.Grid.prototype.setMap.apply(this, arguments);
+        SuperMap.CanvasLayer.prototype.setMap.apply(this, arguments);
         this.updateMatrixProperties();
     },
     
@@ -321,7 +321,7 @@ SuperMap.Layer.WMTS = SuperMap.Class(SuperMap.Layer.Grid, {
         if (zoomChanged || !this.matrix) {
             this.updateMatrixProperties();
         }
-        return SuperMap.Layer.Grid.prototype.moveTo.apply(this, arguments);
+        return SuperMap.CanvasLayer.prototype.moveTo.apply(this, arguments);
     },
 
     /**
@@ -338,7 +338,7 @@ SuperMap.Layer.WMTS = SuperMap.Class(SuperMap.Layer.Grid, {
             obj = new SuperMap.Layer.WMTS(this.options);
         }
         //get all additions from superclasses
-        obj = SuperMap.Layer.Grid.prototype.clone.apply(this, [obj]);
+        obj = SuperMap.CanvasLayer.prototype.clone.apply(this, [obj]);
         // copy/set any non-init, non-simple values here
         return obj;
     },
@@ -471,9 +471,14 @@ SuperMap.Layer.WMTS = SuperMap.Class(SuperMap.Layer.Grid, {
                 if (SuperMap.Credential.CREDENTIAL) {
                     params[SuperMap.Credential.CREDENTIAL.name] = SuperMap.Credential.CREDENTIAL.getValue();
                 }
-                url = SuperMap.Layer.Grid.prototype.getFullRequestString.apply(this, [params]);
+                url = SuperMap.CanvasLayer.prototype.getFullRequestString.apply(this, [params]);
 
             }
+        }
+        if(this.tileProxy){
+            url = this.tileProxy + encodeURIComponent(url);
+        }else if(this.proxy){
+            url = this.proxy + encodeURIComponent(url);
         }
         return url;    
     },
@@ -488,7 +493,7 @@ SuperMap.Layer.WMTS = SuperMap.Class(SuperMap.Layer.Grid, {
      */
     mergeNewParams: function(newParams) {
         if (this.requestEncoding.toUpperCase() === "KVP") {
-            return SuperMap.Layer.Grid.prototype.mergeNewParams.apply(
+            return SuperMap.CanvasLayer.prototype.mergeNewParams.apply(
                 this, [SuperMap.Util.upperCaseObject(newParams)]
             );
         }

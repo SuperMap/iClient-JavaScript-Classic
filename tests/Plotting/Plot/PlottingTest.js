@@ -30,7 +30,7 @@ test("testPlotting_Destory", function () {
 test("testPlotting_getDefaultStyle", function () {
     var plotting = SuperMap.Plotting.getInstance();
     plottingStyle = plotting.getDefaultStyle();
-    var defaultStyle = new SuperMap.Plot.DefualtStyle()
+    var defaultStyle = new SuperMap.Plot.DefualtStyle();
     deepEqual(plottingStyle, defaultStyle, "defaultStyle");
     plotting.destroy();
     g_Plotting = null;

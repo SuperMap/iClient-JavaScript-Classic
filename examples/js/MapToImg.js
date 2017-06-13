@@ -21,10 +21,18 @@
 
         //layers排序，将markers放到最上边
         var layers1 = [];
-        for(var i=0;i<layers.length;i++){
+        for(var i=0;i<layers.length;){
             if(layers[i].CLASS_NAME == "SuperMap.Layer.Markers"){
                 var templayer = layers.splice(i,1);
                 layers1.push(templayer[0]);
+            } else if(layers[i].CLASS_NAME == "SuperMap.Layer.GOAnimationLayer" ||
+                layers[i].CLASS_NAME == "SuperMap.Layer.PlottingLayer.Temporary" ||
+                (layers[i].CLASS_NAME == "SuperMap.Layer.PlottingLayer" && !layers[i].getVisibility()) ||
+                layers[i].CLASS_NAME == "SuperMap.Layer.PlottingLayer.RootContainer"){
+                //处理标绘图层的动画图层和图层不显示
+                layers.splice(i,1);
+            } else {
+                i++;
             }
         }
         layers = layers.concat(layers1);
@@ -46,6 +54,13 @@
             }
             else if(layer.CLASS_NAME == "SuperMap.Layer.Vector"){
                 getVectorLayerData(layer,map,function(imgUrls,i){
+                    return function(img){
+                        draw(img,i,imgUrls);
+                    }
+                }(imgUrls,i))
+            }
+            else if(layer.CLASS_NAME == "SuperMap.Layer.PlottingLayer"){
+                getPlottingLayerData(layer,map,function(imgUrls,i){
                     return function(img){
                         draw(img,i,imgUrls);
                     }
@@ -213,6 +228,53 @@
             feature1.style = feature.style;
 
             features1.push(feature1);
+        }
+        if(layer.style){
+            printLayer.style = layer.style;
+        }
+
+        printLayer.setOpacity(0);
+        printLayer.addFeatures(features1);
+
+        window.setTimeout(function(printLayer,map,callback){
+            return function(){
+                var div = printLayer.div;
+                var canvas1 = div.getElementsByTagName("canvas")[0];
+                var cxt1 = canvas1.getContext("2d");
+                var imageUrl = canvas1.toDataURL("image/png");
+
+                map.removeLayer(printLayer);
+                printLayer.destroy();
+
+                var img = new Image();
+                img.src = imageUrl;
+
+                callback(img);
+            }
+        }(printLayer,map,callback),30);
+    }
+
+    //截取Plotting图层
+    function getPlottingLayerData(layer,map,callback){
+        var printLayer,
+            features1 = [],
+            features = layer.features,
+
+        printLayer = new SuperMap.Layer.PlottingLayer("PRINT_LAYER", layer.serverUrl, {visibility: true, renderers: ["Canvas"]});
+        printLayer.spatialAnalystUrl = layer.spatialAnalystUrl;
+
+        map.addLayer(printLayer);
+        for(var j=0;j<features.length;j++){
+            if(features[j].geometry instanceof SuperMap.Geometry.PlottingGeometry){
+                var feature = features[j];
+                var feature1 = SuperMap.Plot.PlottingUtil.copyFeature(feature);
+                features1.push(feature1);
+            } else {
+                var feature1 = new SuperMap.Feature.Vector();
+                feature1.geometry = features[j].geometry.clone();
+                feature1.style = features[j].style;
+                features1.push(feature1);
+            }
         }
         if(layer.style){
             printLayer.style = layer.style;

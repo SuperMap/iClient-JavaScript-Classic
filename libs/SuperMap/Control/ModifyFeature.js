@@ -135,6 +135,24 @@ SuperMap.Control.ModifyFeature = SuperMap.Class(SuperMap.Control, {
     vertexRenderIntent: null,
 
     /**
+     * Property: undoStack
+     * <Array> 撤销列表栈
+     */
+    undoStack:null,
+
+    /**
+     * Property: redoStack
+     * <Array> 恢复列表栈
+     */
+    redoStack:null,
+
+    /**
+     * APIProperty: stackLimit
+     * <Integer> 撤销恢复栈的大小，默认为100
+     */
+    stackLimit:100,
+
+    /**
      * APIProperty: mode
      * {Integer} 该属性使用位字段指定编辑模式。默认为
      *      SuperMap.Control.ModifyFeature.RESHAPE。若多个mode组合使用可以用 | 符号隔开。例如：
@@ -207,6 +225,7 @@ SuperMap.Control.ModifyFeature = SuperMap.Class(SuperMap.Control, {
             geometryTypes: this.geometryTypes,
             clickout: this.clickout,
             toggle: this.toggle,
+            repeat: true,
             onBeforeSelect: this.beforeSelectFeature,
             onSelect: this.selectFeature,
             onUnselect: this.unselectFeature,
@@ -260,6 +279,7 @@ SuperMap.Control.ModifyFeature = SuperMap.Class(SuperMap.Control, {
         this.handlers = {
             keyboard: new SuperMap.Handler.Keyboard(this, keyboardOptions)
         };
+        this.resigterFeatureModifiedEvents();
     },
 
     /**
@@ -271,6 +291,28 @@ SuperMap.Control.ModifyFeature = SuperMap.Class(SuperMap.Control, {
         this.standalone || this.selectControl.destroy();
         this.dragControl.destroy();
         SuperMap.Control.prototype.destroy.apply(this, []);
+        this.clearUndoStack();
+    },
+
+    /**
+     * APIMethod: clearUndoStack
+     * 清除撤销恢复堆栈
+     */
+    clearUndoStack: function(){
+        if(this.redoStack && this.redoStack.length > 0){
+            for(var i = 0, len = this.redoStack.length; i < len; i++){
+                var lastGeometry = this.redoStack[i][1];
+                lastGeometry.destroy();
+            }
+            this.redoStack.length = 0;
+        }
+        if(this.undoStack && this.undoStack.length > 0){
+            for(i = 0, len = this.undoStack.length; i < len; i++){
+                var lastGeometry = this.undoStack[i][1];
+                lastGeometry.destroy();
+            }
+            this.undoStack.length = 0;
+        }
     },
 
     /**
@@ -354,6 +396,7 @@ SuperMap.Control.ModifyFeature = SuperMap.Class(SuperMap.Control, {
         if (feature.geometry && !(modified && modified.geometry)) {
             this._originalGeometry = feature.geometry.clone();
         }
+        this.lastFeature = feature;
     },
 
     /**
@@ -436,6 +479,7 @@ SuperMap.Control.ModifyFeature = SuperMap.Class(SuperMap.Control, {
                 this.dragControl.handlers.drag.last = pixel;
             }
         }
+        this.lastGeometry_ = this.feature.geometry.clone();
         //鼠标手势，IE7、8中需重新设置cursor
         SuperMap.Element.removeClass(
             this.map.viewPortDiv, "smDragDown" );
@@ -614,6 +658,7 @@ SuperMap.Control.ModifyFeature = SuperMap.Class(SuperMap.Control, {
                SuperMap.Util.indexOf(this.vertices, vertex) !== -1 &&
                !this.dragControl.handlers.drag.dragging &&
                vertex.geometry.parent) {
+                this.lastGeometry_ = this.feature.geometry.clone();
                 // remove the vertex
                 vertex.geometry.parent.removeComponent(vertex.geometry);
                 this.layer.events.triggerEvent("vertexremoved", {
@@ -702,6 +747,7 @@ SuperMap.Control.ModifyFeature = SuperMap.Class(SuperMap.Control, {
      * Collect the drag handle for the selected geometry.
      */
     collectDragHandle: function() {
+        var me = this;
         var geometry = this.feature.geometry;
         var center = geometry.getBounds().getCenterLonLat();
         var originGeometry = new SuperMap.Geometry.Point(
@@ -711,6 +757,16 @@ SuperMap.Control.ModifyFeature = SuperMap.Class(SuperMap.Control, {
         originGeometry.move = function(x, y) {
             SuperMap.Geometry.Point.prototype.move.call(this, x, y);
             geometry.move(x, y);
+            me.events.triggerEvent("featuremove", {
+                vertex: geometry,
+                feature: me.feature,
+                pixel: new SuperMap.Pixel(x,y)
+            });
+            me.layer.events.triggerEvent("featuremove", {
+                vertex: geometry,
+                feature: me.feature,
+                pixel: new SuperMap.Pixel(x,y)
+            });
         };
         origin._sketch = true;
         this.dragHandle = origin;
@@ -722,6 +778,7 @@ SuperMap.Control.ModifyFeature = SuperMap.Class(SuperMap.Control, {
      * Collect the radius handle for the selected geometry.
      */
     collectRadiusHandle: function() {
+        var me = this;
         var geometry = this.feature.geometry;
         var bounds = geometry.getBounds();
         var center = bounds.getCenterLonLat();
@@ -748,6 +805,16 @@ SuperMap.Control.ModifyFeature = SuperMap.Class(SuperMap.Control, {
                 var angle = a1 - a0;
                 angle *= 180 / Math.PI;
                 geometry.rotate(angle, originGeometry);
+                me.events.triggerEvent("featurerotate", {
+                    vertex: geometry,
+                    feature: me.feature,
+                    pixel: new SuperMap.Pixel(x,y)
+                });
+                me.layer.events.triggerEvent("featurerotate", {
+                    vertex: geometry,
+                    feature: me.feature,
+                    pixel: new SuperMap.Pixel(x,y)
+                });
             }
             if(resize) {
                 var scale, ratio;
@@ -762,11 +829,134 @@ SuperMap.Control.ModifyFeature = SuperMap.Class(SuperMap.Control, {
                     scale = l1 / l0;
                 }
                 geometry.resize(scale, originGeometry, ratio);
+                me.events.triggerEvent("featureresize", {
+                    vertex: geometry,
+                    feature: me.feature,
+                    pixel: new SuperMap.Pixel(x,y)
+                });
+                me.layer.events.triggerEvent("featureresize", {
+                    vertex: geometry,
+                    feature: me.feature,
+                    pixel: new SuperMap.Pixel(x,y)
+                });
             }
         };
         radius._sketch = true;
         this.radiusHandle = radius;
         this.layer.addFeatures([this.radiusHandle], {silent: true});
+    },
+
+    /**
+     * Method: resigterFeatureModifiedEvents
+     * 注册要素修改的相关事件，并保存要素状态到撤销栈中
+     */
+    resigterFeatureModifiedEvents: function(){
+        var control = this;
+        this.undoStack = [];
+        this.redoStack = [];
+        this.events.on({
+            'featuremodified':function(evt){
+                var feature = evt.feature;
+                control.storeUndo([feature, control.lastGeometry_]);
+            },
+            'featuremove':function(evt){
+                var feature = evt.feature;
+                control.storeUndo([feature, control.lastGeometry_]);
+            },
+            'featurerotate':function(evt){
+                var feature = evt.feature;
+                control.storeUndo([feature, control.lastGeometry_]);
+            },
+            'featureresize':function(evt){
+                var feature = evt.feature;
+                control.storeUndo([feature, control.lastGeometry_]);
+            }
+        });
+    },
+
+    /**
+     * Method: storeUndo
+     * 保存要素状态到撤销栈中
+     *
+     * Parameters:
+     * featureInfo {Object} - 要素对象及几何对象副本
+     */
+    storeUndo:function(featureInfo){
+        if(this.undoStack.length >= this.stackLimit){
+            throw SuperMap.i18n('undoStackOverflow');
+        }
+        this.undoStack.push(featureInfo);
+    },
+
+    /**
+     * Method: storeRedo
+     * 保存要素状态到恢复栈中
+     *
+     * Parameters:
+     * featureInfo {Object} - 要素对象及几何对象副本
+     */
+    storeRedo:function(featureInfo){
+        if(this.redoStack.length >= this.stackLimit){
+            throw SuperMap.i18n('undoStackOverflow');
+        }
+        this.redoStack.push(featureInfo);
+    },
+
+    /**
+     * APIMethod: undo
+     * 撤销操作
+     */
+    undo:function(){
+        if(this.undoStack && this.undoStack.length > 0){
+            var featureInfo = this.undoStack.pop();
+            var feature = featureInfo[0],geometry = featureInfo[1];
+            if(this.layer.features.indexOf(feature) === -1){
+                return;
+            }
+            var lastFeatureInfo = [feature, feature.geometry];
+            //geometry的Id不能改，不然重绘是无法删除原来的geometry
+            geometry.id = feature.geometry.id;
+            feature.geometry = geometry;
+            this.layer.drawFeature(feature, this.standalone ? undefined :
+                this.selectControl.renderIntent);
+            if(!this.standalone){
+                var toggle = this.selectControl.toggle;
+                this.selectControl.toggle = false;
+                this.selectControl.clickFeature(feature);
+                this.selectControl.toggle = toggle;
+            }else {
+                this.selectFeature(feature);
+            }
+            this.storeRedo(lastFeatureInfo);
+        }
+    },
+    /**
+     * APIMethod: redo
+     * 恢复操作
+     */
+    redo:function(){
+        if(this.redoStack && this.redoStack.length > 0){
+            var featureInfo = this.redoStack.pop();
+            var feature = featureInfo[0],geometry = featureInfo[1];
+            if(this.layer.features.indexOf(feature) === -1){
+                return;
+            }
+            var lastFeatureInfo = [feature, feature.geometry];
+            //geometry的Id不能改，不然重绘是无法删除原来的geometry
+            geometry.id = feature.geometry.id;
+            feature.geometry = geometry;
+            this.layer.drawFeature(feature, this.standalone ? undefined :
+                this.selectControl.renderIntent);
+            if(!this.standalone){
+                var toggle = this.selectControl.toggle;
+                this.selectControl.toggle = false;
+                this.selectControl.clickFeature(feature);
+                this.selectControl.toggle = toggle;
+            }else {
+                this.selectFeature(feature);
+            }
+            this.storeUndo(lastFeatureInfo);
+        }
     },
 
     /**

@@ -36,13 +36,13 @@
         @provinceLineColor:rgb(180,0,0);
 
 
-        #China_Railway_L___China400::a{
+        #China_Railway_L___China::a{
 
         /*每一段的长度为15px,间隔也是15px*/
         line-color:@railwayColora;
         line-width:2.5;
         }
-        #China_Railway_L___China400::b{
+        #China_Railway_L___China::b{
 
         /*每一段的长度为15px,间隔也是15px*/
         line-dasharray:18,18;
@@ -51,19 +51,19 @@
         }
         /*底下的地图背景图层*/
 
-        #World_Division___China400{
+        #World_Division_pl___China{
         polygon-fill:@waterColor;
         }
 
         /*中国除外的其他国家的图层*/
 
-        #World_Continent___China400{
+        #World_Continent_pl___China{
         polygon-fill:@continentColor;
         line-width:1;
         line-color:rgb(180,180,180);
         }
 
-        #World_Division___China400{
+        #World_Division_pl___China{
         polygon-fill:@waterColor;
         }
 </script>
@@ -104,10 +104,9 @@
         //初始化图层
         var cartoCssStr=document.getElementById("cartocssStr");
         var cartoCss=cartoCssStr.text;
-        var layerNames=["World_Division@China400","World_Continent@China400",
-            "China_Province_R@China400","China_island_R@China400",
-            "China_Provinces_L@China400","China_Capital_P@China400",
-            "China_BeiJing@China400"].join(",");
+        var layerNames=["World_Division_pl@China","World_Continent_pl@China",
+            "China_Province_pl@China","China_Island@China",
+            "China_Capital_Pt@China", "China_Boundary_A"].join(",");
         layerNames="["+layerNames+"]";
         layer = new SuperMap.Layer.TiledVectorLayer("China", url,{cacheEnabled:true,layerNames:layerNames},{useLocalStorage:true,cartoCss:cartoCss});
         layer.events.on({"layerInitialized": addLayer});

@@ -57,7 +57,7 @@ SuperMap.REST.ThemeLabel = SuperMap.Class(SuperMap.REST.Theme, {
     
     /**
      * APIProperty: uniqueItems
-     * {Array(<SuperMap.REST.ThemeLabelItem>)} 单值标签专题图子项数组。单值标签专题图使用 rangeExpression 
+     * {Array(<SuperMap.REST.ThemeLabelUniqueItem>)} 单值标签专题图子项数组。单值标签专题图使用 uniqueExpression
      * 单值标签专题图子项集合
      */
     uniqueItems: null,

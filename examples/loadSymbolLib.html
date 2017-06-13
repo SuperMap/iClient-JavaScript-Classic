@@ -86,7 +86,7 @@
             drawGraphicObject = new SuperMap.Control.DrawFeature(plottingLayer, SuperMap.Handler.GraphicObject);
 
             //态势标绘编辑
-            plottingEdit = new SuperMap.Control.PlottingEdit(plottingLayer);
+            plottingEdit = new SuperMap.Control.PlottingEdit();
 
             //添加态势标绘控件
             map.addControls([plottingEdit,drawGraphicObject]);
@@ -248,9 +248,13 @@
             plottingLayer.removeAllFeatures();
         }
 
-        document.oncontextmenu = function(evt){
-            PlottingDrawCancel();
-            return false;
+        document.onmouseup = function (evt) {
+            var evt = evt || window.event;
+            if (evt.button === 2) {
+                PlottingDrawCancel();
+                return false;
+            }
+            evt.stopPropagation();
         }
     </script>
 </head>

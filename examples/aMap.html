@@ -62,7 +62,8 @@
                       themeParameters = new SuperMap.REST.ThemeParameters({
                           themes: [themeDotDensity],
                           datasetNames: ["Countries"],
-                          dataSourceNames: ["World"]
+                          dataSourceNames: ["World"],
+                          types:['REGION']
                       });
               //向iserver发送请求
              themeService.processAsync(themeParameters);

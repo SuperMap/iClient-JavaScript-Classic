@@ -594,7 +594,6 @@ SuperMap.Layer.ClusterLayer = SuperMap.Class(SuperMap.Layer.Vector, {
      * 判断Renderer对象是否是VML
      */
     isVML:function(){          //判断是否是VML的渲染方式，当ie8以下，采用vml渲染时，效率比较低，需要采用分批绘制的策略
-        return false;
         return (this.renderer.CLASS_NAME === "SuperMap.Renderer.VML")
     },
 

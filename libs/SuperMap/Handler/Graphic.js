@@ -69,7 +69,6 @@ SuperMap.Handler.Graphic = SuperMap.Class(SuperMap.Handler.Feature, {
                 SuperMap.Event.stop(evt);
             }
             var inNew = (this.graphic !== this.lastGraphic);
-            inNew = this.allowClickTwice ? true: inNew;
             if(this.geometryTypeMatches(this.graphic)) {
                 // in to a graphic
                 if(previouslyIn && inNew) {
@@ -81,6 +80,9 @@ SuperMap.Handler.Graphic = SuperMap.Class(SuperMap.Handler.Feature, {
                 } else if(!previouslyIn || click) {
                     // in graphic for the first time
                     this.triggerCallback(type, 'in', [this.graphic, evt]);
+                    if(click){
+                        this.lastClickGraphic = this.graphic;
+                    }
                 }
                 this.lastGraphic = this.graphic;
                 handled = true;
@@ -98,8 +100,13 @@ SuperMap.Handler.Graphic = SuperMap.Class(SuperMap.Handler.Feature, {
                 this.graphic = null;
             }
         } else {
-            this.triggerCallback(type, 'out', [this.lastGraphic, evt]);
-            this.graphic = null;
+            if(click && this.lastClickGraphic){
+                this.triggerCallback(type, 'out', [this.lastClickGraphic, evt]);
+                this.lastClickGraphic = null;
+            }else if(this.lastGraphic && this.lastGraphic !== this.graphic){
+                this.triggerCallback(type, 'out', [this.lastGraphic, evt]);
+                this.lastGraphic = null;
+            }
         }
         return handled;
     },

@@ -2,12 +2,12 @@ module("PlottingEdit");
 
 test("testPlottingEdit_Constructor", function () {
     var plottinglayer = new SuperMap.Layer.PlottingLayer("Plotting Layer", GlobeParameter.plotUrl);
-    var plottingEdit = new SuperMap.Control.PlottingEdit(plottinglayer);
+    var plottingEdit = new SuperMap.Control.PlottingEdit();
     equal(plottingEdit.CLASS_NAME, "SuperMap.Control.PlottingEdit", "Property:CLASS_NAME");
     equal(plottingEdit.controlPointsStyle, null, "Property:controlPointsStyle");
     equal(plottingEdit.scalePointsStyle, null,"Property:controlPointsStyle");
-    deepEqual(plottingEdit.defaultControlPointStyle.fillOpacity, 0.4,"Property:defaultStyle");
-    equal(plottingEdit.controlPoints.length, 0, "Property:controlPoints");
+    deepEqual(plottingEdit.defaultControlPointStyle.fillOpacity, 1,"Property:defaultStyle");
+    equal(plottingEdit.controlPoints.length, null, "Property:controlPoints");
 
     plottingEdit.destroy();
     plottinglayer.destroy();
@@ -15,20 +15,20 @@ test("testPlottingEdit_Constructor", function () {
 
 test("testPlottingEdit_Destroy", function () {
     var plottinglayer = new SuperMap.Layer.PlottingLayer("Plotting Layer", GlobeParameter.plotUrl);
-    var plottingEdit = new SuperMap.Control.PlottingEdit(plottinglayer);
+    var plottingEdit = new SuperMap.Control.PlottingEdit();
     equal(plottingEdit.CLASS_NAME, "SuperMap.Control.PlottingEdit", "Property:CLASS_NAME");
 
     plottingEdit.destroy();
     equal(plottingEdit.controlPointsStyle, null, "Property:controlPointsStyle");
     equal(plottingEdit.scalePointsStyle, null,"Property:controlPointsStyle");
-    deepEqual(plottingEdit.defaultControlPointStyle.fillOpacity, 0.4,"Property:defaultStyle");
-    equal(plottingEdit.controlPoints.length, 0, "Property:controlPoints");
+    deepEqual(plottingEdit.defaultControlPointStyle.fillOpacity, 1,"Property:defaultStyle");
+    equal(plottingEdit.controlPoints, null, "Property:controlPoints");
 });
 
 test("testPlottingEdit_activate",1, function () {
     var map = new SuperMap.Map('map');
     var plottingLayer = new SuperMap.Layer.PlottingLayer("Plotting Layer", GlobeParameter.plotUrl);
-    var plottingEdit = new SuperMap.Control.PlottingEdit(plottingLayer);
+    var plottingEdit = new SuperMap.Control.PlottingEdit();
     map.addControls([plottingEdit]);
     ok(plottingEdit.activate(),"PlottingEdit activate is true");
     map.destroy();
@@ -37,7 +37,7 @@ test("testPlottingEdit_activate",1, function () {
 test("testPlottingEdit_deactivate", function () {
     var map = new SuperMap.Map('map');
     var plottingLayer = new SuperMap.Layer.PlottingLayer("Plotting Layer", GlobeParameter.plotUrl);
-    var plottingEdit = new SuperMap.Control.PlottingEdit(plottingLayer);
+    var plottingEdit = new SuperMap.Control.PlottingEdit();
     map.addControls([plottingEdit]);
     map.addLayers([plottingLayer]);
     ok(!plottingEdit.deactivate(),"PlottingEdit activate is false");
@@ -152,7 +152,7 @@ test("testPlottingEdit_deactivate", function () {
 test("testPlottingEdit_setMap",1, function () {
     var map = new SuperMap.Map('map');
     var plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer",GlobeParameter.plotUrl);
-    var plottingEdit = new SuperMap.Control.PlottingEdit(plottingLayer);
+    var plottingEdit = new SuperMap.Control.PlottingEdit();
     plottingEdit.setMap(map);
     ok(plottingEdit.map instanceof SuperMap.Map,"this Map");
     plottingLayer.destroy();

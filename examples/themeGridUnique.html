@@ -144,7 +144,8 @@
                 themeParameters = new SuperMap.REST.ThemeParameters({
                     datasetNames: ["JingjinTerrain"],
                     dataSourceNames: ["Jingjin"],
-                    themes: [themeGridUnique]
+                    themes: [themeGridUnique],
+                    types:['GRID']
                 });
 
                 themeService.processAsync(themeParameters);

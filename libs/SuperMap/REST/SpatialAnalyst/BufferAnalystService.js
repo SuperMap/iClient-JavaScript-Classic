@@ -143,7 +143,7 @@ SuperMap.REST.BufferAnalystService = SuperMap.Class(SuperMap.ServiceBase, {
      * params - {<SuperMap.REST.BufferAnalystParameters>} 
      */
     processAsync: function (parameter) {
-        var parameterObject = new Object();
+        var parameterObject;
         var me = this;
 
         var end = me.url.substr(me.url.length - 1, 1);
@@ -156,16 +156,25 @@ SuperMap.REST.BufferAnalystService = SuperMap.Class(SuperMap.ServiceBase, {
         if (parameter instanceof SuperMap.REST.DatasetBufferAnalystParameters) {
             me.mode = "datasets";
             me.url += 'datasets/' + parameter.dataset + '/buffer';
-            SuperMap.REST.DatasetBufferAnalystParameters.toObject(parameter, parameterObject);
+            parameterObject = SuperMap.REST.DatasetBufferAnalystParameters.toObject(parameter);
         }
         else if (parameter instanceof SuperMap.REST.GeometryBufferAnalystParameters) {
             me.mode = "geometry";
-            me.url += 'geometry/buffer';
-            SuperMap.REST.GeometryBufferAnalystParameters.toObject(parameter, parameterObject);
+            if(parameter.sourceGeometry instanceof Array) {
+                me.isInTheSameDomain = true;
+                me.url += 'geometry/batchanalyst';
+                parameterObject = SuperMap.REST.GeometryBufferAnalystParameters.toArray(parameter);
+            } else {
+                me.url += 'geometry/buffer';
+                parameterObject = SuperMap.REST.GeometryBufferAnalystParameters.toObject(parameter);
+            }
         }
 
         var jsonParameters = SuperMap.Util.toJSON(parameterObject);
-
+        if(parameterObject instanceof Array) {
+            me.isInTheSameDomain = true;
+            jsonParameters = jsonParameters.substring(0);
+        }
 
         if (me.isInTheSameDomain) {
             me.url += '.json?returnContent=true';
@@ -195,7 +204,13 @@ SuperMap.REST.BufferAnalystService = SuperMap.Class(SuperMap.ServiceBase, {
             var analyzeResult = SuperMap.REST.DatasetBufferAnalystResult.fromJson(result);
         }
         else if (this.mode === "geometry") {
-            var analyzeResult = SuperMap.REST.GeometryBufferAnalystResult.fromJson(result);
+            var analyzeResult;
+            if(result instanceof Array) {
+                analyzeResult = SuperMap.REST.GeometryBufferAnalystResult.fromArray(result);
+            } else {
+                analyzeResult = SuperMap.REST.GeometryBufferAnalystResult.fromJson(result);
+            }
+
         }
         this.mode = null;
         this.lastResult = analyzeResult;

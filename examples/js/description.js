@@ -18,7 +18,7 @@ DemoDescription['aMap'] = {title: 'AMap图层', desc: '使用AMap的API创建高
 DemoDescription['leaflet']={title:'LeafLet图层',desc:'使用Leaflet的API创建OpenStreetMap地图，通过iConnector叠加iServer生成的点密度专题图', oper: '点击左上角的按钮可以叠加点密度专题图。' }
 DemoDescription['mapBox']={title:'MapBox图层',desc:'使用MapBox的API创建OpenStreetMap地图，通过iConnector叠加iServer生成的点密度专题图。支持IE10以上版本。mapbox.js是基于leaflet开发的，iConnector原理一样。', oper: '点击左上角的按钮可以叠加点密度专题图。' }
 DemoDescription['cartoDB']={title:'CartoDB图层',desc:'使用CartoDB的API创建OpenStreetMap地图，通过iConnector叠加iServer生成的点密度专题图。cartoDB是基于leaflet开发的，iConnector原理一样', oper: '点击左上角的按钮可以叠加点密度专题图。' }
-DemoDescription['polymap']={title:'Polymaps图层',desc:'使用Polymaps的API创建地图，通过iConnector叠加iServer生成的点密度专题图。支持IE9以上版本', oper: '点击左上角的按钮可以叠加点密度专题图。' }
+//DemoDescription['polymap']={title:'Polymaps图层',desc:'使用Polymaps的API创建地图，通过iConnector叠加iServer生成的点密度专题图。支持IE9以上版本', oper: '点击左上角的按钮可以叠加点密度专题图。' }
 DemoDescription['openLayers3']={title:'OpenLayers3',desc:'使用OpenLayers3创建OSM地图，通过iConnector叠加iServer生成的单值专题图。', oper: '点击左上角的按钮可以叠加单值专题图。' }
 DemoDescription['bing']={title:'bing图层',desc:'使用bing地图的API创建bing地图,通过iConnector叠加iserver生成的等级符号专题图', oper: '点击左上角的按钮可以叠加单值专题图。' }
 
@@ -43,6 +43,7 @@ DemoDescription['createBLine'] = {title: 'B样条曲线', desc: 'B样条曲线�
 DemoDescription['chinaTelecomSymbol'] = {title: '电信符号', desc: '此范例展示三叶草渲染。两层的三叶草深色可以代表GSM900共站，下面浅色代表1800共站。三层三叶草一层可以代表频点α，二层可代表频点β，三层课代表频点γ。', oper: '点击“显示符号”按钮，电信专业符号被加载到地图。1、三叶草节点数有10万个；2、三叶草颜色可以在前台制定，前后台可交互；3、三叶草有多类型多频点，方向角可不同；4、三叶草可以被选中，支持选择后弹出对话框；5、可以通过连线看到有哪些临区。'}
 DemoDescription['mRegion'] = {title: '岛洞与多面', desc: '此范例展示了岛洞多边形和多面的创建方式以及效果。', oper: '点击加载数据添加岛洞多边形和多面，点击移除数据可移除岛洞多边形和多面'}
 DemoDescription['Graphics_Symbols'] = {title: '高性能矢量渲染', desc: '此范例展示了使用高性能矢量渲染图层使用方式和绘制速度', oper: '在输入框中输入需要绘制的数量，点击开始绘制即可，点击移除按钮可以移除已经绘制的图形。'}
+DemoDescription['GraphicsEvents'] = {title: '高性能矢量渲染（开启事件）', desc: '此范例展示了使用高性能矢量渲染图层使用方式和绘制速度', oper: '在输入框中输入需要绘制的数量，点击开始绘制即可，点击移除按钮可以移除已经绘制的图形。点击要素弹出带有该要素简略信息的气泡'}
 DemoDescription['Graphics_Clover'] = {title: '三叶草', desc: '此范例展示了高性能矢量图层渲染三叶草符号使用方式。', oper: '在输入框中输入需要绘制的数量，点击无事件绘制按钮绘制不可选中的三叶草；点击开启事件绘制按钮绘制的图形可以进行选择，点击某个扇叶即可高亮显示。'}
 DemoDescription['marker'] = {title: '标记图层', desc: '标记覆盖物，对地图的点进行标注，可以自定义选择标注的图标，需添加到 Markers 图层上显示。', oper: '无'}
 DemoDescription['markerEvent'] = {title: '标记图层事件', desc: '此范例展示标记图层支持的简单的事件，在marker上添加click事件（移动端浏览器则注册touchstart事件），弹出一个简单的信息框。', oper: '点击marker图标，触发事件，弹出简单信息框。' }
@@ -71,6 +72,7 @@ DemoDescription['simplePopup'] = {title: '简易信息框', desc: '定义：弹�
 DemoDescription['anchored'] = {title: '自适应信息框', desc: '定义：自适应信息框。固定锚点位置的的浮动弹窗，可以围绕指定位置四周自适应显示。', oper: '缩放地图，信息框会在固定位置的四个方位自适应移动显示，关闭信息框后，点击标记物，信息框会选择适当方位再显示。' }
 DemoDescription['popup'] = {title: '自定义信息框', desc: '定义：弹窗控件，可在单独窗口中相对于屏幕上的元素或点显示内容。', oper: '点击标记物，显示弹窗。设置弹窗背景颜色，按“设置背景色”修改弹窗背景颜色。设置弹窗透明度，按“修改透明度”改变其透明度。' }
 DemoDescription['shadowPopup'] = {title: '常用信息框', desc: '定义：具有指向和边框的浮动弹窗，可在单独窗口中相对于屏幕上的元素或点显示内容。', oper: '点击标记物，显示弹窗。' }
+DemoDescription['infoWindow'] = {title: '第三方信息框', desc: '定义：第三方弹窗控件，可在单独窗口中相对于屏幕上的元素或点显示内容，用户可自定义弹窗样式与内容.', oper: '点击标记物，显示弹窗。' }
 
 //查询
 DemoDescription['queryByBounds'] = {title: '范围查询', desc: '定义：对地图图层的 Bounds 查询，在一个或多个指定的图层上查询指定 Bounds 范围内的空间地物信息。Bounds 查询与 Geometry 查询相似，不同的是，Bounds 查询指定的范围为 Bounds，非 Geometry 信息，且使用起来较 Geometry 查询更加方便快捷。', oper: '1、点击 “查询” 按钮，在地图中点击鼠标，然后拖动鼠标，最后释放鼠标，完成添加矩形（指定的Bounds），查询并显示矩形区域内的首都；2、点击 “清除” 按钮，清除当前的查询结果。' }
@@ -85,6 +87,7 @@ DemoDescription['getFeatureBySQL'] = {title: 'SQL 查询', desc: '定义：对�
 DemoDescription['getFeatureByBounds'] = {title: '范围查询', desc: '定义：对数据集进行范围查询，即在指定数据集集合中查找与某一个范围相交的矢量要素。', oper: '1、点击 “查询” 按钮，执行范围查询；2、点击 “清除” 按钮，清除当前的查询结果。' }
 DemoDescription['editFeature'] = {title: '地物编辑', desc: '定义：数据服务中数据集地物编辑服务类，基于数据集与服务端交互完成地物的添加、选择、删除、修改操作。添加、删除、修改操作共用同一个参数类（EditFeaturesParameters）、同一个服务类（EditFeaturesService）、同一个事件类（EditEvent）、同一个结果类（EditFeaturesResult）。而选择操作拥有其独立的参数、服务、事件、结果类。选择操作的目的是为了获取服务端的几何对象。', oper: '1、点击 “新增地物” 按钮，在地图中添加多边形（鼠标单击添加结点，双击结束）增加地物。2、点击 “选择地物” 按钮在地图中选中地物，注意：执行编辑和删除操作之前都需要先执行选择操作。3、点击“选择地物”按钮在地图中选中要编辑的地物，点击 “编辑地物” 按钮进行编辑。4、先点击“选择地物”按钮在地图中选中要清除的地物，再点击“删除地物”按钮进行地物清除。' }
 DemoDescription['fieldStatistic'] = {title: '字段查询统计', desc: '定义：查询指定数据集的中所有属性字段', oper: '1.首先查询数据集中所有属性字段；2.对指定字段统计分析，即求平均值，最大值等' }
+DemoDescription['gridInfosQuery'] = {title: '栅格查询', desc: '定义：查询某一地理位置所对应的栅格单元的信息，包括栅格值、栅格行、栅格列。', oper: '点击地图任意位置，即可查询该地理位置所对应的栅格单元的信息' }
 
  //专题图
 DemoDescription['themeDotDensity'] = {title: '点密度专题图', desc: '定义：点密度专题图使用点的个数或密集程度来反映一个区域或范围某一专题数据的值，因此只有面数据才能制作点密度专题图。 点密度专题图的一个点代表了一定数值，则一个区域内点的个数乘以一个点所表示的数值就是此区域对应的专题数据的值。例如指定一个点代表 1000，则若一个区域的人口为 1000000，则该区域点的个数为 1000 个。点密度专题图中点的分布是随机的，并不代表实际的分布位置。即使在相关设置完全相同的情况下，每次制作出的专题图，点的数量相同，但点的位置都有差异。', oper: '1、点击创建专题图按钮生成点密度专题图；2、点击移除专题图按钮移除点密度专题图。' }
@@ -139,6 +142,7 @@ DemoDescription['trafficTransfer'] = {title: '公交换乘服务', desc: '定义
 
 //可视化
 DemoDescription['heatmapLayer'] = {title: '热点图', desc: '定义：显示热点图信息。', oper:'1、设置热点数量和半径大小，并且选择热点半径单位，这里提供了 px 和 degree 两种单位，点击渲染查看效果；2、点击清除删除热点。' }
+DemoDescription['heatmapFastLayer'] = {title: '高效热点图', desc: '定义：快速显示热点图信息。', oper:'1、设置热点数量和半径大小，并且选择热点半径单位，这里提供了 px 和 地理单位（注：地理单位和底图保持一致） 两种单位，点击渲染查看效果；2、点击清除删除热点。' }
 DemoDescription['heatmapColorSection'] = {title: '热点图颜色分段设置', desc: '定义：显示热点图信息，并且可以快速的看出温度范围内颜色的渐变。', oper:'1、设置热点数量和半径大小，并且选择热点半径单位，这里提供了 px 和 degree 两种单位，点击渲染查看效果；2、点击清除删除热点。' }
 DemoDescription['heatmapColorManual'] = {title: '热点图颜色分段设置', desc: '定义：显示热点图信息，可以改变热点图的颜色范围显示。', oper:'1、设置热点数量和半径大小，并且选择热点半径单位，这里提供了 px 和 degree 两种单位，点击渲染查看效果；2、点击清除删除热点；3、点击"颜色图片"可以加载颜色值，点击渲染查看效果。' }
 DemoDescription['heatGridLayer'] = {title: '热点网格图', desc: '定义：热点网格图层。热点图和聚合的结合，强调热度、数值，常用于温度、海拔高度等的显示。', oper: '1、格网的数据范围和style通过格网子对象数组items设置；2、网格label根据labelMode的不同可以显示当前网格包含数据量的数量、平均值、最大值、最小值。' }
@@ -164,7 +168,7 @@ DemoDescription['cartoCSS_point'] = {title: '点符号', desc: '定义：前端C
 DemoDescription['cartoCSS_line'] = {title: '线符号', desc: '定义：前端CartoCSS符号系统，线符号的展示，用户通过CartoCSS可以设置线的颜色、线宽、线的顶端的形状、拐角的形状，还有虚线的模式等等，本范例就是通过CartoCSS样式的线符号特性来模拟了铁路线符号。', oper: '无' }
 DemoDescription['cartoCSS_polygon'] = {title: '面符号', desc: '定义：前端CartoCSS符号系统，面符号的展示，用户通过CartoCSS可设置面符号的颜色，外围边界线颜色等属性', oper: '无' }
 DemoDescription['cartoCSS_text'] = {title: '文本符号', desc: '定义：前端CartoCSS符号系统，文本符号的展示，用户通过CartoCSS可设置文本符号的字体，字的大小，字的颜色等等', oper: '无' }
-DemoDescription['cartoCSS_hightlight'] = {title: '高亮显示', desc: '定义：前端CartoCSS符号系统，点击和鼠标移动的高亮显示，通过在CartoCSS中hover或者click选择器，用户可方便地自定义高亮显示的符号样式，', oper: '鼠标单击世界地图上的南极洲，可以看到陆地图层上的要素ID小于100的要素高亮起来了，再点击没有高亮的国家（中国除外），这些国家也高亮起来了。鼠标移动到各大洲的文本上时，文本也高亮了。' }
+DemoDescription['cartoCSS_hightlight'] = {title: '高亮显示', desc: '定义:矢量分块图层的点击高亮显示', oper: '鼠标点击地图内，弹出图层选择列表，选择某一图层，被选中图层将会高亮起来。' }
 DemoDescription['cartoCSS_edit'] = {title: 'CartoCSS编辑', desc: '定义：利用可视化的矢量地图编辑器，用户可以轻松地定制自己的地图', oper: '在可视化的矢量地图编辑器里面，选择相应的图层，在需要在该图层上修改的样式属性上打勾，然后调整其相应的属性值，此外还可以按住ctrl键，对矢量地图编辑器上的带四个箭头的按钮进行拖拽，从而改变编辑器的位置；点击其中的一个箭头，还可以改变编辑器的方位。' }
 DemoDescription['cartoCSS_boundryStyle'] = {title: '强边界风格', desc: '定义：利用地图样式表CartoCSS配出的强边界风格地图', oper: '无' }
 DemoDescription['cartoCSS_darkblueStyle'] = {title: '深夜蓝黑风格', desc: '定义：利用地图样式表CartoCSS配出的深夜蓝黑风格地图', oper: '无' }
@@ -181,7 +185,7 @@ DemoDescription['GeoJSON'] = {title: 'GeoJSON数据展示', desc: '定义：展�
 DemoDescription['queryByWFS'] = {title: 'WFS 查询', desc: '定义：对地图进行GerFeature查询，通过get请求返回世界首都地理信息。',oper: 'WFS服务需要在发布的情况下使用' }
 
 //动态标绘
-DemoDescription['plot'] = {title: '动态标绘', desc: '此范例展示可以选中标绘面板上的标号，标绘在地图上;选中标号可以在属性面板中展示和修改标号的属性。',oper: '1、选择标绘面板中的一个标号；2、点击地图，就可以把标号标绘到地图上；3、点击取消标绘按钮；4、选择地图上的一个标号，可以在属性面板中查看并且修改标号的属性；5、选中标号，可以点击删除标号；6、点击清空图层按钮，可以删除地图上所有标号；7、选中标号，可以拷贝或剪切标号，然后再粘贴标号；8、点击创建图层按钮，创建新图层；9、保存和加载名为"situationMap"的态势图。' }
+DemoDescription['plot'] = {title: '动态标绘', desc: '此范例展示可以选中标绘面板上的标号，标绘在地图上;选中标号可以在属性面板中展示和修改标号的属性。',oper: '1、选择标绘面板中的一个标号；2、点击地图，就可以把标号标绘到地图上；3、点击取消标绘按钮；4、选择地图上的一个标号，可以在属性面板中查看并且修改标号的属性；5、选中标号，可以点击删除标号；6、点击清空图层按钮，可以删除地图上所有标号；7、选中标号，可以拷贝或剪切标号，然后再粘贴标号；8、点击创建图层按钮，创建新图层；9、保存和加载名为"situationMap"的态势图。10、增加标号编辑点；11、点击多选模式切换按钮可以在单选和多选之间切换选择模式；12、点击对齐按钮，可以对多个标号进行对齐；13、选中多个标号(旗子)可以创建组合对象(多旗)；14、绘制航线过程中，点击设置航线点类型按钮，可以修改航线点类型。' }
 DemoDescription['plotSymbol'] = {title: '鼠标标绘', desc: '此范例展示可以选中标绘面板上的标号，标绘在地图上。',oper: '1、选择标绘面板中的一个标号；2、点击地图，就可以把标号标绘到地图上。' }
 DemoDescription['drawGeoGraphicObject'] = {title: '编程绘制', desc: '此范例展示编程绘制动态标绘对象。', oper: '点击按钮，绘制相应的标号。'}
 DemoDescription['modifySymbolStyle'] = {title: '属性修改', desc: '此范例展示在属性面板中修改标号属性。', oper: '1、选择地图上的一个标号；2、可以在属性面板中查看并修改其属性。'}
@@ -192,10 +196,19 @@ DemoDescription['defaultStyle'] = {title: '缺省属性', desc: '此范例展示
 DemoDescription['symbolEditor'] = {title: '编辑器', desc: '此范例展示对标号进行复制、剪切和粘贴。', oper: '1、在地图上选择一个标号；2、点击复制或者剪切按钮；3、点击粘贴按钮，可以选择标号的位置标绘一个相同的标号。' }
 DemoDescription['loadSymbolLib'] = {title: '标号库加载', desc: '此范例展示从标绘服务中加载标号库，并显示标号库信息。', oper: '1、点击标绘按钮，可以在地图上绘制标号库中的一个标号；2、点击取消标绘按钮，可以取消对该标号的绘制。' }
 DemoDescription['querySymbolLib'] = {title: '查询标号', desc: '此范例展示查询标号库中的标号。', oper: '。1、在编辑框内输入要查询的关键字；2、点击查询按钮，可以显示标号库中符合查询条件的标号；3、可以单击查询结果面板上的Icon，绘制标号。' }
-DemoDescription['symbolGeometricQuery'] = {title: '几何查询', desc: '此范例展示对图层进行几何查询。', oper: '。1、点击相应的按钮，可以绘制一个查询区域；2、当查询区域绘制结束后，符合查询条件的标号的线色会显示成蓝色。' }
+DemoDescription['symbolGeometricQuery'] = {title: '几何查询', desc: '此范例展示对图层进行几何查询。', oper: '1、点击相应的按钮，可以绘制一个查询区域；2、当查询区域绘制结束后，符合查询条件的标号的线色会显示成蓝色。' }
 DemoDescription['saveload'] = {title: '态势图保存和下载', desc: '此范例展示态势图的保存和加载。', oper: '1、选择一张态势图，点击加载按钮，加载态势图；2、可以鼠标交互式标绘和编辑标号；3、点击保存按钮，保存修改到当前态势图；4、填写另存为态势图的名字，点击另存为按钮，另存态势图。'}
-DemoDescription['addfile'] = {title: '态势图叠加', desc: '此范例展示态势图文件的打开、叠加和添加到指定图层。', oper: '1、选择一个本地的态势图文件，点击“叠加”按钮，会将这个态势图文件上传到服务上，然后再将态势图里的信息显示到地图上（不会清空地图上的其他标号）；2、选择一个本地的态势图文件，点击“添加到指定图层”按钮，会将这个态势图文件上传到服务器，然后将态势图文件的信息添加到指定的图层上显示（不会清空地图上的其他标号）；3 选择一个本地的态势图文件，点击“打开”按钮，会将这个态势图文件上传到服务器上，将地图的标号全部清空，然后再将态势图里的信息显示到地图上。 '}
+DemoDescription['addfile'] = {title: '态势图叠加', desc: '此范例展示态势图文件的打开、叠加和添加到指定图层。', oper: '1、选择一个本地的态势图文件，点击“叠加”按钮，会将这个态势图文件上传到服务上，然后再将态势图里的信息显示到地图上（不会清空地图上的其他标号）；2、选择一个本地的态势图文件，点击“添加到指定图层”按钮，会将这个态势图文件上传到服务器，然后将态势图文件的信息添加到指定的图层上显示（不会清空地图上的其他标号）；3 选择一个本地的态势图文件，点击“打开”按钮，会将这个态势图文件上传到服务器上，将地图的标号全部清空，然后再将态势图里的信息显示到地图上。'}
 DemoDescription['filetransfer'] = {title: '态势图上传下载', desc: '此范例展示态势图文件的上传和下载。', oper: '1、选择一个本地的态势图文件，点击上传按钮，可以将这个态势图文件上传到服务器；2、选择态势图列表中的文件名称，点击下载按钮，可以从服务器下载相应的态势图文件；3、在编辑框中输入态势图的名称，点击删除指定的态势图文件按钮，可以从服务器上删除该态势图文件' }
+DemoDescription['plotSymbolPerformance'] = {title: '高性能图层', desc: '此范例展示高性能图层中固定大小点标绘对象的创建，编辑，渲染的使用方式。', oper: '1、点击添加标号按钮，在高性能图层上创建固定大小点标绘对象；2、选择高性能图层上的一个标绘对象，进行编辑。' }
+DemoDescription['plotGOAnimation'] = {title: '态势推演', desc: '此范例展示动态标绘的态势推演，动画的创建，播放，暂停，停止，复位，删除。', oper: '1、选择标绘面板中的一个标号绘制，选中当前绘制的标号；2、选择动画类型；3、点击创建动画按钮；4、点击播放按钮；' }
+DemoDescription['drawGraphics'] = {title: '复杂对象', desc: '此范例展示编程标绘复杂对象和编辑。', oper: '1、点击按钮，绘制相应的标号。2、选中标号，点击编辑标号按钮，切换到编辑模式。' }
+DemoDescription['symbolAvoid'] = {title: '避让区域', desc: '此范例展示标绘对象避让编辑，删除，退出避让编辑。', oper: '1、在地图上选择标号；2、点击避让编辑按钮，绘制避让区域；3、点击退出避让按钮退出避让编辑；4、点击避让编辑按钮进入编辑编辑后，点击删除避让按钮删除避让区域；' }
+DemoDescription['drawRoute'] = {title: '航线', desc: '此范例展示航线的绘制与编辑。', oper: '1、点击绘制航线；2、选择航线节点类型，绘制过程中可以更改类型；3、选中航线节点，点击增加航线节点按钮，可以增加航线节点，选择航线节点类型，增加过程中可以修改节点类型。' }
+DemoDescription['plotPrintScreen'] = {title: '截屏', desc: '此范例展示截取地图和标绘对象并保存为本地图片。', oper: '1、点击截图按钮，可以截取地图和地图上的标绘对象并保存为本地图片。' }
+
+
+
 
 //其他
 DemoDescription['mapPrint'] = {title: '地图打印', desc: '定义：地图打印功能主要用于打印地图数据，同时可以打印矢量元素以及信息框等。', oper: '点击“标注”按钮，生成标注，再点击标注弹出信息框，点击“打印地图”按钮打印地图。展示打印地图数据、标注图层和信息框类。 ' }
@@ -222,6 +235,7 @@ DemoDescription['echart_graphBar'] = {title: 'eChart柱状图', desc: '定义：
 DemoDescription['SM_OSMBuildings_addGeoJson'] = {title: 'OSMBuildings AddData', desc: '定义：OSMBuildings AddData，此范例展示在客户端扩展图层 OSMBuildings 中添加GeoJson格式的Buildings数据。(注: 范例的数据为简略数据，更多的数据和参数设置请参考 https://github.com/kekscom/osmbuildings/blob/master/README.md 中API部分)', oper: '移动底图，看Buildings的视觉效果；地图的放大缩小，查看Buildings的变化；不同时间，看Buildings的阴影变化；点击OSMBuildings，查看其ID属性信息。' }
 DemoDescription['SM_OSMBuildings_DrawBuildings'] = {title: 'OSMBuildings 绘制', desc: '定义：OSMBuildings 绘制，此范例展示在客户端扩展图层 OSMBuildings 绘制Buildings，并设置一些Building的属性，绘制不同的OSMBuidings。(注: 范例的属性为简略参数，更多的参数设置请参考 https://github.com/kekscom/osmbuildings/blob/master/README.md 中API部分。)', oper: '先设置OSMBuildings顶部高度，底部高度，以及墙壁，顶部颜色；然后移动鼠标，依次在地图中选择一些位置单击鼠标左键，在结束位置双击鼠标左键；即可绘制OSMBuidings。' }
 DemoDescription['SM_OSMBuildings_RestData'] = {title: 'OSMBuildings Rest', desc: '定义：OSMBuildings Rest，此范例通过客户端扩展图层 OSMBuildings 展示从服务器端请求返回的面数据，根据数据的一些属性进行进一步的加工生成OSMBuildings。(注: 范例的属性为简略参数，更多的参数设置请参考 https://github.com/kekscom/osmbuildings/blob/master/README.md 中API部分。)', oper: '移动底图，看Buildings的视觉效果；地图的放大缩小，查看Buildings的变化；不同时间，看Buildings的阴影变化；点击OSMBuildings，查看其ID属性信息。' }
+DemoDescription['coordTransfer'] = {title: '获取经纬度坐标', desc: '定义：通过iServer提供的坐标转换接口，将3857坐标转换成4326（经纬度坐标），并显示出来', oper: '点击地图上任意点，即可获取经纬度坐标' };
 
 
 

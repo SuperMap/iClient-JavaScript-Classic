@@ -23,6 +23,7 @@
     //加载类库资源文件
     function loadSMLibs() {
         inputScript(baseurl+'SuperMap.js');
+        inputScript(baseurl+'SuperMap_Plot.js');
         loadLocalization();
         inputCSS('style.css');
         inputCSS('google.css');

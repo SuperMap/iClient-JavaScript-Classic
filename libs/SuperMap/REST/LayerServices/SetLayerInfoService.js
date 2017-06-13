@@ -67,7 +67,7 @@ SuperMap.REST.SetLayerInfoService = SuperMap.Class(SuperMap.ServiceBase, {
      * eventListeners - {Object} 需要被注册的监听器对象。
      */
     initialize: function(url, options) {
-        SuperMap.ServiceBase.prototype.initialize.apply(this, [url]);
+        SuperMap.ServiceBase.prototype.initialize.apply(this, [url,options]);
         if (options) {
             SuperMap.Util.extend(this, options);
         }

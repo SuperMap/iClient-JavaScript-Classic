@@ -167,6 +167,8 @@ SuperMap.Handler.Box = SuperMap.Class(SuperMap.Handler, {
             var right = Math.max(start.x, end.x);
 
             result = new SuperMap.Bounds(left, bottom, right, top);
+        } else if(!Math.abs(this.dragHandler.start.x - end.x) && !Math.abs(this.dragHandler.start.y - end.y) ){
+            return;
         } else {
             result = this.dragHandler.start.clone(); // i.e. OL.Pixel
         } 
@@ -181,14 +183,18 @@ SuperMap.Handler.Box = SuperMap.Class(SuperMap.Handler, {
      * Method: removeBox
      * Remove the zoombox from the screen and nullify our reference to it.
      */
-    removeBox: function() {
-        this.map.eventsDiv.removeChild(this.zoomBox);
-        this.zoomBox = null;
-        this.boxOffsets = null;
-        SuperMap.Element.removeClass(
-            this.map.eventsDiv, "smDrawBox"
-        );
-
+    removeBox: function(evt) {
+        //ICL 858 鼠标移出地图 结束当前绘制 yzy
+        if(evt && evt.xy){
+            this.endBox(evt.xy);
+        }else {
+            this.map.eventsDiv.removeChild(this.zoomBox);
+            this.zoomBox = null;
+            this.boxOffsets = null;
+            SuperMap.Element.removeClass(
+                this.map.eventsDiv, "smDrawBox"
+            );
+        }
     },
 
     /**

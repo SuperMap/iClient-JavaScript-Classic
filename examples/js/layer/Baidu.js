@@ -21,10 +21,23 @@ SuperMap.Layer.Baidu = SuperMap.Class(SuperMap.CanvasLayer, {
     offsetXY:null,
 
     /**
+     * APIProperty: dpi
+     * {Float} 屏幕上每英寸包含像素点的个数。
+     * 该参数结合图层比例尺可以推算出该比例尺下图层的分辨率.默认为96。
+     */
+    dpi: 96,
+
+    /**
      * Property: attribution
      * {String} The layer attribution.
      */
     attribution: "Data by <a style='white-space: nowrap' target='_blank' href='http://map.baidu.com/'>Baidu</a>",
+
+    /**
+     * Property: zOffset
+     * {Number} 图片url中z值偏移量
+     */
+    zOffset:3,
 
     /**
      * Constructor: SuperMap.Layer.Baidu
@@ -142,15 +155,14 @@ SuperMap.Layer.Baidu = SuperMap.Class(SuperMap.CanvasLayer, {
         num++;
         */
 
-        var zoom = xyz.z - 1;
-        var offsetX = Math.pow(2, zoom+3);
+        var zoom = xyz.z + me.zOffset;
+        var offsetX = Math.pow(2, zoom-1);
 
         var offsetY = offsetX - 1;
 
         var numX = xyz.x - offsetX;
 
         var numY = -xyz.y + offsetY;
-        zoom = xyz.z + 3;
 
         var num =  Math.abs((xyz.x + xyz.y) % 8)+1;
         url = SuperMap.String.format(url, {

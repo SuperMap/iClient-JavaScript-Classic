@@ -82,6 +82,7 @@ SuperMap.Tile.UTFGrid = SuperMap.Class(SuperMap.Tile, {
             this.url = this.layer.getURL(this.bounds);
 
             this.url = window.encodeURI(this.url);
+            this.url = this.url.replace('#',window.encodeURIComponent('#'));
             if (this.layer.useJSONP) {
                 t.json = null;
                 // Use JSONP method to avoid xbrowser policy

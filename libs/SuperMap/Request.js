@@ -111,6 +111,7 @@ SuperMap.Request = {
                 if (typeof config.proxy === "function") {
                     url = config.proxy(url);
                 } else {
+                    url = decodeURIComponent(url);
                     url = config.proxy + encodeURIComponent(url);
                 }
             }
@@ -262,7 +263,8 @@ SuperMap.Request = {
      * {XMLHttpRequest} 请求对象。
      */
     PUT: function(config) {
-        config = SuperMap.Util.extend(config, {method: "PUT"});
+        config.url= SuperMap.Util.urlAppend(config.url,"method=PUT");
+        config = SuperMap.Util.extend(config, {method: "POST"});
         // set content type to application/xml if it isn't already set
         config.headers = config.headers ? config.headers : {};
         if(!("CONTENT-TYPE" in SuperMap.Util.upperCaseObject(config.headers))) {
@@ -282,7 +284,8 @@ SuperMap.Request = {
      * {XMLHttpRequest} 请求对象。
      */
     DELETE: function(config) {
-        config = SuperMap.Util.extend(config, {method: "DELETE"});
+        config.url= SuperMap.Util.urlAppend(config.url,"method=DELETE");
+        config = SuperMap.Util.extend(config, {method: "POST"});
         return SuperMap.Request.issue(config);
     },
   

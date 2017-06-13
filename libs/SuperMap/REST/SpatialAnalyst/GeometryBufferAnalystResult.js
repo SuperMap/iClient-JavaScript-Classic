@@ -69,10 +69,11 @@ SuperMap.REST.GeometryBufferAnalystResult = SuperMap.Class(SuperMap.REST.Spatial
  * Returns:
  * {<SuperMap.REST.GeometryBufferAnalystResult>} 几何对象缓冲区分析结果。
  */
- SuperMap.REST.GeometryBufferAnalystResult.fromJson  = function (jsonObject) {
+SuperMap.REST.GeometryBufferAnalystResult.fromJson  = function (jsonObject) {
     if (!jsonObject) {
         return;
     }
+
     var result = new SuperMap.REST.GeometryBufferAnalystResult();
     if (jsonObject.succeed) {
         result.succeed = jsonObject.succeed;
@@ -81,5 +82,28 @@ SuperMap.REST.GeometryBufferAnalystResult = SuperMap.Class(SuperMap.REST.Spatial
         result.resultGeometry = SuperMap.REST.ServerGeometry.fromJson(jsonObject.resultGeometry).toGeometry();
     }
     
+    return result;
+};
+
+/**
+ * Function: SuperMap.REST.GeometryBufferAnalystResult.fromArray
+ * 将 JSON 对象表示的查询结果数组转化为几何对象缓冲区分析结果对象数组。
+ *
+ * Parameters:
+ * jsonObject - {Array} JSON 对象表示的查询结果记录集数组。
+ *
+ * Returns:
+ * {<SuperMap.REST.GeometryBufferAnalystResult>} 几何对象缓冲区分析结果数组。
+ */
+SuperMap.REST.GeometryBufferAnalystResult.fromArray = function(arrayObject) {
+    if (!arrayObject) {
+        return;
+    }
+
+    var result = [];
+    for(var i = 0, len = arrayObject.length; i < len; i ++) {
+        result.push( SuperMap.REST.GeometryBufferAnalystResult.fromJson(arrayObject[i]));
+    }
+
     return result;
 };

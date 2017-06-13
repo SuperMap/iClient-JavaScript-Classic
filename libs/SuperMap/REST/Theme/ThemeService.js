@@ -241,11 +241,13 @@ SuperMap.REST.ThemeService = SuperMap.Class(SuperMap.ServiceBase, {
             if(parameter.joinItems && parameter.joinItems.length > 0 && parameter.joinItems[themeID]){
                 jsonParameters += "'joinItems':[" + SuperMap.Util.toJSON(parameter.joinItems[themeID]) + "],";
             }
-            if(parameter.datasetNames && parameter.dataSourceNames){
+            if(parameter.datasetNames && parameter.dataSourceNames && parameter.types){
                 var datasetID = parameter.datasetNames[themeID] ? themeID : (parameter.datasetNames.length -1);
                 var dataSourceID = parameter.dataSourceNames[themeID] ? themeID : (parameter.dataSourceNames.length - 1);
-                jsonParameters += "'datasetInfo': {'name': '" + parameter.datasetNames[datasetID] + 
-                    "','dataSourceName': '" + parameter.dataSourceNames[dataSourceID] + "'}},";
+                var typeID = parameter.types[themeID] ? themeID : (parameter.types.length - 1);
+                jsonParameters += "'datasetInfo': {'name': '" + parameter.datasetNames[datasetID] +
+                    "','dataSourceName': '" + parameter.dataSourceNames[dataSourceID]  +
+                    "','type': '" + parameter.types[typeID] + "'}},";
             } else {
                 jsonParameters += "},";
             }

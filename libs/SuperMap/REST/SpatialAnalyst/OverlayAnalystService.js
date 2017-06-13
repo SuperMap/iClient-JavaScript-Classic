@@ -78,7 +78,7 @@ SuperMap.REST.OverlayAnalystService = SuperMap.Class(SuperMap.ServiceBase, {
      * {<String>} 叠加分析类型
      */
     mode: null,
-    
+
     /**
      * Constructor: SuperMap.REST.OverlayAnalystService
      * 查询叠加分析服务基类构造函数。
@@ -100,10 +100,10 @@ SuperMap.REST.OverlayAnalystService = SuperMap.Class(SuperMap.ServiceBase, {
      * Allowed options properties:
      * eventListeners - {Object} 需要被注册的监听器对象。
      */
-    initialize: function (url, options) {
+    initialize: function(url, options) {
         SuperMap.ServiceBase.prototype.initialize.apply(this, [url]);
         var me = this;
-        
+
         if (options) {
             SuperMap.Util.extend(me, options);
         }
@@ -119,7 +119,7 @@ SuperMap.REST.OverlayAnalystService = SuperMap.Class(SuperMap.ServiceBase, {
      * APIMethod: destroy
      * 释放资源,将引用资源的属性置空。
      */
-    destroy: function () {
+    destroy: function() {
         SuperMap.ServiceBase.prototype.destroy.apply(this, arguments);
         var me = this;
         me.EVENT_TYPES = null;
@@ -143,8 +143,8 @@ SuperMap.REST.OverlayAnalystService = SuperMap.Class(SuperMap.ServiceBase, {
      *
      * Parameters:
      * params - {<SuperMap.REST.OverlayAnalystParameters>} 
-    */
-    processAsync: function (parameter) {
+     */
+    processAsync: function(parameter) {
         var parameterObject = new Object();
         var me = this;
 
@@ -158,16 +158,14 @@ SuperMap.REST.OverlayAnalystService = SuperMap.Class(SuperMap.ServiceBase, {
         if (parameter instanceof SuperMap.REST.DatasetOverlayAnalystParameters) {
             me.mode = "datasets";
             me.url += 'datasets/' + parameter.sourceDataset + '/overlay';
-            SuperMap.REST.DatasetOverlayAnalystParameters.toObject(parameter, parameterObject);
-        }
-        else if (parameter instanceof SuperMap.REST.GeometryOverlayAnalystParameters) {
+            parameterObject = SuperMap.REST.DatasetOverlayAnalystParameters.toObject(parameter);
+        } else if (parameter instanceof SuperMap.REST.GeometryOverlayAnalystParameters) {
             me.mode = "geometry";
             me.url += 'geometry/overlay';
-            SuperMap.REST.GeometryOverlayAnalystParameters.toObject(parameter, parameterObject);
+            parameterObject = SuperMap.REST.GeometryOverlayAnalystParameters.toObject(parameter);
         }
 
         var jsonParameters = SuperMap.Util.toJSON(parameterObject);
-
         if (me.isInTheSameDomain) {
             me.url += '.json?returnContent=true';
         } else {
@@ -190,13 +188,17 @@ SuperMap.REST.OverlayAnalystService = SuperMap.Class(SuperMap.ServiceBase, {
      * Parameters:
      * result - {Object} 服务器返回的缓冲区叠加分析结果对象。
      */
-    analyzeComplete: function (result) {
+    analyzeComplete: function(result) {
         result = SuperMap.Util.transformResult(result);
         if (this.mode === "datasets") {
             var analyzeResult = SuperMap.REST.DatasetOverlayAnalystResult.fromJson(result);
-        }
-        else if (this.mode === "geometry") {
-            var analyzeResult = SuperMap.REST.GeometryOverlayAnalystResult.fromJson(result);
+        } else if (this.mode === "geometry") {
+            var analyzeResult;
+            if(result instanceof Array) {
+                analyzeResult = SuperMap.REST.GeometryOverlayAnalystResult.fromArray(result);
+            } else {
+                analyzeResult = SuperMap.REST.GeometryOverlayAnalystResult.fromJson(result);
+            }
         }
         this.mode = null;
         this.lastResult = analyzeResult;
@@ -212,7 +214,7 @@ SuperMap.REST.OverlayAnalystService = SuperMap.Class(SuperMap.ServiceBase, {
      * Parameters:
      * result -  {Object} 服务器返回的结果对象。
      */
-    analyzeError: function (result) {
+    analyzeError: function(result) {
         var me = this,
             error = null,
             serviceException = null,

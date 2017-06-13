@@ -20,8 +20,8 @@ SuperMap.Cloud.Security=SuperMap.Class({
 
     /**
      * APIProperty: type
-     * {Number} 登录注册的服务器类型，可为SuperMap.Cloud.Security.ISUPERMAP或者SuperMap.Cloud.Security.IPORTAL,
-     * 默认为SuperMap.Cloud.Security.ISUPERMAP
+     * {Number} 登录注册的服务器类型，可为SuperMap.Cloud.Security.SUPERMAPOL或者SuperMap.Cloud.Security.IPORTAL,
+     * 默认为SuperMap.Cloud.Security.SUPERMAPOL
      * */
     type:null,
 
@@ -38,7 +38,7 @@ SuperMap.Cloud.Security=SuperMap.Class({
      * Examples:
      * isupermap登录：
      * (start code)
-     *  var type=SuperMap.Cloud.Security.ISUPERMAP;
+     *  var type=SuperMap.Cloud.Security.SUPERMAPOL;
      *  var security=new SuperMap.Cloud.Security(type);
      * (end)
      *  iportal登录：
@@ -50,12 +50,11 @@ SuperMap.Cloud.Security=SuperMap.Class({
      * */
     initialize:function(type,url){
         if(!type){
-            this.type=SuperMap.Cloud.Security.ISUPERMAP;
+            this.type=SuperMap.Cloud.Security.SUPERMAPOL;
         }else{
             this.setType(type);
         }
-        var end = url.substr(url.length - 1, 1);
-        this.url=url+(end==="/"?"web/":"/web/");
+        this.setUrl(url);
         this.actived=true;
     },
 
@@ -64,17 +63,29 @@ SuperMap.Cloud.Security=SuperMap.Class({
      * 销毁登录注册对象
      * */
     destroy:function(){
-        this.url=null
+        this.url=null;
         this.type=null;
         this.actived=null;
     },
 
     /**
      * APIMethod: setType
-     * 设置登录类型，可为SuperMap.Cloud.Security.ISUPERMAP或者SuperMap.Cloud.Security.IPORTAL
+     * 设置登录类型，可为SuperMap.Cloud.Security.SUPERMAPOL或者SuperMap.Cloud.Security.IPORTAL
      * */
     setType:function(type){
         this.type=type;
+    },
+
+    /**
+     * APIMethod: setUrl
+     * 设置url
+     * */
+    setUrl:function(url){
+        if(!url){
+            return;
+        }
+        var end = url.substr(url.length - 1, 1);
+        this.url=url+(end==="/"?"web/":"/web/");
     },
 
     /**
@@ -100,11 +111,35 @@ SuperMap.Cloud.Security=SuperMap.Class({
                 var loginInfo={username:username,password:password};
                 return this.iportalLogin(loginInfo,success,failed,scope);
             }
-        }else if(this.type===SuperMap.Cloud.Security.ISUPERMAP){
+        }else if(this.type===SuperMap.Cloud.Security.SUPERMAPOL){
             if(arguments.length<=1){
                 var url=arguments[0];
                 return this.isupermapLogin(url);
             }
+        }
+        return this;
+    },
+
+    /**
+     * APIMethod: logout
+     * 登出
+     *
+     * Parameters:
+     * success - {Function} 成功回调函数
+     * failed - {Function} 失败回调函数
+     * scope - {Object} [可选]回调函数的作用域
+     * */
+    logout:function(){
+        var success,failed,scope;
+        if(this.type===SuperMap.Cloud.Security.IPROTAL){
+            if(arguments.length>=1){
+                success=typeof arguments[0]==="function"?arguments[0]:function(){};
+                failed=typeof arguments[1]==="function"?arguments[1]:function(){};
+                scope=arguments[2]||null;
+                return this.iportalLogout(success,failed,scope);
+            }
+        }else if(this.type===SuperMap.Cloud.Security.SUPERMAPOL){
+            //
         }
         return this;
     },
@@ -135,11 +170,32 @@ SuperMap.Cloud.Security=SuperMap.Class({
                 var registerInfo={name:name,nickname:nickname,password:password,email:email};
                 return this.iportalRegisterUser(registerInfo,success,failed,scope);
             }
-        }else if(this.type===SuperMap.Cloud.Security.ISUPERMAP){
+        }else if(this.type===SuperMap.Cloud.Security.SUPERMAPOL){
             if(arguments.length<=1){
                 var url=arguments[0];
                 return this.isupermapRegisterUser(url);
             }
+        }
+        return this;
+    },
+
+    /**
+     * APIMethod: isLogin
+     * 检查用户是否已经登录
+     *
+     * Parameters:
+     * success - {Function} 成功回调函数
+     * failed - {Function} 失败回调函数
+     * scope - {Object} [可选]回调函数的作用域
+     * */
+    isLogin: function(){
+        if(this.type===SuperMap.Cloud.Security.IPROTAL){
+            var success=typeof arguments[0]==="function"?arguments[0]:function(){},
+                failed=typeof arguments[1]==="function"?arguments[1]:function(){},
+                scope=arguments[2]||null;
+            return this.iportalIsLogin(success,failed,scope);
+        }else if(this.type===SuperMap.Cloud.Security.SUPERMAPOL){
+            /*do nothing*/
         }
         return this;
     },
@@ -150,6 +206,9 @@ SuperMap.Cloud.Security=SuperMap.Class({
      *
      * Parameters:
      * username - {String} 用户名
+     * success - {Function} 成功回调函数
+     * failed - {Function} 失败回调函数
+     * scope - {Object} [可选]回调函数的作用域
      * */
     getUserInfo:function(){
         if(this.type===SuperMap.Cloud.Security.IPROTAL){
@@ -160,7 +219,7 @@ SuperMap.Cloud.Security=SuperMap.Class({
                     scope=arguments[3]||null;
                 return this.iportalGetUserInfo(username,success,failed,scope);
             }
-        }else if(this.type===SuperMap.Cloud.Security.ISUPERMAP){
+        }else if(this.type===SuperMap.Cloud.Security.SUPERMAPOL){
             /*do nothing*/
         }
         return this;
@@ -177,11 +236,84 @@ SuperMap.Cloud.Security=SuperMap.Class({
             method:"POST",
             withCredentials:true,
             success:function(result){
-                var result = new SuperMap.Format.JSON().read(result.responseText);
-                if(!result||!that.actived){
+                result = new SuperMap.Format.JSON().read(result.responseText);
+                if(!that.actived){
+                    return;
+                }else if(!result && typeof failed==="function"){
+                    failed.call(scope||this,result);
                     return;
                 }
                 if(result.succeed){
+                    if(typeof success==="function"){
+                        success.call(scope||this,result);
+                    }
+                }else{
+                    if(typeof failed==="function"){
+                        failed.call(scope||this,result);
+                    }
+                }
+            },
+            failure:function(err){
+                if(!that.actived){
+                    return;
+                }
+                if(typeof failed==="function"){
+                    failed.call(scope||this,err);
+                }
+            },
+            scope:this
+        });
+        return this;
+    },
+
+    iportalLogout:function(success,failed,scope){
+        var url=this.url+"../services/security/logout";
+        var that=this;
+        var request = SuperMap.Request.issue({
+            url:url,
+            headers:{"Content-Type":"application/x-www-form-urlencoded; charset=UTF-8"},
+            method:"GET",
+            withCredentials:true,
+            success:function(){
+                if(!that.actived){
+                    return;
+                }
+                if(request.status === 0 && typeof success==="function"){
+                    success.call(scope||this);
+                }else if(typeof failed==="function"){
+                    failed.call(scope||this);
+                }
+            },
+            failure:function(err){
+                if(!that.actived){
+                    return;
+                }
+                if(typeof failed==="function"){
+                    failed.call(scope||this,err);
+                }
+            },
+            scope:this
+        });
+        return this;
+    },
+
+    iportalIsLogin: function(success,failed,scope){
+        var url=this.url+"mycontent/account.json";
+        var that=this;
+        SuperMap.Request.issue({
+            url:url,
+            headers:{"Content-Type":"application/x-www-form-urlencoded; charset=UTF-8"},
+            method:"GET",
+            withCredentials:true,
+            success:function(result){
+                result = new SuperMap.Format.JSON().read(result.responseText);
+                if(!that.actived){
+                    return;
+                }else if(!result && typeof failed==="function"){
+                    failed.call(scope||this,result);
+                    return;
+                }
+                if(result.name !== 'anonym'){
                     if(typeof success==="function"){
                         success.call(scope||this,result);
                     }
@@ -215,7 +347,7 @@ SuperMap.Cloud.Security=SuperMap.Class({
             method:"POST",
             withCredentials:true,
             success:function(result){
-                var result = new SuperMap.Format.JSON().read(result.responseText);
+                result = new SuperMap.Format.JSON().read(result.responseText);
                 if(!result||!that.actived){
                     return;
                 }
@@ -250,7 +382,7 @@ SuperMap.Cloud.Security=SuperMap.Class({
             url:url,
             method:"GET",
             success:function(result){
-                var result = new SuperMap.Format.JSON().read(result.responseText);
+                result = new SuperMap.Format.JSON().read(result.responseText);
                 if(!result||!that.actived){
                     return;
                 }
@@ -272,14 +404,14 @@ SuperMap.Cloud.Security=SuperMap.Class({
     },
 
     isupermapLogin:function(casUrl){
-        var url=SuperMap.Cloud.Security.ISUPERMAPSSO;
+        var url=SuperMap.Cloud.Security.SUPERMAPSSO;
         url+="/login?service="+casUrl;
         window.open(url,"login");
         return this;
     },
 
     isupermapRegisterUser:function(redirectUrl){
-        var url=SuperMap.Cloud.Security.ISUPERMAPSSO;
+        var url=SuperMap.Cloud.Security.SUPERMAPSSO;
         url+="/register?service="+redirectUrl;
         window.open(url,"register");
         return this;
@@ -290,6 +422,6 @@ SuperMap.Cloud.Security=SuperMap.Class({
     CLASS_NAME:"SuperMap.Cloud.Security"
 });
 
-SuperMap.Cloud.Security.ISUPERMAP="isupermap";
+SuperMap.Cloud.Security.SUPERMAPOL="supermapol";
 SuperMap.Cloud.Security.IPROTAL="iportal";
-SuperMap.Cloud.Security.ISUPERMAPSSO="https://sso.supermap.com";
+SuperMap.Cloud.Security.SUPERMAPSSO="https://sso.supermap.com";

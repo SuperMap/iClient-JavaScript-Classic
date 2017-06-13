@@ -93,6 +93,28 @@ SuperMap.Control.DragPan = SuperMap.Class(SuperMap.Control, {
     kineticInterval: 10,
 
     /**
+     * APIProperty: drawWhileDragging
+     * {Boolean} 设置在拖拽的时候是否进行绘制。默认为false。
+     */
+    drawWhileDragging : false,
+
+    /**
+     * Constructor: SuperMap.Control.DragPan
+     * 创建可通过鼠标拖拽的方式平移地图的控件。
+     * Parameters:
+     * options - {Object} 此类与父类提供的属性。
+     *
+     * Returns:
+     * {<SuperMap.Control.DragPan>} 新的可通过鼠标拖拽的方式平移地图的控件。
+     */
+    initialize: function (options) {
+        if (options && options.drawWhileDragging !== undefined) {
+            this.drawWhileDragging = options.drawWhileDragging;
+        }
+        SuperMap.Control.prototype.initialize.apply(this, [options]);
+    },
+
+    /**
      * Method: draw
      * 创建一个事件处理器 ，将<panMap>和 <panMapDone>作为回调函数。
      *
@@ -142,10 +164,11 @@ SuperMap.Control.DragPan = SuperMap.Class(SuperMap.Control, {
             this.kinetic.update(xy);
         }
         this.panned = true;
+        var drawWhileDragging = this.drawWhileDragging;
         this.map.pan(
             this.handler.last.x - xy.x,
             this.handler.last.y - xy.y,
-            {dragging: true, animate: false}
+            {dragging: !drawWhileDragging, animate: false}
         );
     },
     

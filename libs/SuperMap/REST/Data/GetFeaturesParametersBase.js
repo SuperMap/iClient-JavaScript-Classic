@@ -43,7 +43,7 @@ SuperMap.REST.GetFeaturesParametersBase = SuperMap.Class({
 
     /**
      * APIProperty: maxFeatures
-     * {Integer} 最多可返回的要素数量。
+     * {Integer} 进行SQL查询时，用于设置服务端返回查询结果条目数量，默认为1000。
      */
     maxFeatures: null,
     

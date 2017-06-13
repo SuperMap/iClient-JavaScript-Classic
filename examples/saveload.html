@@ -40,8 +40,8 @@
     <script src="../libs/SuperMap.Include.js"></script>
     <script src="./js/plottingPanel/PlottingPanel.Include.js"></script>
     <script type="text/javascript">
-        var map, plottingLayer, layer,plotting,plotPanel,stylePanel, plottingEdits = [],drawGraphicObjects = [];
-        var SMLName = null;
+        var map, plottingLayer, layer,plotting,plotPanel,stylePanel, plottingEdit,drawGraphicObjects = [];
+        var select, SMLName = null;
         var host = document.location.toString().match(/file:\/\//) ? "http://localhost:8090" : 'http://' + document.location.host;
         var mapurl = host + "/iserver/services/map-china400/rest/maps/China_4326";
         var serverUrl = host + "/iserver/services/plot-jingyong/rest/plot/";
@@ -65,7 +65,16 @@
             //总控类
             plotting = SuperMap.Plotting.getInstance(map, serverUrl);
             sitManager = plotting.getSitDataManager();
+            sitManager.events.on({"getSMLInfosCompleted": getSMLInfosSucess,
+                "getSMLInfosFailed": getSMLInfosFail,
+                "openSmlFileCompleted": openSuccess,
+                "openSmlFileFailed": openFail,
+                "saveSmlFileCompleted": saveSuccess,
+                "saveSmlFileFailed": saveFail});
             plottingLayer = new SuperMap.Layer.PlottingLayer("标绘图层", serverUrl);
+            //空间分析服务地址：目前使用的是服务器默认空间分析地址，可更换成实际使用的空间分析服务地址
+            plottingLayer.spatialAnalystUrl=host+"/iserver/services/spatialanalyst-sample/restjsr/spatialanalyst";
+
             plottingLayer.style = {
                 fillColor: "#66cccc",
                 fillOpacity: 0.4,
@@ -75,8 +84,8 @@
                 pointRadius: 6
             };
             //态势标绘编辑
-            var plottingEdit = new SuperMap.Control.PlottingEdit(plottingLayer);
-            plottingEdits.push(plottingEdit);
+            plottingEdit = new SuperMap.Control.PlottingEdit();
+
 
             // 绘制标号;
             var drawGraphicObject = new SuperMap.Control.DrawFeature(plottingLayer, SuperMap.Handler.GraphicObject);
@@ -108,47 +117,39 @@
             for (var i = 0; i < drawGraphicObjects.length; i++) {
                 drawGraphicObjects[i].deactivate();
             }
-            for (var i = 0; i < plottingEdits.length; i++) {
-                plottingEdits[i].deactivate();
-            }
+            plottingEdit.deactivate();
         }
         //取消标绘，激活标绘编辑控件
         function PlottingDrawCancel() {
             plottingAllDeactivate();
-            for (var i = 0; i < plottingEdits.length; i++) {
-                plottingEdits[i].activate();
-            }
+            plottingEdit.activate();
         }
 
         function getSMLInfos() {
-            var select = document.getElementById("SLT");
-
-            function getSMLInfosSucess(result) {
-                while (select.hasChildNodes()) {
-                    select.removeChild(select.firstChild);
-                }
-                for (var i = 0, len = result.length; i < len; i++) {
-                    var options = document.createElement("option");
-                    options.setAttribute("value", result[i].SMLFileName);
-                    options.innerHTML = result[i].SMLFileName;
-                    select.appendChild(options);
-                }
-                return false;
-            }
-            function getSMLInfosFail(result) {
-                console.log(result);
-            }
-            setTimeout(function () {
-                sitManager.getSMLInfos(0, 10, getSMLInfosSucess, getSMLInfosFail);
-            }, 10);
+            sitManager.getSMLInfos(0, 10);
         }
+
+        function getSMLInfosSucess(result) {
+            select = document.getElementById("SLT");
+            while (select.hasChildNodes()) {
+                select.removeChild(select.firstChild);
+            }
+            for (var i = 0, len = result.length; i < len; i++) {
+                var options = document.createElement("option");
+                options.setAttribute("value", result[i].SMLFileName);
+                options.innerHTML = result[i].SMLFileName;
+                select.appendChild(options);
+            }
+            return false;
+        }
+        function getSMLInfosFail(result) {
+            console.log(result);
+        }
+
         //态势图保存
         function save() {
             plottingAllDeactivate();
             sitManager.saveSmlFile();
-            setTimeout(function () {
-                getSMLInfos();
-            }, 10);
         }
         //态势图另存为
         function SaveAsSmlFile() {
@@ -156,39 +157,44 @@
             SMLName = document.getElementById("txt").value;
             if (SMLName.length !== 0) {
                 sitManager.saveAsSmlFile(SMLName);
-                setTimeout(function () {
-                    getSMLInfos();
-                }, 10);
             } else {
                 alert("请输入另存为态势图的名字");
             }
         }
+
+        function saveSuccess(){
+            getSMLInfos();
+        }
+
+        function saveFail(){
+
+        }
+
         //加载态势图
         function loadSimulationMap() {
-            function success() {
-                var sitDataLayers = sitManager.getSitDataLayers();
-                plottingEdits = [];
-                drawGraphicObjects = [];
-                for (var i = 0; i < sitDataLayers.length; i++) {
-                    plottingEdits.push(sitDataLayers[i].plottingEdit);
-                    drawGraphicObjects.push(sitDataLayers[i].drawGraphicObject);
-                    stylePanel.addEditLayer(sitDataLayers[i]);
-                }
-                plotPanel.setDrawFeature(drawGraphicObjects[0]);
-            }
-
-            function fail() {
-                console.log("error");
-            }
-
             var select = document.getElementById("SLT");
             for (var i = 0; i < select.children.length; i++) {
                 if (select.children[i].selected) {
-                    sitManager.openSmlFileOnServer(select.children[i].value, success, fail);
+                    sitManager.openSmlFileOnServer(select.children[i].value);
 
                 }
             }
         }
+
+        function openSuccess() {
+            var sitDataLayers = sitManager.getSitDataLayers();
+            drawGraphicObjects = [];
+            for (var i = 0; i < sitDataLayers.length; i++) {
+                drawGraphicObjects.push(sitDataLayers[i].drawGraphicObject);
+                stylePanel.addEditLayer(sitDataLayers[i]);
+            }
+            plotPanel.setDrawFeature(drawGraphicObjects[0]);
+        }
+
+        function openFail() {
+            console.log("error");
+        }
+
         //清空绘制
         function PlottingClear() {
             plottingAllDeactivate();
@@ -198,10 +204,14 @@
                 }
             }
         }
-        document.oncontextmenu = function () {
-            PlottingDrawCancel();
-            return false;
-        };
+        document.onmouseup = function (evt) {
+            var evt = evt || window.event;
+            if (evt.button === 2) {
+                PlottingDrawCancel();
+                return false;
+            }
+            evt.stopPropagation();
+        }
     </script>
 </head>
 <body onLoad="init()">

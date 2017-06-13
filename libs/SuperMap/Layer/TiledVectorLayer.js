@@ -21,6 +21,12 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
     layerEditor:null,
 
     /**
+     * APIProperty: isSupportHoles
+     * {Boolean} - 是否支持岛洞
+     **/
+    isSupportHoles:null,
+
+    /**
      * APIConstant: EVENT_TYPES
      * {Array(String)}
      * 此类支持的事件类型。
@@ -77,6 +83,12 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      *
      */
     dpi: null,
+
+    /**
+     * APIProperty: credential
+     * {<Supermap.Credential>} 图层独立的安全验证信息，比如 token。需要在初始化的时候就传进去
+     *
+     */
 
     /**
      * Property: overlapDisplayed
@@ -257,7 +269,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
      *
      */
     initialize: function (name, url, params,options) {
-        var me = this;
+        var me = this,carto;
         me.useCanvas = false;//临时写法
         me.layersInfoInitialized = false;
         me.mapServiceInitialized = false;
@@ -270,13 +282,19 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         if(options&&options.cartoCss){
             this.clientCartoCss = this.cartoCss = options.cartoCss;
             this.donotNeedServerCartoCss = options.donotNeedServerCartoCss;
-            var carto=new SuperMap.CartoCSS(options.cartoCss);
-            me.cartoShaders=carto.getShaders();
+            carto=new SuperMap.CartoCSS(options.cartoCss);
+            me.clientCartoShaders=carto.getShaders();
         }
         if(options&&options.highLightCartoCss){
             this.highLightCartoCss=options.highLightCartoCss;
             carto=new SuperMap.CartoCSS(options.highLightCartoCss);
             me.highLightCartoShaders=carto.getShaders();
+        }
+        if(options&&options.isSupportHoles){
+            this.isSupportHoles=options.isSupportHoles;
+        }
+        if(options && options.credential && options.credential instanceof SuperMap.Credential){
+            me.credential = options.credential;
         }
 
         //通过浏览器获取部分信息
@@ -290,7 +308,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
 
         //判断是否设置了renderer，没有则通过渲染器列表判断支持情况。
         if (!this.cartoRenderer) {
-            this.cartoRenderer=new SuperMap.CartoRenderer(null,null,{layer:this});
+            this.cartoRenderer=new SuperMap.CartoRenderer(null,null,{layer:this,isSupportHoles:this.isSupportHoles});
         }
 
         //reports the progress of a tile filter
@@ -352,7 +370,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                 cordova.exec(function (layerContext) {
                     return function (r) {
                         layerContext.tile.getAppStatusSucceed(layerContext, r);
-                    }
+                    };
                 }(layerContext), function (e) {
                     },
                     "LocalStoragePlugin", "getconfig",
@@ -365,8 +383,8 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                 }
                 var getMapStatusService = new SuperMap.REST.MapService(strServiceUrl,
                     {eventListeners: {processCompleted: me.getStatusSucceed, scope: me,
-                        processFailed: me.getStatusFailed}, projection: me.projection});
-                getMapStatusService.processAsync();
+                        processFailed: me.getStatusFailed}, projection: me.projection,proxy:this.proxy});
+                getMapStatusService.processAsync(me.credential);
             }
         }
         if (me.projection) {
@@ -510,28 +528,24 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
     setCartoCSS:function(cartoCss,fromServer){
         if(typeof cartoCss==="string"){
             var serverCartoCss,
-                clientCartoCss;
+                clientCartoCss,
+                carto;
             //假如是来自服务端的样式表，则保存起来，否则，将自定义的样式表添加到服务端生成的样式表后面，以覆盖服务端样式表相应的属性
             if(fromServer){
                 serverCartoCss = this.serverCartoCss = cartoCss;
-                clientCartoCss = this.clientCartoCss || '';
+                carto = new SuperMap.CartoCSS(serverCartoCss);
+                this.serverCartoShaders=carto.getShaders();
             }else{
                 clientCartoCss = this.clientCartoCss = cartoCss;
-                serverCartoCss = this.serverCartoCss || '';
+                carto = new SuperMap.CartoCSS(clientCartoCss);
+                this.clientCartoShaders=carto.getShaders();
             }
-            if(serverCartoCss){
-                this.cartoCss = serverCartoCss + '\n' + clientCartoCss;
-            }else{
-                this.cartoCss = clientCartoCss;
-            }
-            var carto=this.cartocss=new SuperMap.CartoCSS(this.cartoCss);
-            this.cartoShaders=carto.getShaders();
-            this.cartoShaders.fromServer = fromServer;
-            this.collectHightlightShader(this.cartoShaders);
-            this.unRegisterMouseEvent("mousemove");
-            this.unRegisterMouseEvent("click");
+
+            //this.collectHightlightShader(this.cartoShaders);
+            //this.unRegisterMouseEvent("mousemove");
+            //this.unRegisterMouseEvent("click");
             this.currentHightlightShader=null;
-            this.wholeHightligthtShader=null;
+            //this.wholeHightligthtShader=null;
             this.resetCartoCSS = true;
             //重设样式表时，要清空一下样式缓存
             this.featureStyleMap = null;
@@ -558,14 +572,25 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
     },
 
     /**
-     * APIMethod: getCartoCSS
-     * 返回cartocss样式
+     * APIMethod: getClientCartoCSS
+     * 返回用户设置的cartocss样式
      *
      * returns:
      * {String} cartocss样式
      * */
-    getCartoCSS:function(){
-       return this.cartoCss;
+    getClientCartoCSS:function(){
+       return this.clientCartoCss;
+    },
+
+    /**
+     * APIMethod: getServerCartoCSS
+     * 返回服务端产生的cartocss样式
+     *
+     * returns:
+     * {String} cartocss样式
+     * */
+    getServerCartoCSS:function(){
+        return this.serverCartoCss;
     },
 
     collectHightlightShader:function(cartoShaders){
@@ -603,7 +628,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                         that.fillImages.state="loaded";
                         that.events.triggerEvent("fillImageLoaded");
                     }
-                }
+                };
             }(imageName,imageNumber,that);
         }
     },
@@ -675,8 +700,8 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             }
             var getMapStatusService = new SuperMap.REST.MapService(strServiceUrl,
                 {eventListeners: {processCompleted: me.getStatusSucceed, scope: me,
-                    processFailed: me.getStatusFailed}, projection: me.projection});
-            getMapStatusService.processAsync();
+                    processFailed: me.getStatusFailed}, projection: me.projection,proxy:me.proxy});
+            getMapStatusService.processAsync(me.credential);
         }
     },
 
@@ -698,7 +723,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                 }
             }
 
-            var mapStatus = mapStatus.result;
+            mapStatus = mapStatus.result;
             var bounds = mapStatus.bounds, viewBounds = mapStatus.viewBounds,
                 coordUnit = mapStatus.coordUnit,
                 viewer = mapStatus.viewer,
@@ -917,7 +942,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                             this.initGriddedTiles(bounds);
                             //通过改变量计算canvas的地理位置。
                             this.lastCanvasPosition = this.map.getLonLatFromLayerPx(new SuperMap.Pixel(0,0));
-                            this.lastResolution = this.map.getResolution();               
+                            this.lastResolution = this.map.getResolution();
                         }
                     }
                 } else {
@@ -951,7 +976,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                         dy =(lefttop.y-offsetY)*scaleOption|| 0;
                     dx+=offsetX;
                     dy+=offsetY;
-                    transform="translate("+dx+"px,"+dy+"px) "+"scale("+scale+")";
+                    var transform="translate("+dx+"px,"+dy+"px) "+"scale("+scale+")";
                     me.div.style["transform"]=transform;
                     me.div.style["-ms-transform"]=transform;
                     me.div.style["-moz-transform"]=transform;
@@ -993,7 +1018,11 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             xyz;
         bounds = me.adjustBounds(bounds);
         xyz = me.getXYZ(bounds);
-        return {url:me.getTileUrl(xyz),xyz:xyz};
+        var url = me.getTileUrl(xyz);
+        if(this.proxy){
+            url = this.proxy + encodeURIComponent(url);
+        }
+        return {url:url,xyz:xyz};
     },
     /**
      * Method: getXYZ
@@ -1050,7 +1079,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         if(me.bufferTileCount == 0){
             return;
         }
-        var key = key||me.getXYZ(bounds);
+        key = key||me.getXYZ(bounds);
         if(key&&key!=""){
             //删除缓存矢量瓦片要素
             if(me.memoryKeys.length >= me.bufferTileCount){
@@ -1058,7 +1087,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                 me.memoryTile[keyDel] = null;
                 delete me.memoryTile[keyDel];
             }
-            var key = "x" + key.x + "y" + key.y + "z" + key.z;
+            key = "x" + key.x + "y" + key.y + "z" + key.z;
             //缓存矢量瓦片要素并保存索引。
             me.memoryTile[key] = tileFeature;
             me.memoryKeys.push(key);
@@ -1079,11 +1108,12 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         var me = this,
             newParams,
             tileSize = me.tileSize,
-            scale = me.scales[xyz.z];
-        if (!scale)scale = this.getScaleForZoom(xyz.z);
+            layerZoom = this.map.baseLayer.zOffset ? xyz.z+this.map.baseLayer.zOffset:xyz.z,
+            scale = me.scales[layerZoom];
+        if (!scale)scale = this.getScaleForZoom(layerZoom);
         //对比本图层与底图的比例尺，如果跟底图的差距太大则选用底图的比例尺，保证底图与叠加图层的比例尺一致
         if(this.map && this.map.baseLayer && this !== this.map.baseLayer){
-            var baseScale = this.map.baseLayer.getScaleForZoom(xyz.z);
+            var baseScale = this.map.baseLayer.getScaleForZoom(xyz.z)*this.map.baseLayer.dpi/this.dpi;
             var PRECISION = [1e-9,2e-9,4e-9,8e-9,1.6e-8,3.2e-8,6.4e-8,1.28e-7,2.56e-7,5.12e-7,1.024e-6,2.048e-6,4.096e-6,8.192e-6,1.6384e-5,3.2768e-5,6.5536e-5,1.31072e-4];
             var idx = xyz.z > PRECISION.length ? PRECISION.length : xyz.z;
             if(baseScale &&Math.abs(baseScale-scale) > PRECISION[idx]){
@@ -1097,8 +1127,9 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
             "y": xyz.y,
             "scale": scale
         };
-        if (SuperMap.Credential.CREDENTIAL) {
-            newParams[SuperMap.Credential.CREDENTIAL.name] = SuperMap.Credential.CREDENTIAL.getValue();
+        if (me.credential || SuperMap.Credential.CREDENTIAL) {
+            var credential = me.credential || SuperMap.Credential.CREDENTIAL;
+            newParams[credential.name] = credential.getValue();
         }
         if (!me.params.cacheEnabled) {
             newParams.t = new Date().getTime();
@@ -1212,11 +1243,13 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         if(!isInTheSameDomain){
             layersUrl=layersUrl.replace(/.json/,".jsonp");
         }
-		if(SuperMap.Credential.CREDENTIAL){
-			layersUrl = layersUrl + "?" + SuperMap.Credential.CREDENTIAL.getUrlParameters();
-		}
+       if (me.credential || SuperMap.Credential.CREDENTIAL) {
+           var credential = me.credential || SuperMap.Credential.CREDENTIAL;
+			     layersUrl = layersUrl + "?" + credential.getUrlParameters();
+		   }
         SuperMap.Util.committer({
             url:layersUrl,
+            proxy:me.proxy,
             isInTheSameDomain:isInTheSameDomain,
             method:"GET",
             success:function(isInTheSameDomain){
@@ -1227,8 +1260,13 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                     }
                     if(styles.style && styles.type === 'cartoCSS'){
                         var style = styles.style;
-                        style = style.replace(/[@]/gi,"___");
-                        style = style.replace(/\\#/gi,"___");
+                        //style = style.replace(/[@]/gi,"___");
+                        //style = style.replace(/\\#/gi,"___");
+                        //替换一些关键符号
+                        for (var attr in me.layersInfo) {
+                            var newAttr = attr.replace(/[@#\s]/gi, "___");
+                            style = style.replace(attr.replace(/[#]/gi, "\\#"), newAttr);
+                        }
                         style = style.replace(/[#]/gi,"\n#");
                         //将zoom转化为scale，以免引起混淆
                         style = style.replace(/\[zoom/gi,"[scale");
@@ -1237,7 +1275,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                     if (me.mapServiceInitialized) {
                         me.events.triggerEvent('layerInitialized', me);
                     }
-                }
+                };
             }(isInTheSameDomain),
             failure:function(){
                 if (me.mapServiceInitialized) {
@@ -1259,11 +1297,13 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         if(!isInTheSameDomain){
             layersUrl=layersUrl.replace(/.json/,".jsonp");
         }
-		if(SuperMap.Credential.CREDENTIAL){
-			layersUrl = layersUrl + "?" + SuperMap.Credential.CREDENTIAL.getUrlParameters();
-		}
+        if (me.credential || SuperMap.Credential.CREDENTIAL) {
+            var credential = me.credential || SuperMap.Credential.CREDENTIAL;
+            layersUrl = layersUrl + "?" + credential.getUrlParameters();
+        }
         SuperMap.Util.committer({
             url:layersUrl,
+            proxy:me.proxy,
             isInTheSameDomain:isInTheSameDomain,
             method:"GET",
             success:function(isInTheSameDomain){
@@ -1287,7 +1327,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                     }else if (me.mapServiceInitialized){
                         me.events.triggerEvent('layerInitialized', me);
                     }
-                }
+                };
             }(isInTheSameDomain),
             failure:function(){
 
@@ -1315,8 +1355,9 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         if (!tileInfo) {
             return null;
         }
-        var featureInfo = tileInfo.tile.getFeatureInfo(tileInfo.i, tileInfo.j);
-        return featureInfo;
+        var featureInfoes = tileInfo.tile.getFeatureInfoes(tileInfo.i, tileInfo.j);
+        featureInfoes.xy = {x:i,y:j};
+        return featureInfoes;
     },
     /**
      * APIMethod: highlightFeatures
@@ -1331,7 +1372,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         this.hightlightFeatureInfo = featureInfo;
         this.activeHighLightFeature = true;
         this.unHightlightFeature = false;
-        this.refresh();
+        this.refresh(null,featureInfo && featureInfo.cartoLayer);
     },
 
     /**
@@ -1390,7 +1431,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                         }
                         if(checked){
                             that.currentHightlightShader=hltype.type==="single"?hlShaders[i]:null;
-                            that.wholeHightligthtShader=hltype.type==="whole"?hlShaders[i]:null
+                            that.wholeHightligthtShader=hltype.type==="whole"?hlShaders[i]:null;
                             break;
                         }
                     }
@@ -1424,7 +1465,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
                     hltype.type="single";
                     return true;
                 }
-            }
+            };
         }(this,type);
         this.mouseEventHandler=this.mouseEventHandler||{};
         this.mouseEventHandler[type]=this.mouseEventHandler[type]||{};
@@ -1469,7 +1510,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         //如果在layer中定义了resolutions和scales，直接使用layer的resolutions和scales，并且通过它们计算出
         //maxResolution, minResolution, numZoomLevels, maxScale和minScale
         if (me.resolutions && me.scales) {
-            var len = me.resolutions.length;
+            len = me.resolutions.length;
             me.resolutions.sort(function(a, b) {
                 return (b - a);
             });
@@ -1523,7 +1564,7 @@ SuperMap.Layer.TiledVectorLayer = SuperMap.Class(SuperMap.Layer.Grid, {
         if (me.map.resolutions && me.map.scales) {
             me.resolutions = me.map.resolutions;
             me.scales = me.map.scales;
-            var len = me.resolutions.length;
+            len = me.resolutions.length;
             me.resolutions.sort(function(a, b) {
                 return (b - a);
             });

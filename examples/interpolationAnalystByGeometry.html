@@ -272,7 +272,8 @@
                     dataSourceNames: ["Interpolation"],
                     joinItems: null,
                     //专题图对象列表
-                    themes: [themeGridRange]
+                    themes: [themeGridRange],
+                    types:['REGION']
                 });
         var themeService = new SuperMap.REST.ThemeService(url, {eventListeners:{"processCompleted": themeCompleted, "processFailed": themeFailed}});
         themeService.processAsync(themeParameters);

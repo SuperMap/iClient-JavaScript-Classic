@@ -24,7 +24,7 @@
     <link href='./css/bootstrap-responsive.min.css' rel='stylesheet' />
     <script src = "../libs/SuperMap.Include.js"></script>
     <script type="text/javascript">
-        var map,layer,drawPoint, drawLine,drawPolygon,pointLayer,lineLayer,polygonLayer,plotingtLayer;
+        var map,layer,drawPoint, drawLine,drawPolygon,pointLayer,plottingEdit,lineLayer,polygonLayer,plottingLayer,drawFeature;
         var host = document.location.toString().match(/file:\/\//) ? "http://localhost:8090" : 'http://' + document.location.host;
         var mapurl = host + "/iserver/services/map-world/rest/maps/World";
         var plotUrl = host + "/iserver/services/plot-jingyong/rest/plot/";
@@ -50,9 +50,14 @@
                 pointRadius:6
             };
 
+            drawFeature = new SuperMap.Control.DrawFeature(plottingLayer, SuperMap.Handler.GraphicObject);
+
+            //态势标绘编辑
+            plottingEdit = new SuperMap.Control.PlottingEdit();
+            map.addControls([plottingEdit,drawFeature]);
+
         }
         function addLayer(){
-
             map.addLayers([layer,plottingLayer]);
             //显示地图范围
             map.setCenter(new SuperMap.LonLat(0, 0), 0);
@@ -86,12 +91,31 @@
             plottingLayer.createTextWC("Text", new SuperMap.Geometry.Point(20, 0), {});
         }
 
+
+
         function clearFeatures(){
             plottingLayer.removeAllFeatures();
         }
+        //取消标绘与编辑
+        function plottingAllDeactivate() {
+            drawFeature.deactivate();
+            plottingEdit.deactivate();
+        }
 
-        document.oncontextmenu = function(evt){
-            return false;
+        //取消标绘，激活标绘编辑控件
+        function PlottingDrawCancel() {
+            plottingAllDeactivate();
+
+            plottingEdit.activate();
+        }
+
+        document.onmouseup = function (evt) {
+            var evt = evt || window.event;
+            if (evt.button === 2) {
+                PlottingDrawCancel();
+                return false;
+            }
+            evt.stopPropagation();
         }
     </script>
 </head>

@@ -213,11 +213,14 @@ SuperMap.Renderer = SuperMap.Class({
 
                 var rendered = this.drawGeometry(feature.geometry, style, feature.id);
 
-				//新增军标符号的  应对Geotext 中的文本信息
-                if((feature.geometry.CLASS_NAME === "SuperMap.Geometry.DotSymbol") ||
-                    (feature.geometry.CLASS_NAME === "SuperMap.Geometry.AlgoSymbol")){
+                //新增军标符号的  应对Geotext 中的文本信息
+                if(feature.geometry.isPlottingGeometry && feature.geometry.isPlottingGeometry === true){
                     return true;
                 }
+                //if((feature.geometry.CLASS_NAME === "SuperMap.Geometry.DotSymbol") ||
+                //    (feature.geometry.CLASS_NAME === "SuperMap.Geometry.AlgoSymbol")){
+                //    return true;
+                //}
 				
                 if(style.display !== "none" && style.label && rendered !== false) {
 

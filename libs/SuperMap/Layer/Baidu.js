@@ -27,11 +27,19 @@ SuperMap.Layer.Baidu = SuperMap.Class(SuperMap.CanvasLayer, {
      */
     dpi: 96,
 
+    url:"http://online${num}.map.bdimg.com/onlinelabel/?qt=tile&x=${x}&y=${y}&z=${z}&styles=pl&udt=20150815&scaler=1",
+
     /**
      * Property: attribution
      * {String} The layer attribution.
      */
     attribution: "Data by <a style='white-space: nowrap' target='_blank' href='http://map.baidu.com/'>Baidu</a>",
+
+    /**
+     * Property: zOffset
+     * {Number} 图片url中z值偏移量
+     */
+    zOffset:3,
 
     /**
      * Constructor: SuperMap.Layer.Baidu
@@ -46,7 +54,7 @@ SuperMap.Layer.Baidu = SuperMap.Class(SuperMap.CanvasLayer, {
     initialize: function (options) {
         var me = this;
         me.name = "Baidu";
-        me.url = "http://online${num}.map.bdimg.com/onlinelabel/?qt=tile&x=${x}&y=${y}&z=${z}&styles=pl&udt=20150815&scaler=1";
+        //me.url = "http://online${num}.map.bdimg.com/onlinelabel/?qt=tile&x=${x}&y=${y}&z=${z}&styles=pl&udt=20150815&scaler=1";
 //        me.url = "http://shangetu${num}.map.bdimg.com/it/u=x=${x};y=${y};z=${z};v=017;type=web&fm=44&udt=20130712";
 
 /*
@@ -148,16 +156,14 @@ SuperMap.Layer.Baidu = SuperMap.Class(SuperMap.CanvasLayer, {
         var num = Math.abs((xyz.x + xyz.y) % 8);
         num++;
         */
-
-        var zoom = xyz.z - 1;
-        var offsetX = Math.pow(2, zoom+3);
+        var zoom = xyz.z + me.zOffset;
+        var offsetX = Math.pow(2, zoom-1);
 
         var offsetY = offsetX - 1;
 
         var numX = xyz.x - offsetX;
 
         var numY = -xyz.y + offsetY;
-        zoom = xyz.z + 3;
 
         var num =  Math.abs((xyz.x + xyz.y) % 8)+1;
         url = SuperMap.String.format(url, {

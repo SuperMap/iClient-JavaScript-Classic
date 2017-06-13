@@ -14,6 +14,12 @@
 SuperMap.Style.Image = new SuperMap.Class({
 
     /**
+     * APIProperty:img
+     * {HTMLImageElement}  image对象，此对象必须是已经加载完成了的，假如设置了此属性，则样式优先使用img，而不是矢量符号
+     **/
+    img:null,
+
+    /**
      * Property: canvas
      * {HTMLCanvasElement}
      */
@@ -99,7 +105,20 @@ SuperMap.Style.Image = new SuperMap.Class({
      * Methos: drawHitDetectionCanvas
      * 如子类需要事件，子类必须重写实现方法
      */
-    drawHitDetectionCanvas: function(){},
+    drawHitDetectionCanvas: function(context,x,y){
+      var w,h;
+       if(this.size){
+         w = this.size.width;
+         h = this.size.height;
+       }else{
+         w = this.img && this.img.style.width;
+         h = this.img && this.img.style.height;
+       }
+       if(w && h){
+         context.rect(x, y,w,h);
+         context.fill();
+       }
+    },
 
     /**
      *

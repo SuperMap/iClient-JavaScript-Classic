@@ -137,7 +137,8 @@
                         themeParameters = new SuperMap.REST.ThemeParameters({
                             themes: [themeLabel],
                             datasetNames: ["Capitals"],
-                            dataSourceNames: ["World"]
+                            dataSourceNames: ["World"],
+                            types:['POINT']
                         });
                 themeService.processAsync(themeParameters);
             }

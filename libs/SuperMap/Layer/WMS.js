@@ -4,7 +4,7 @@
 
 
 /**
- * @requires SuperMap/Layer/Grid.js
+ * @requires SuperMap/Layer/CanvasLayer.js
  * @requires SuperMap/Tile/Image.js
  */
 
@@ -17,9 +17,9 @@
  * SuperMap iServer 目前支持1.1.1和1.3.0两个版本
  * 
  * Inherits from:
- *  - <SuperMap.Layer.Grid>
+ *  - <SuperMap.CanvasLayer>
  */
-SuperMap.Layer.WMS = SuperMap.Class(SuperMap.Layer.Grid, {
+SuperMap.Layer.WMS = SuperMap.Class(SuperMap.CanvasLayer, {
 
     /**
      * Constant: DEFAULT_PARAMS
@@ -107,7 +107,7 @@ SuperMap.Layer.WMS = SuperMap.Class(SuperMap.Layer.Grid, {
             params.EXCEPTIONS = "INIMAGE";
         } 
         newArguments.push(name, url, params, options);
-        SuperMap.Layer.Grid.prototype.initialize.apply(this, newArguments);
+        SuperMap.CanvasLayer.prototype.initialize.apply(this, newArguments);
         SuperMap.Util.applyDefaults(
                        this.params, 
                        SuperMap.Util.upperCaseObject(this.DEFAULT_PARAMS)
@@ -139,7 +139,7 @@ SuperMap.Layer.WMS = SuperMap.Class(SuperMap.Layer.Grid, {
      */
     destroy: function() {
         // for now, nothing special to do here. 
-        SuperMap.Layer.Grid.prototype.destroy.apply(this, arguments);  
+        SuperMap.CanvasLayer.prototype.destroy.apply(this, arguments);
     },
 
     
@@ -160,7 +160,7 @@ SuperMap.Layer.WMS = SuperMap.Class(SuperMap.Layer.Grid, {
         }
 
         //get all additions from superclasses
-        obj = SuperMap.Layer.Grid.prototype.clone.apply(this, [obj]);
+        obj = SuperMap.CanvasLayer.prototype.clone.apply(this, [obj]);
 
         // copy/set any non-init, non-simple values here
 
@@ -211,6 +211,11 @@ SuperMap.Layer.WMS = SuperMap.Class(SuperMap.Layer.Grid, {
             newParams[SuperMap.Credential.CREDENTIAL.name] = SuperMap.Credential.CREDENTIAL.getValue();
         }
         var requestString = this.getFullRequestString(newParams);
+        if(this.tileProxy){
+            requestString = this.tileProxy + encodeURIComponent(requestString);
+        }else if(this.proxy){
+            requestString = this.proxy + encodeURIComponent(requestString);
+        }
         return requestString;
     },
 
@@ -225,7 +230,7 @@ SuperMap.Layer.WMS = SuperMap.Class(SuperMap.Layer.Grid, {
     mergeNewParams:function(newParams) {
         var upperParams = SuperMap.Util.upperCaseObject(newParams);
         var newArguments = [upperParams];
-        return SuperMap.Layer.Grid.prototype.mergeNewParams.apply(this, 
+        return SuperMap.CanvasLayer.prototype.mergeNewParams.apply(this,
                                                              newArguments);
     },
 
@@ -256,7 +261,7 @@ SuperMap.Layer.WMS = SuperMap.Class(SuperMap.Layer.Grid, {
             newParams.TRANSPARENT = this.params.TRANSPARENT ? "TRUE" : "FALSE";
         }
 
-        return SuperMap.Layer.Grid.prototype.getFullRequestString.apply(
+        return SuperMap.CanvasLayer.prototype.getFullRequestString.apply(
                                                     this, arguments);
     },
 

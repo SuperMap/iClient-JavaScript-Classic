@@ -87,6 +87,12 @@ SuperMap.Layer.TiledDynamicRESTLayer = SuperMap.Class(SuperMap.CanvasLayer, {
     dpi: null,
 
     /**
+     * APIProperty: credential
+     * {<Supermap.Credential>} 图层独立的安全验证信息，比如 token。需要在初始化的时候就传进去
+     *
+     */
+
+    /**
      * APIProperty: overlapDisplayed
      * {Boolean} 地图对象在同一范围内时，是否重叠显示，默认为false。
      * 如果为true，则同一范围内的对象会直接压盖；如果为false则通过 overlapDisplayedOptions 控制对象不压盖显示 。
@@ -210,15 +216,31 @@ SuperMap.Layer.TiledDynamicRESTLayer = SuperMap.Class(SuperMap.CanvasLayer, {
         if (me.params.redirect) {
             me.redirect = true;
         }
+        if(options && options.credential && options.credential instanceof SuperMap.Credential){
+          me.credential = options.credential;
+        }
 
         //用户传Layer的地图单位
         if(me.units){
             me.units = me.units.toLowerCase();
         }
 
+        if (me.projection) {
+            if(typeof me.projection === "string") {
+                me.projection = new SuperMap.Projection(me.projection);
+            }
+
+            var arr = me.projection.getCode().split(":");
+            if (arr instanceof Array && arr.length === 2) {
+                me.prjStr1 = "{\"epsgCode\":" + arr[1] + "}";
+            }
+        }
         if(me.dpi && me.maxExtent &&(me.resolutions || me.scales)) {
-            //如果设置了dpi、maxExtent、resolutions或者是scales,则不需要向服务端发出请求获取图层信息
-        }else if(!me.dpi && (!me.viewBounds || !me.viewer || !me.scale)) {
+            //如果设置了dpi、maxExtent、resolutions或者是scales,则不需要向服务端发出请求获取图层信息，这时直接触发图层元信息加载完成事件，延迟一段时间是为了让用户创建完图层对象后，添加监听后才触发事件
+            setTimeout(function () {
+                me.events.triggerEvent('layerInitialized',me);
+            },10);
+        }else{
             //当在options中设置viewBounds 、viewer 、scale 、units 、datumAxis，则计算dpi
             if (!!SuperMap.isApp) {
                 var layerContext = {
@@ -248,24 +270,14 @@ SuperMap.Layer.TiledDynamicRESTLayer = SuperMap.Class(SuperMap.CanvasLayer, {
                 }
                 var getMapStatusService = new SuperMap.REST.MapService(strServiceUrl,
                     {eventListeners: {processCompleted: me.getStatusSucceed, scope: me,
-                        processFailed: me.getStatusFailed}, projection: me.projection});
-                getMapStatusService.processAsync();
+                        processFailed: me.getStatusFailed}, projection: me.projection,proxy:this.proxy});
+                getMapStatusService.processAsync(me.credential);
             }
         }
         // else if (me.viewBounds && me.viewer && me.scale) {
         // me.dpi = SuperMap.Util.calculateDpi(me.viewBounds, me.viewer, me.scale, me.units, me.datumAxis);
         // }
-        if (me.projection) {
-            if(typeof me.projection === "string") {
-                me.projection = new SuperMap.Projection(me.projection);
-            }
-
-            var arr = me.projection.getCode().split(":");
-            if (arr instanceof Array && arr.length === 2) {
-                me.prjStr1 = "{\"epsgCode\":" + arr[1] + "}";
-            }
-        }
-        // if (me.projection) {        
+        // if (me.projection) {
         // var arr = me.projection.getCode().split(":");
         // if (arr instanceof Array && arr.length === 2) {
         // me.prjStr1 = "{\"epsgCode\":" + arr[1] + "}";
@@ -314,10 +326,10 @@ SuperMap.Layer.TiledDynamicRESTLayer = SuperMap.Class(SuperMap.CanvasLayer, {
             if (SuperMap.Util.isArray(me.url)) {
                 strServiceUrl = me.url[0];
             }
-            var getMapStatusService = new SuperMap.REST.MapService(strServiceUrl,
+            var getMapStatusService = new SuperMap.REST.map(strServiceUrl,
                 {eventListeners:{processCompleted: me.getStatusSucceed, scope: me,
                     processFailed: me.getStatusFailed}, projection: me.projection});
-            getMapStatusService.processAsync();
+            getMapStatusService.processAsync(me.credential);
         }
     },
 
@@ -427,6 +439,62 @@ SuperMap.Layer.TiledDynamicRESTLayer = SuperMap.Class(SuperMap.CanvasLayer, {
     },
 
     /**
+     * Method: getTileUrlByBounds
+     * 获取瓦片的URL。
+     *
+     * Parameters:
+     * bounds - {SuperMap.Bounds} 表示瓦片的显示范围
+     *
+     * Returns
+     * {String} 瓦片的 URL 。
+     */
+    getTileUrlByBounds:function(bounds){
+        var me = this,
+            newParams,
+            tileSize = me.tileSize,
+            zoom = me.map.getZoom(),
+            layerZoom = this.map.baseLayer.zOffset ? (zoom+this.map.baseLayer.zOffset) :zoom,
+            scale = me.scales[layerZoom];
+        if(!scale) {
+            scale = this.getScaleForZoom(layerZoom);
+        }
+        if(this.map && this.map.baseLayer && this !== this.map.baseLayer){
+            var baseScale = this.map.baseLayer.getScaleForZoom(zoom)*this.map.baseLayer.dpi/this.dpi;
+            var PRECISION = [1e-9,2e-9,4e-9,8e-9,1.6e-8,3.2e-8,6.4e-8,1.28e-7,2.56e-7,5.12e-7,1.024e-6,2.048e-6,4.096e-6,8.192e-6,1.6384e-5,3.2768e-5,6.5536e-5,1.31072e-4];
+            var idx = zoom > PRECISION.length ? PRECISION.length : zoom;
+            if(baseScale &&Math.abs(baseScale-scale) > PRECISION[idx]){
+                scale = baseScale;
+            }
+        }
+        newParams = {
+            "width" : tileSize.w,
+            "height" : tileSize.h,
+            "viewBounds": "{\"leftBottom\":{\"x\":" + bounds.left + ",\"y\":" + bounds.bottom + "},\"rightTop\":{\"x\":" + bounds.right + ",\"y\":" + bounds.top + "}}",
+            "scale" : scale,
+            //hansj，忽略后面的注释//由于服务器关于缓存有问题，所以redirect先设为false。
+            "redirect" : me.redirect
+        };
+        if (me.credential || SuperMap.Credential.CREDENTIAL) {
+            var credential = me.credential || SuperMap.Credential.CREDENTIAL;
+            newParams[credential.name] = credential.getValue();
+        }
+        if (!me.params.cacheEnabled) {
+            newParams.t = new Date().getTime();
+        }
+        if (typeof me.params.layersID !== "undefined" && typeof newParams.layersID === "undefined") {
+            if (me.params.layersID && me.params.layersID.length > 0){
+                newParams.layersID = me.params.layersID;
+            }
+        }
+
+        if (me.prjStr1) {
+            newParams.prjCoordSys = me.prjStr1;
+        }
+
+        return me.getFullRequestString(newParams);
+    },
+
+    /**
      * Method: getTileUrl
      * 获取瓦片的URL。
      *
@@ -440,13 +508,14 @@ SuperMap.Layer.TiledDynamicRESTLayer = SuperMap.Class(SuperMap.CanvasLayer, {
         var me = this,
             newParams,
             tileSize = me.tileSize,
-            scale = me.scales[xyz.z];
+            layerZoom = this.map.baseLayer.zOffset ? xyz.z+this.map.baseLayer.zOffset:xyz.z,
+            scale = me.scales[layerZoom];
         //在没有设置任何投影的情况下，比例尺可能大于1，为了提高容错能力，注释掉比例尺矫正函数。 maoshuyu
         //scale = SuperMap.Util.normalizeScale(scale);
-        if(!scale)scale = this.getScaleForZoom(xyz.z);
+        if(!scale)scale = this.getScaleForZoom(layerZoom);
         //对比本图层与底图的比例尺，如果跟底图的差距太大则选用底图的比例尺，保证底图与叠加图层的比例尺一致
         if(this.map && this.map.baseLayer && this !== this.map.baseLayer){
-            var baseScale = this.map.baseLayer.getScaleForZoom(xyz.z);
+            var baseScale = this.map.baseLayer.getScaleForZoom(xyz.z)*this.map.baseLayer.dpi/this.dpi;
             var PRECISION = [1e-9,2e-9,4e-9,8e-9,1.6e-8,3.2e-8,6.4e-8,1.28e-7,2.56e-7,5.12e-7,1.024e-6,2.048e-6,4.096e-6,8.192e-6,1.6384e-5,3.2768e-5,6.5536e-5,1.31072e-4];
             var idx = xyz.z > PRECISION.length ? PRECISION.length : xyz.z;
             if(baseScale &&Math.abs(baseScale-scale) > PRECISION[idx]){
@@ -462,8 +531,9 @@ SuperMap.Layer.TiledDynamicRESTLayer = SuperMap.Class(SuperMap.CanvasLayer, {
             //hansj，忽略后面的注释//由于服务器关于缓存有问题，所以redirect先设为false。
             "redirect" : me.redirect
         };
-        if (SuperMap.Credential.CREDENTIAL) {
-            newParams[SuperMap.Credential.CREDENTIAL.name] = SuperMap.Credential.CREDENTIAL.getValue();
+        if (me.credential || SuperMap.Credential.CREDENTIAL) {
+            var credential = me.credential || SuperMap.Credential.CREDENTIAL;
+            newParams[credential.name] = credential.getValue();
         }
         if (!me.params.cacheEnabled) {
             newParams.t = new Date().getTime();
@@ -511,7 +581,11 @@ SuperMap.Layer.TiledDynamicRESTLayer = SuperMap.Class(SuperMap.CanvasLayer, {
             var s = "" + newParams.x + newParams.y;
             url = me.selectUrl(s, url);
         }
-        url = url + "/tileImage." + me.format;
+        if(me.singleTile) {
+            url = url + "/image." + me.format;
+        } else {
+            url = url + "/tileImage." + me.format;
+        }
         urlParams = SuperMap.Util.upperCaseObject(SuperMap.Util.getParameters(url));
         for (var key in allParams) {
             if(key.toUpperCase() in urlParams) {

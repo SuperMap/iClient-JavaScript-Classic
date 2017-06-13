@@ -87,7 +87,7 @@ SuperMap.REST.GetFeaturesServiceBase = SuperMap.Class(SuperMap.ServiceBase, {
 
     /**
      * APIProperty: maxFeatures
-     * {Integer} 最多可返回的要素数量。
+     * {Integer} 进行SQL查询时，用于设置服务端返回查询结果条目数量，默认为1000。
      */
     maxFeatures: null,
     
@@ -115,7 +115,7 @@ SuperMap.REST.GetFeaturesServiceBase = SuperMap.Class(SuperMap.ServiceBase, {
      * eventListeners - {Object} 需要被注册的监听器对象。
      */
     initialize: function(url, options) {
-        SuperMap.ServiceBase.prototype.initialize.apply(this, [url]);
+        SuperMap.ServiceBase.prototype.initialize.apply(this, [url,options]);
         if (options) {
             SuperMap.Util.extend(this, options);
         }
@@ -167,8 +167,9 @@ SuperMap.REST.GetFeaturesServiceBase = SuperMap.Class(SuperMap.ServiceBase, {
      *
      * Parameters:
      * params - {<SuperMap.REST.GetFeaturesParametersBase>} 查询参数。
+     * credential - {<SuperMap.Credential>} 权限信息
      */
-    processAsync: function(params) {
+    processAsync: function(params,credential) {
         if(!params){
             return;
         }
@@ -196,6 +197,7 @@ SuperMap.REST.GetFeaturesServiceBase = SuperMap.Class(SuperMap.ServiceBase, {
             method: "POST",
             data: jsonParameters,
             scope: me,
+            credential:credential,
             success: me.getFeatureComplete,
             failure: me.getFeatureError
         });

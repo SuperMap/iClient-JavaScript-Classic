@@ -12,6 +12,12 @@
  *  - <SuperMap.Layer.CanvasLayer>
  */
 SuperMap.Layer.Bing = SuperMap.Class(SuperMap.CanvasLayer, {
+    /**
+     * APIProperty: dpi
+     * {Float} 屏幕上每英寸包含像素点的个数。
+     * 该参数结合图层比例尺可以推算出该比例尺下图层的分辨率.默认为96。
+     */
+    dpi: 96,
 
     /**
      * APIProperty: name
@@ -25,9 +31,9 @@ SuperMap.Layer.Bing = SuperMap.Class(SuperMap.CanvasLayer, {
      * {String}默认的Bing的三个中国范围地图的服器地址，不需要要用户设置
      */
     url: [
-        'http://dynamic.t0.tiles.ditu.live.com/comp/ch/${quadKey}?it=G,VE,BX,L,LA&mkt=zh-cn,syr&n=z&og=113&ur=CN',
-        'http://dynamic.t1.tiles.ditu.live.com/comp/ch/${quadKey}?it=G,VE,BX,L,LA&mkt=zh-cn,syr&n=z&og=113&ur=CN',
-        'http://dynamic.t2.tiles.ditu.live.com/comp/ch/${quadKey}?it=G,VE,BX,L,LA&mkt=zh-cn,syr&n=z&og=113&ur=CN'
+        'http://dynamic.t0.tiles.ditu.live.com/comp/ch/${quadKey}?it=G,OS,L&mkt=en-us&cstl=w4c&ur=cn',
+        'http://dynamic.t1.tiles.ditu.live.com/comp/ch/${quadKey}?it=G,OS,L&mkt=en-us&cstl=w4c&ur=cn',
+        'http://dynamic.t2.tiles.ditu.live.com/comp/ch/${quadKey}?it=G,OS,L&mkt=en-us&cstl=w4c&ur=cn'
     ],
 
     /**
@@ -42,13 +48,19 @@ SuperMap.Layer.Bing = SuperMap.Class(SuperMap.CanvasLayer, {
      * 0 级没有切片 156543.03390625, z+1
      */
     serverResolutions: [
-        78271.516953125, 39135.7584765625, 19567.87923828125,
-        9783.939619140625, 4891.9698095703125, 2445.9849047851562,
-        1222.9924523925781, 611.4962261962891, 305.74811309814453,
-        152.87405654907226, 76.43702827453613, 38.218514137268066,
-        19.109257068634033, 9.554628534317017, 4.777314267158508,
-        2.388657133579254, 1.194328566789627, 0.5971642833948135
+        19567.87923828125,9783.939619140625, 4891.9698095703125, 
+        2445.9849047851562,1222.9924523925781, 611.4962261962891, 
+        305.74811309814453,152.87405654907226, 76.43702827453613, 
+        38.218514137268066,19.109257068634033, 9.554628534317017, 
+        4.777314267158508,2.388657133579254, 1.194328566789627, 
+        0.5971642833948135
     ],
+
+    /**
+     * Property: zOffset
+     * {Number} 图片url中z值偏移量
+     */
+    zOffset:3,
 
     /**
      * Constructor: SuperMap.Layer.Bing
@@ -81,7 +93,7 @@ SuperMap.Layer.Bing = SuperMap.Class(SuperMap.CanvasLayer, {
         options = SuperMap.Util.extend({
             projection: "EPSG:900913",
             resolutions: this.serverResolutions,
-            numZoomLevels: 18
+            numZoomLevels: 16
         }, options);
         SuperMap.CanvasLayer.prototype.initialize.apply(this,[name || this.name,this.url,{},options] );
     },
@@ -123,7 +135,7 @@ SuperMap.Layer.Bing = SuperMap.Class(SuperMap.CanvasLayer, {
         if (SuperMap.Util.isArray(this.url)) {
             url = me.selectUrl(xyz, this.url);
         }
-        var x = xyz.x, y = xyz.y, z = xyz.z+1; //已在分辨率移除0级
+        var x = xyz.x, y = xyz.y, z = xyz.z+this.zOffset; //已在分辨率移除0、1、2级
         var quadDigits = [];
         for (var i = z; i > 0; --i) {
             var digit = '0';

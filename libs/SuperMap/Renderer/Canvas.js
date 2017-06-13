@@ -14,7 +14,9 @@
  *  - <SuperMap.Renderer>
  */
 SuperMap.Renderer.Canvas = SuperMap.Class(SuperMap.Renderer, {
-    
+    //{src:src, img:img}
+    //srcArr:[],
+   // imgArr: {},
     /**
      * APIProperty: hitDetection
      * {Boolean} Allow for hit detection of features.  Default is true.
@@ -200,6 +202,7 @@ SuperMap.Renderer.Canvas = SuperMap.Class(SuperMap.Renderer, {
      * style - {Object} 
      */
     drawGeometry: function(geometry, style, featureId) {
+
         var className = geometry.CLASS_NAME;
         if ((className === "SuperMap.Geometry.Collection") ||
             (className === "SuperMap.Geometry.MultiPoint") ||
@@ -248,27 +251,18 @@ SuperMap.Renderer.Canvas = SuperMap.Class(SuperMap.Renderer, {
      * featureId - {String}
      */ 
     drawExternalGraphic: function(geometry, style, featureId) {
+
         var t = this;
         if(this.londingimgs[featureId]){
             this.londingimgs[featureId].onload = function(){return false;}
         }
-
-        var img = new Image();
-        this.londingimgs[featureId] = img;
-
-        if (style.graphicTitle) {
-            img.title = style.graphicTitle;           
-        }
-
-        var onLoad = function() {
+        var onLoad = function () {
             var featureId = this.featureId;
             var geometry = this.geometry;
             var style = this.style;
             var img = this.img;
-
             t.londingimgs[featureId] = null;
-
-            if(!t.features[featureId]) {
+            if (!t.features[featureId]) {
                 return;
             }
             var width = style.graphicWidth || style.graphicHeight;
@@ -279,60 +273,82 @@ SuperMap.Renderer.Canvas = SuperMap.Class(SuperMap.Renderer, {
                 style.graphicXOffset : -(0.5 * width);
             var yOffset = (style.graphicYOffset != undefined) ?
                 style.graphicYOffset : -(0.5 * height);
-
             var opacity = style.graphicOpacity || style.fillOpacity;
-
             var pt = t.getLocalXY(geometry);
             var p0 = pt[0];
             var p1 = pt[1];
-            if(!isNaN(p0) && !isNaN(p1)) {
+            if (!isNaN(p0) && !isNaN(p1)) {
                 var canvas = t.canvas;
                 //Canvas添加旋转图片的功能
                 canvas.save();
                 var rotation;
-                if(style.rotation){
-                    rotation = style.rotation/180*Math.PI;
+                if (style.rotation) {
+                    rotation = style.rotation / 180 * Math.PI;
                 }
-                canvas.translate(p0,p1);
-                if(rotation) {
+                canvas.translate(p0, p1);
+                if (rotation) {
                     canvas.rotate(rotation);
                 }
-                canvas.translate(xOffset,yOffset);
+                canvas.translate(xOffset, yOffset);
                 canvas.globalAlpha = opacity;
                 var factor = SuperMap.Renderer.Canvas.drawImageScaleFactor ||
                     (SuperMap.Renderer.Canvas.drawImageScaleFactor =
-                        /android 2.1/.test(navigator.userAgent.toLowerCase()) ?
-                            // 320 is the screen width of the G1 phone, for
-                            // which drawImage works out of the box.
+                            /android 2.1/.test(navigator.userAgent.toLowerCase()) ?
+                                // 320 is the screen width of the G1 phone, for
+                                // which drawImage works out of the box.
                             320 / window.screen.width : 1
                     );
                 canvas.drawImage(
-                    img, 0, 0, width*factor, height*factor
+                    img, 0, 0, width * factor, height * factor
                 );
                 canvas.restore();
                 if (t.hitDetection) {
                     t.setHitContextStyle("fill", featureId);
                     t.hitContext.save();
-                    t.hitContext.translate(p0,p1);
-                    if(rotation) {
+                    t.hitContext.translate(p0, p1);
+                    if (rotation) {
                         t.hitContext.rotate(rotation);
                     }
-                    t.hitContext.translate(xOffset,yOffset);
+                    t.hitContext.translate(xOffset, yOffset);
                     t.hitContext.fillRect(0, 0, width, height);
                     t.hitContext.restore();
                 }
-
             }
         };
 
-        img.onload = SuperMap.Function.bind(onLoad, {
-            featureId:featureId,
-            geometry:geometry,
-            style:style,
-            img:img
-        });
-        img.src = style.externalGraphic;
-        t.canvas.globalCompositeOperation = "destination-over";
+        if(this.features[featureId][0].img) {
+            var img =  this.features[featureId][0].img;
+            //img.src = style.externalGraphic;
+            //覆盖上次的 onload，防止不一致(暂时没发现不一致有什么影响，如果没有影响可以直接onload.call)
+            img.onload.call({
+                featureId : featureId,
+                geometry :geometry,
+                style : style,
+                img:img
+            });
+        }
+        else {
+            var img = new Image();
+            img.src = style.externalGraphic;
+            this.londingimgs[featureId] = img;
+            this.features[featureId][0].img = img;
+            if (style.graphicTitle) {
+                img.title = style.graphicTitle;
+            }
+            img.onload = function() {
+                onLoad.call({
+                    featureId : featureId,
+                    geometry :geometry,
+                    style : style,
+                    img:img
+                });
+            };
+
+            if(this.features[featureId][0].geometry.isPlottingGeometry === true){
+                img.onload();
+            }
+        }
+        //t.canvas.globalCompositeOperation = "destination-over";
     },
 
     /**
@@ -396,6 +412,9 @@ SuperMap.Renderer.Canvas = SuperMap.Class(SuperMap.Renderer, {
      */
     setHitContextStyle: function(type, featureId, symbolizer) {
         var hex = this.featureIdToHex(featureId);
+        if(symbolizer && symbolizer.strokeLinecap) {
+            this.hitContext.lineCap = symbolizer.strokeLinecap;
+        }
         if (type === "fill") {
             this.hitContext.globalAlpha = 1.0;
             this.hitContext.fillStyle = hex;
@@ -683,7 +702,13 @@ SuperMap.Renderer.Canvas = SuperMap.Class(SuperMap.Renderer, {
             if (type === "fill") {
                 context.fill();
             } else {
-                context.stroke();
+                //context.stroke();
+                if(style.lineWidthLimit && style.strokeWidth === 0){
+                    context.closePath();
+                }else{
+                    context.stroke();
+                }
+
             }
         }
         if(typeof context.setLineDash==="function"){

@@ -273,7 +273,8 @@ function generateCompleted(generateSpatialDataEventArgs) {
     var themeParameters = new SuperMap.REST.ThemeParameters({
         themes: [themeUnique],
         datasetNames: ["generateSpatialData"],
-        dataSourceNames: ["Changchun"]
+        dataSourceNames: ["Changchun"],
+        types:['REGION']
     });
     var themeService = new SuperMap.REST.ThemeService(ChangChun_Map, {
         eventListeners:{

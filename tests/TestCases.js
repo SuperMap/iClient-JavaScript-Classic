@@ -1,11 +1,18 @@
 ﻿{
+
     inputScript('GlobeParameter.js');
-	//Base
+
+    //Base
     inputScript('Base/AnimatorTest.js');
     inputScript('Base/GOIsTest.js');
     inputScript('Base/UtilTest.js');
     inputScript('Base/VectorImageTest.js');
     inputScript('Base/GeometryTest.js');
+    inputScript('Base/FeatureTest.js');
+    inputScript('Base/SnapTest.js');
+    inputScript('Base/RequestTest.js');
+
+
     //BaseType
     inputScript('BaseTypes/BoundsTest.js');
     inputScript('BaseTypes/ClassTest.js');
@@ -15,34 +22,58 @@
     inputScript('BaseTypes/LonLatTest.js');
     inputScript('BaseTypes/PixelTest.js');
     inputScript('BaseTypes/SizeTest.js');
+
     //Carto
     inputScript('Carto/CartoCSSTest.js');
     inputScript('Carto/CartoLayerTest.js');
     inputScript('Carto/CartoSymbolizerTest.js');
+    inputScript('Carto/cartoRendererTest.js');
+
     //Control
     inputScript('Control/ArgParserTest.js');
     inputScript('Control/AttributionTest.js');
+    inputScript('Control/ChangeTilesVersionTest.js');
     inputScript('Control/GeolocateTest.js');
     inputScript('Control/DragPanTest.js');
     inputScript('Control/DragFeatureTest.js');
+    inputScript('Control/DrawFeatureTest.js');
     inputScript('Control/GOIsTest.js');
     inputScript('Control/LayerSwitcherTest.js');
     inputScript('Control/OverviewMapTest.js');
     inputScript('Control/ModifyFeatureTest.js');
     inputScript("Control/ScaleLineTest.js");
-    inputScript('Control/ZoomTest.js');   
+    inputScript('Control/ZoomTest.js');
+    inputScript('Control/ZoomBoxTest.js');
+    inputScript('Control/SelectClusterTest.js');
+    inputScript('Control/SelectGridTest.js');
+    inputScript('Control/SearchCityTest.js');
+    inputScript('Control/UTFGridTest.js');
+    inputScript('Control/TiledVectorLayerEditorTest.js');
+    inputScript('Control/TouchNavigationTest.js');
+    inputScript('Control/SelectGraphicTest.js');
+
     //Feature
     //Filter
+    inputScript('Filter/ComparisonTest.js');
     //Format
     inputScript('Format/GMLTest.js');
+    inputScript('Format/GML/BaseTest.js');
+    inputScript('Format/XMLTest.js');
+    inputScript('Format/XML/VersionedOGCTest.js');
     inputScript('Format/KMLTest.js');
+    inputScript('Format/GeoJSONTest.js');
+    inputScript('Format/JSONTest.js');
 
-     // Geometry
+
+    // Geometry
     inputScript('Geometry/PointTest.js');
     inputScript('Geometry/CollectionTest.js');
     inputScript('Geometry/GeoTextTest.js');
     inputScript('Geometry/MultiPointTest.js');
+    inputScript('Geometry/MultiLineStringTest.js');
+    inputScript('Geometry/LineStringTest.js');
     inputScript('Geometry/RectangleTest.js');
+    inputScript('Geometry/PolygonTest.js');
 
     // Feature
     inputScript("Feature/ThemeTest.js");
@@ -59,8 +90,9 @@
     inputScript("Feature/Theme/GraphTest.js");
     inputScript("Feature/Theme/VectorTest.js");
     inputScript("Feature/Theme/RankSymbolTest.js");
+    inputScript('Feature/VectorTest.js');
 
-     //Handler
+    //Handler
     //  Layer
     inputScript('Layer/AnimatorVectorTest.js');
     inputScript('Layer/CloudLayerTest.js');
@@ -69,6 +101,7 @@
     inputScript("Layer/EventPaneTest.js");
     inputScript('Layer/HeatGridLayerTest.js');
     inputScript('Layer/HeatMapLayerTest.js');
+    inputScript('Layer/HeatMapFastLayerTest.js');
     inputScript('Layer/HeatMapWeightTest.js');
     inputScript('Layer/ImageTest.js');
     inputScript('Layer/MarkersTest.js');
@@ -80,30 +113,39 @@
     inputScript('Layer/UTFGridTest.js');
     inputScript('Layer/WCSTest.js');
     inputScript('Layer/WmtsTest.js');
+    inputScript('Layer/WMSTest.js');
     inputScript('Layer/TiandituTest.js');
     inputScript('Layer/Theme/CustomVectorTest.js');
     inputScript('Layer/Theme/RangeTest.js');
     inputScript('Layer/Theme/UniqueTest.js');
     inputScript('Layer/Theme/GraphTest.js');
-    inputScript("Layer/Theme/RankSymbolTest.js");  inputScript("../examples/js/graph/Circle.js");
+    inputScript("Layer/Theme/RankSymbolTest.js");
+    inputScript("../examples/js/graph/Circle.js");
     inputScript('Layer/GraphicsTest.js');
+    inputScript('Layer/Vector/RootContainerTest.js');
 
     //LevelRenderer
-	inputScript('LevelRenderer/LevelRendererTest.js');
+    inputScript('LevelRenderer/LevelRendererTest.js');
     inputScript('LevelRenderer/StorageTest.js');
     inputScript('LevelRenderer/PainterTest.js');
-	inputScript('LevelRenderer/HandlerTest.js');
+    inputScript('LevelRenderer/HandlerTest.js');
     inputScript("LevelRenderer/Shape/SmicCircleTest.js");
     inputScript("LevelRenderer/Tool/ColorTest.js");
     inputScript("LevelRenderer/Tool/AreaTest.js");
     //Popup
     inputScript('Popup/PopupTest.js');
+    inputScript("Popup/FramedTest.js");
+    inputScript("Popup/FramedCloudTest.js");
     //Protocol
     inputScript('Protocol/WFSTest.js');
+    inputScript('Protocol/HTTPTest.js');
 
     //Renderer
     inputScript('Renderer/AnimatorCanvas/RadiatePointTest.js');
     inputScript('Renderer/AnimatorCanvas/TadpolePointTest.js');
+    inputScript("Renderer/VMLTest.js");
+    inputScript('Renderer/Canvas2Test.js');
+    inputScript('Renderer/CanvasTest.js');
 
     //Request
     //REST
@@ -128,6 +170,10 @@
     inputScript('REST/Data/GetFieldsEventArgsTest.js');
     inputScript('REST/Data/GetFieldsResultTest.js');
     inputScript('REST/Data/GetFieldsServiceTest.js');
+    inputScript('REST/Data/GetGridCellInfosResultTest.js');
+    inputScript('REST/Data/GetGridCellInfosEventArgsTest.js');
+    inputScript('REST/Data/GetGridCellInfosServiceTest.js');
+    inputScript('REST/Data/GetGridCellInfosParameterTest.js');
     inputScript('REST/Data/FieldStatisticEventArgsTest.js');
     inputScript('REST/Data/FieldStatisticResultTest.js');
     inputScript('REST/Data/FieldStatisticServiceTest.js');
@@ -135,8 +181,8 @@
     //海图测试LayerServices相关的类，等待服务端支持后添加
     //    inputScript('REST/LayerServices/ChartAttributeSpecTest.js');
     //    inputScript('REST/LayerServices/ChartFeatureInfoSpecTest.js');
-   //    inputScript('REST/LayerServices/ChartFeatureInfoSpecsResultTest.js');
-   //    inputScript('REST/LayerServices/ChartFeatureInfoSpecsServiceTest.js');
+    //    inputScript('REST/LayerServices/ChartFeatureInfoSpecsResultTest.js');
+    //    inputScript('REST/LayerServices/ChartFeatureInfoSpecsServiceTest.js');
     inputScript('REST/LayerServices/OverlapDisplayedOptionsTest.js');
     inputScript('REST/LayerServices/ColorDictionaryTest.js');
     inputScript('REST/LayerServices/DatasetInfoTest.js');
@@ -154,7 +200,9 @@
     inputScript('REST/LayerServices/GetLayersInfoEventArgsTest.js');
     inputScript('REST/LayerServices/SetLayerStatusServiceTest.js');
     inputScript('REST/SpatialAnalyst/InterpolationAnalystEventArgsTest.js');
+
     inputScript('REST/SpatialAnalyst/InterpolationAnalystParametersTest.js');
+
     //inputScript('REST/SpatialAnalyst/InterpolationAnalystServiceTest.js');
 
     inputScript('REST/MapService/MapServiceTest.js');
@@ -213,29 +261,29 @@
     inputScript("REST/NetworkAnalyst/UpdateTurnNodeWeightParametersTest.js");
     inputScript("REST/NetworkAnalyst/UpdateTurnNodeWeightResultTest.js");
     inputScript("REST/NetworkAnalyst/UpdateTurnNodeWeightServiceTest.js");
-
-    // 三维网络分析
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystSinks3DParametersTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystSinks3DServiceTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystSinks3DResultTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystSinks3DEventArgs.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystSources3DParametersTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystSources3DEventArgsTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystSources3DResultTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystSources3DServiceTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystTracedown3DEventArgsTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystTracedown3DParametersTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystTracedown3DResultTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystTracedown3DServiceTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystTraceup3DEventArgsTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystTraceup3DParametersTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystTraceup3DResultTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystTraceup3DServiceTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystUpstream3DEventArgsTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystUpstream3DParametersTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystUpstream3DServiceTest.js');
-    inputScript('REST/NetworkAnalyst3D/FacilityAnalystUpstream3DResultTest.js');
-
+    /*
+     // 三维网络分析
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystSinks3DParametersTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystSinks3DServiceTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystSinks3DResultTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystSinks3DEventArgs.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystSources3DParametersTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystSources3DEventArgsTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystSources3DResultTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystSources3DServiceTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystTracedown3DEventArgsTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystTracedown3DParametersTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystTracedown3DResultTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystTracedown3DServiceTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystTraceup3DEventArgsTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystTraceup3DParametersTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystTraceup3DResultTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystTraceup3DServiceTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystUpstream3DEventArgsTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystUpstream3DParametersTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystUpstream3DServiceTest.js');
+     inputScript('REST/NetworkAnalyst3D/FacilityAnalystUpstream3DResultTest.js');
+     */
     inputScript('REST/Query/FilterParameterTest.js');
     //海图测试Query相关的类，等待服务端支持后添加
     //    inputScript('REST/Query/ChartQueryFilterParameterTest.js');
@@ -273,6 +321,9 @@
     inputScript('REST/SpatialAnalyst/BufferDistanceTest.js');
     inputScript('REST/SpatialAnalyst/BufferSettingTest.js');
     inputScript('REST/SpatialAnalyst/BufferAnalystParametersTest.js');
+
+    inputScript('REST/SpatialAnalyst/ClipParameterTest.js');
+
     inputScript('REST/SpatialAnalyst/DatasetBufferAnalystParametersTest.js');
     inputScript('REST/SpatialAnalyst/GeometryBufferAnalystParametersTest.js');
     inputScript('REST/SpatialAnalyst/DatasetBufferAnalystResultTest.js');
@@ -297,13 +348,16 @@
     inputScript('REST/SpatialAnalyst/OverlayAnalystEventArgsTest.js');
     inputScript('REST/SpatialAnalyst/GenerateSpatialDataResultTest.js');
     inputScript('REST/SpatialAnalyst/GenerateSpatialDataEventArgsTest.js');
+
     inputScript('REST/SpatialAnalyst/GenerateSpatialDataParametersTest.js');
+
     inputScript('REST/SpatialAnalyst/GenerateSpatialDataServiceTest.js');
     inputScript('REST/SpatialAnalyst/GeoRelationResultTest.js');
     inputScript('REST/SpatialAnalyst/GeoRelationAnalystEventArgsTest.js');
     inputScript('REST/SpatialAnalyst/GeoRelationAnalystParametersTest.js');
     inputScript('REST/SpatialAnalyst/GeoRelationAnalystResultTest .js');
     inputScript('REST/SpatialAnalyst/GeoRelationAnalystServiceTest.js');
+
 
     //点定里程，里程定点和线相关的类，等待服务端支持后添加
 //    inputScript('REST/SpatialAnalyst/RouteCalculateMeasureParametersTest.js');
@@ -397,6 +451,10 @@
 
     //Graphic
     inputScript('Graphic/GraphicTest.js');
+
+    //Handler
+    inputScript('Handler/GraphicTest.js');
+
     //Style
     inputScript('Style/FillTest.js');
     inputScript('Style/StrokeTest.js');
@@ -405,6 +463,10 @@
     inputScript('Style/Image/CloverTest.js');
     inputScript('Style/Image/HitCloverTest.js');
     inputScript('Style/Image/RegularShapeTest.js');
+    //Tool
+    inputScript('Tool/SliderTest.js');
+    inputScript('Tool/ColorPickerTest.js');
+
 
     //Plotting
     inputScript('Plotting/Plot/AnalysisSymbolTest.js');
@@ -448,6 +510,10 @@
     inputScript('Plotting/REST/GetSMLInfosParametersTest.js');
     inputScript('Plotting/REST/GetSMLInfosResultTest.js');
     inputScript('Plotting/REST/GetSMLInfosServiceTest.js');
+
+    inputScript('Plotting/Geometry/GroupObjectTest.js');
+    inputScript('Plotting/GOAnimation/GOAnimationTest.js');
+    inputScript('Plotting/GOAnimation/GOAnimationManagerTest.js');
 }
 
 function inputScript(inc) {

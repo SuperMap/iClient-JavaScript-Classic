@@ -91,3 +91,14 @@ asyncTest("testSymbolLibManager_findSymbolByName", function () {
     }
 });
 
+asyncTest("testSymbolLibManager_findSymbolByCode", function () {
+    getSymbolLibManager(complete);
+    function complete() {
+        setTimeout(function () {
+            var result = symbolLibManager.findSymbolByCode(10100);
+            equal(result[0].symbolCode, 10100, "Function:findSymbolByCode");
+            start();
+        }, 200);
+    }
+});
+

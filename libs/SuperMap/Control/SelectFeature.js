@@ -194,12 +194,6 @@ SuperMap.Control.SelectFeature = SuperMap.Class(SuperMap.Control, {
       * {Object} styles 样式。(样式里面的label如果没有设置则保留feature自身的label)
       */
     selectStyle: null,
-
-    /**
-     * APIProperty: allowSelectTheSameFeature
-     * 允许多次点击同一要素，默认为false
-     */
-    allowSelectTheSameFeature:false,
     
      /**
       * Property: renderIntent
@@ -264,7 +258,7 @@ SuperMap.Control.SelectFeature = SuperMap.Class(SuperMap.Control, {
         this.handlers = {
             feature: new SuperMap.Handler.Feature(
                 this, this.layer, this.callbacks,
-                {geometryTypes: this.geometryTypes,allowClickTwice:this.allowSelectTheSameFeature}
+                {geometryTypes: this.geometryTypes, stopDown:false}
             )
         };
 
@@ -395,7 +389,7 @@ SuperMap.Control.SelectFeature = SuperMap.Class(SuperMap.Control, {
                 } else if(!this.multipleSelect()) {
                     this.unselectAll({except: feature});
                     if(this.repeat){
-                             this.onSelect.call(this.scope, feature, evt);
+                        this.onSelect.call(this.scope, feature, evt);
                     }
                 }
             } else {
@@ -589,6 +583,10 @@ SuperMap.Control.SelectFeature = SuperMap.Class(SuperMap.Control, {
     select: function(feature, evt) {
         var cont = this.onBeforeSelect.call(this.scope, feature);
         var layer = feature.layer;
+         if(null === layer){
+             return;
+         }
+         
         if(cont !== false) {
             cont = layer.events.triggerEvent("beforefeatureselected", {
                 feature: feature

@@ -51,7 +51,7 @@ asyncTest("EditSmlFileService_success_POST)", function () {
             ok(editSmlFileService.eventListeners == null, "editSmlFileService.eventListeners");
             start();
         } catch (excepion) {
-            ok(false, "exception occcurs,message is:" + excepion.message)
+            ok(false, "exception occcurs,message is:" + excepion.message);
             start();
         }
     }, 6000)

@@ -249,6 +249,9 @@ SuperMap.Tile.Image = SuperMap.Class(SuperMap.Tile, {
             // and don't wait for an image request to come back.
           
             this.url = this.layer.getURL(this.bounds);
+        if(!this.url){
+            return false;
+        }
             this.events.triggerEvent(this._loadEvent);
 
             this.initImgDiv();
@@ -308,9 +311,10 @@ SuperMap.Tile.Image = SuperMap.Class(SuperMap.Tile, {
             }
             else
             {
-                //跨域请求瓦片，暂时只支持非重定向的SUPERMAP_REST服务的地图
-                if(this.layer.useCORS&&!SuperMap.Util.isInTheSameDomain(this.url)&&(this.url.indexOf("redirect=true")<0)&&((SuperMap.Layer.SimpleCachedLayer && this.layer instanceof SuperMap.Layer.SimpleCachedLayer)||
-                    (SuperMap.Layer.TiledDynamicRESTLayer && this.layer instanceof SuperMap.Layer.TiledDynamicRESTLayer))){
+                //跨域请求瓦片，暂时只支持非重定向的SUPERMAP_REST服务的地图，及其他Grid图层
+                if((this.layer instanceof SuperMap.Layer.SimpleCachedLayer || this.layer instanceof SuperMap.Layer.TiledDynamicRESTLayer) && !SuperMap.Util.isInTheSameDomain(this.url)&&(this.url.indexOf("redirect=true")<0) && this.layer.useCORS){
+                    this.imgDiv.crossOrigin="anonymous";
+                }else if(this.layer instanceof SuperMap.Layer.Grid && this.layer.useCORS){
                     this.imgDiv.crossOrigin="anonymous";
                 }
                 this.imgDiv.src = this.url;

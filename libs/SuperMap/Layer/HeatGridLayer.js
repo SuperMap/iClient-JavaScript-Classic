@@ -556,7 +556,7 @@ SuperMap.Layer.HeatGridLayer = SuperMap.Class(SuperMap.Layer.Vector, {
         var gridWidth,gridHeight;
         gridWidth =this.gridWidth*this.map.getResolution();
         gridHeight = this.gridHeight*this.map.getResolution();
-        gridFeatures = [];
+        var gridFeatures = [];
         var feas = [];
 
         for(var i = 0;i<features.length;i++)
@@ -672,7 +672,7 @@ SuperMap.Layer.HeatGridLayer = SuperMap.Class(SuperMap.Layer.Vector, {
         var gridWidth,gridHeight;
         gridWidth =this.gridWidth*this.map.getResolution();
         gridHeight = this.gridHeight*this.map.getResolution();
-        gridFeatures = [];
+        var gridFeatures = [];
         var feas = [];
 
         for(var i = 0;i<features.length;i++)

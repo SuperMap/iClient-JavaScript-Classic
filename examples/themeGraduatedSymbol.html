@@ -71,7 +71,8 @@
                         themeParameters = new SuperMap.REST.ThemeParameters({
                             themes: [themeGraduatedSymbol],
                             datasetNames: ["China_Province_pg"],
-                            dataSourceNames: ["China"]
+                            dataSourceNames: ["China"],
+                            types:['REGION']
                         });
 
                 themeService.processAsync(themeParameters);

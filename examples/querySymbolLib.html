@@ -83,7 +83,7 @@
             drawGraphicObject = new SuperMap.Control.DrawFeature(plottingLayer, SuperMap.Handler.GraphicObject);
 
             //态势标绘编辑
-            plottingEdit = new SuperMap.Control.PlottingEdit(plottingLayer);
+            plottingEdit = new SuperMap.Control.PlottingEdit();
 
             //添加态势标绘控件
             map.addControls([plottingEdit,drawGraphicObject]);
@@ -116,6 +116,15 @@
             plottingEdit.deactivate();
 
             plottingEdit.activate();
+        }
+
+        function editSymbol(){
+            if(plottingEdit.editMode===SuperMap.Plot.EditMode.EDITCIRCUMRECTANGLE){
+                plottingEdit.setEditMode(SuperMap.Plot.EditMode.EDITCONTROLPOINT);
+            }else{
+                plottingEdit.setEditMode(SuperMap.Plot.EditMode.EDITCIRCUMRECTANGLE);
+            }
+
         }
 
         //清空绘制
@@ -209,18 +218,27 @@
             container.appendChild(table);
         }
 
-        document.oncontextmenu = function(evt){
-            window.event.returnValue = false;
-            PlottingDrawCancel();
-            return false;
-        };
+
+        function removeAllFeatur(){
+            plottingLayer.removeAllFeatures();
+        }
+        document.onmouseup = function (evt) {
+            var evt = evt || window.event;
+            if (evt.button === 2) {
+                PlottingDrawCancel();
+                return false;
+            }
+            evt.stopPropagation();
+        }
     </script>
 </head>
 <body onload="init()">
 <div id = "toolbar">
     <span>关键字：</span>
     <input style='width:80px' id='queryCriteria' value=''/>
-    <input type="button" class="btn" value="查询" onclick="querySymbolLib()" />
+    <input type="button" class="btn" value="查询" onmousemove="querySymbolLib()" />
+    <input type="button" class="btn" value="编辑" onclick="editSymbol()" />
+    <input type="button" class="btn" value="清空" onclick="removeAllFeatur()" />
 </div>
 <div id="popupWin" class="popupWindow" style="display: block;top: 278px; ">
     <div  class="winTitle">

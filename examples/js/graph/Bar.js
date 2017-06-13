@@ -318,14 +318,14 @@ SuperMap.Feature.Theme.Bar = SuperMap.Class(SuperMap.Feature.Theme.Graph, {
     /**
      * Method: resetLinearGradient
      * 图表的相对坐标存在的时候，重新计算渐变的颜色
-     * PS: (目前用于二维柱状图 所以之类实现此方法)
+     * PS: (目前用于二维柱状图 所以子类实现此方法)
      */
     resetLinearGradient: function(){
         if(this.RelativeCoordinate){
             var shpelength = this.shapes.length;
             var barLinearGradient = this.setting.barLinearGradient;
             var index = -1;
-            for(var i = 0;i<shpelength;i++){
+            for(var i = 0; i < shpelength; i++){
                 var shape = this.shapes[i];
                 if(shape.CLASS_NAME === "SuperMap.LevelRenderer.Shape.SmicPolygon"){
                     var style = shape.style;
@@ -336,7 +336,7 @@ SuperMap.Feature.Theme.Bar = SuperMap.Class(SuperMap.Feature.Theme.Graph, {
                     //渐变颜色
                     index++;
                     //以防定义的颜色数组不够用
-                    if(index > barLinearGradient.length) index = index % barLinearGradient.length;
+                    if(index >= barLinearGradient.length) index = index % barLinearGradient.length;
                     var color1 = barLinearGradient[index][0];
                     var color2 = barLinearGradient[index][1];
 

@@ -184,6 +184,43 @@ test("testPlottingUtil_pointToPloyLineDis", function () {
     equal(pointToPloyLineDis, 0, "Function:pointToPloyLineDis");
 });
 
+test("testPlottingUtil_isNear", function (){
+    var num1=3.14159265357;
+    var tolerance1=0.0000000001;
+    var flag1=SuperMap.Plot.PlottingUtil.isNear(num1,tolerance1);
+    equal(flag1, false, "Function:isNear false");
+    var num2=1.0000000005;
+    var tolerance2=2.0000000009;
+    var flag2=SuperMap.Plot.PlottingUtil.isNear(num2,tolerance2);
+    equal(flag2, true, "Function:isNear true");
+});
+
+test("testPlottingUtil_equalFuzzy", function (){
+        var numA1=1.99111;
+        var numB1=2.01111;
+        var tolerance=0.1;
+        var num1=SuperMap.Plot.PlottingUtil.equalFuzzy(numA1, numB1, tolerance);
+        equal(num1, true, "Function:equalFuzzy ");
+        var numA2=1.00001;
+        var numB2=2.00001;
+        var num2=SuperMap.Plot.PlottingUtil.equalFuzzy(numA2, numB2, tolerance);
+        equal(num2, false, "Function:equalFuzzy ");
+});
+
+test("testPlottingUtil_intersectLines", function (){
+    var pntStart1 = new SuperMap.Geometry.Point(1, 0);
+    var pntEnd1 = new SuperMap.Geometry.Point(1, 5);
+    var pntStart2 = new SuperMap.Geometry.Point(-2, 2);
+    var pntEnd2 = new SuperMap.Geometry.Point(3, 2);
+    var returnValue1=SuperMap.Plot.PlottingUtil.intersectLines(pntStart1, pntEnd1, pntStart2, pntEnd2);
+    equal(returnValue1.intersectPoint.x, 1, "Function:intersectLines 交点x坐标");
+    equal(returnValue1.intersectPoint.y, 2, "Function:intersectLines 交点y坐标");
+    equal(returnValue1.isIntersectLines, true, "Function:intersectLines 两条线相交");
+    var pntStart3 = new SuperMap.Geometry.Point(1, 0);
+    var pntEnd3 = new SuperMap.Geometry.Point(1, 5);
+    var returnValue2=SuperMap.Plot.PlottingUtil.intersectLines(pntStart1, pntEnd1, pntStart3, pntEnd3);
+    equal(returnValue2.isIntersectLines, false, "Function:intersectLines 两条线重叠");
+});
 
 
 

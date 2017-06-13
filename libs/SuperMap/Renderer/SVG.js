@@ -66,6 +66,7 @@ SuperMap.Renderer.SVG = SuperMap.Class(SuperMap.Renderer.Elements, {
         if(SuperMap.Browser.name!=="firefox"){
             this.MAX_PIXEL=Infinity;
         }
+        this.element = document.createElement('span');
     },
 
     /**
@@ -366,6 +367,7 @@ SuperMap.Renderer.SVG = SuperMap.Class(SuperMap.Renderer.Elements, {
                 if(gradientId){
                     fillColor="url(#"+gradientId+")";
                     node.setAttributeNS(null, "style", "fill:"+fillColor);
+                    node.setAttributeNS(null, "fill-opacity", style.fillOpacity);
                     node.style.fill=fillColor;
                 }
             }else{
@@ -735,8 +737,9 @@ SuperMap.Renderer.SVG = SuperMap.Class(SuperMap.Renderer.Elements, {
 
         //IE 浏览器，SVG渲染方式下baseline-shift属性不起效，导致文本位置有向上偏移的效果，
         //为了使标签的位置正确，当浏览器为ie时，在y轴上进行一个下偏移。
-        var y;
-        if (SuperMap.Browser.name === "msie") {
+        var y,
+            browerName = SuperMap.Browser.name;
+        if (browerName === "msie") {
             if(!style.fontSize)style.fontSize = 12;
             var baseline_shift_offset = parseFloat(style.fontSize)*0.35;
             y = (location.y / resolution - this.top) - baseline_shift_offset;
@@ -822,7 +825,13 @@ SuperMap.Renderer.SVG = SuperMap.Class(SuperMap.Renderer.Elements, {
             }
             var labelContent=(labelRows[i] === '') ? ' ' : labelRows[i];
             if(style.isUnicode){
-                tspan.innerHTML = labelContent;
+                if(browerName == 'msie') {
+                    this.element.innerHTML = labelContent;
+                    tspan.textContent = this.element.innerHTML;
+                } else {
+                    tspan.innerHTML = labelContent;
+                }
+
             }else{
                 tspan.textContent = labelContent;
             }

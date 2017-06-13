@@ -69,12 +69,6 @@ SuperMap.Handler.Feature = SuperMap.Class(SuperMap.Handler, {
     clickTolerance: 4,
 
     /**
-     * Property: allowClickTwice
-     * 在第二次点击同一要素的时候也会触发点击事件，默认为不触发
-     * */
-    allowClickTwice:false,
-
-    /**
      * Property: geometryTypes
      * To restrict dragging to a limited set of geometry types, send a list
      * of strings corresponding to the geometry class names.
@@ -99,7 +93,7 @@ SuperMap.Handler.Feature = SuperMap.Class(SuperMap.Handler, {
      *      mousedowns do propagate. Unhandled mousedowns always propagate,
      *      whatever the value of stopDown. Defaults to true.
      */
-    stopDown: false,
+    stopDown: true,
 
     /**
      * Property: stopUp
@@ -150,8 +144,7 @@ SuperMap.Handler.Feature = SuperMap.Class(SuperMap.Handler, {
             });
         }
         this.singleTouch=SuperMap.Event.isMultiTouch(evt)?false:true;
-        SuperMap.Event.stop(evt);
-        return this.handle(evt) ? !this.stopDown : true;
+        return this.singleTouch ? this.mousedown(evt) : true;
     },
 
     /**
@@ -313,7 +306,6 @@ SuperMap.Handler.Feature = SuperMap.Class(SuperMap.Handler, {
                 SuperMap.Event.stop(evt);
             }
             var inNew = (this.feature !== this.lastFeature);
-            inNew = this.allowClickTwice ? true: inNew;
             if(this.geometryTypeMatches(this.feature)) {
                 // in to a feature
                 if(previouslyIn && inNew) {

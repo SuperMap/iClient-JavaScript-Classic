@@ -28,11 +28,10 @@ asyncTest("testGeoGraphicObject_Constructor", function () {
 
 
     function getCompleted(result) {
-        geoGraphicObject = SuperMap.Geometry.PlottingGeometry.createGeometry(421, 10100, inputPoints, {symbolData: result.originResult, layer: plottingLayer});
+        geoGraphicObject = SuperMap.Geometry.PlottingGeometry.createGeometry(421, 10100, {symbolData: result.originResult, map: map});
     }
 
     function getFailed() {
-        geoGraphicObject.events.triggerEvent("createfeaturefail");
         return null;
     }
 
@@ -41,7 +40,7 @@ asyncTest("testGeoGraphicObject_Constructor", function () {
             equal(geoGraphicObject.CLASS_NAME, "SuperMap.Geometry.DotSymbol", "DotSymbol.CLASS_NAME");
             start();
         } catch(exception){
-            ok(false, "exception occcurs,message is:" + excepion.message)
+            ok(false, "exception occcurs,message is:" + exception.message);
             start();
         } finally {
             map.destroy();
@@ -78,12 +77,11 @@ asyncTest("testGeoGraphicObject_getTextContent", function () {
 
 
     function getCompleted(result) {
-        geoGraphicObject = SuperMap.Geometry.PlottingGeometry.createGeometry(421, 10100, inputPoints, {symbolData: result.originResult, layer: plottingLayer});
+        geoGraphicObject = SuperMap.Geometry.PlottingGeometry.createGeometry(421, 10100, {symbolData: result.originResult, map: map});
         geoGraphicObject.setTextContent("注记内容");
     }
 
     function getFailed() {
-        geoGraphicObject.events.triggerEvent("createfeaturefail");
         return null;
     }
 
@@ -93,7 +91,7 @@ asyncTest("testGeoGraphicObject_getTextContent", function () {
             equal(textContent, "注记内容", "Function.getTextContent");
             start();
         } catch(exception){
-            ok(false, "exception occcurs,message is:" + excepion.message)
+            ok(false, "exception occcurs,message is:" + exception.message);
             start();
         } finally {
             map.destroy();
@@ -130,25 +128,23 @@ asyncTest("testGeoGraphicObject_clone", function () {
 
 
     function getCompleted(result) {
-        geoGraphicObject = SuperMap.Geometry.PlottingGeometry.createGeometry(421, 10100, inputPoints, {symbolData: result.originResult, layer: plottingLayer});
+        geoGraphicObject = SuperMap.Geometry.PlottingGeometry.createGeometry(421, 10100, {symbolData: result.originResult, map: map});
+
     }
 
     function getFailed() {
-        geoGraphicObject.events.triggerEvent("createfeaturefail");
         return null;
     }
 
     setTimeout(function () {
         try{
+            console.log(geoGraphicObject);
             var geometry = geoGraphicObject.clone();
-            geometryClassName = geometry.CLASS_NAME;
-            geometryLibID = geometry.libID;
-            geometryCode = geometry.code;
-            equal(geometryClassName, "SuperMap.Geometry.DotSymbol", "Function.clone");
-            equal(geometryLibID, 421, "Function.clone");
+            equal(geometry.CLASS_NAME, "SuperMap.Geometry.DotSymbol", "Function.clone");
+            equal(geometry.libID, 421, "Function.clone");
             start();
         } catch(exception){
-            ok(false, "exception occcurs,message is:" + excepion.message)
+            ok(false, "exception occcurs,message is:" + exception.message);
             start();
         } finally {
             map.destroy();
@@ -157,56 +153,59 @@ asyncTest("testGeoGraphicObject_clone", function () {
     }, 500);
 });
 
-//asyncTest("testGeoGraphicObject_getGeometry", function () {
-//    var map, layer, geoGraphicObject;
-//    map = new SuperMap.Map("map");
-//    layer = new SuperMap.Layer.TiledDynamicRESTLayer("World", GlobeParameter.mapUrl, null, {maxResolution: "auto"});
-//    layer.events.on({"layerInitialized": addLayer});
-//    var plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", GlobeParameter.plotUrl);
-//
-//    function addLayer() {
-//        map.addLayers([layer, plottingLayer]);
-//        map.setCenter(new SuperMap.LonLat(0, 0), 0);
-//    }
-//
-//    //对接iserver中的服务
-//    var getSymbolInfo = new SuperMap.REST.GetSymbolInfoService(GlobeParameter.plotUrl);
-//    getSymbolInfo.events.on({
-//        "processCompleted": getCompleted,
-//        "processFailed": getFailed,
-//        scope: this
-//    });
-//    var inputPoints = [new SuperMap.Geometry.Point(40, 35)];
-//    var getSymbolInfoParams = new SuperMap.REST.GetSymbolInfoParameters();
-//    getSymbolInfoParams.libID = 421;
-//    getSymbolInfoParams.code = 10100;
-//    getSymbolInfoParams.inputPoints = inputPoints;
-//    getSymbolInfo.processAsync(getSymbolInfoParams);
-//
-//    function getCompleted(result) {
-//        geoGraphicObject = SuperMap.Geometry.GeoGraphicObject.getGeometry(result.originResult, plottingLayer, GlobeParameter.plotUrl);
-//    }
-//
-//    function getFailed() {
-//        geoGraphicObject.events.triggerEvent("createfeaturefail");
-//        return null;
-//    }
-//
-//    setTimeout(function () {
-//        try{
-//            var className = geoGraphicObject.CLASS_NAME;
-//            equal(className, "SuperMap.Geometry.DotSymbol", "Function.getGeometry");
-//            start();
-//        } catch(exception){
-//            ok(false, "exception occcurs,message is:" + excepion.message)
-//            start();
-//        } finally {
-//            map.destroy();
-//        }
-//
-//    }, 500);
-//});
+asyncTest("testGeoGraphicObject_Destroy", function () {
+    var map, layer, geoGraphicObject;
+    map = new SuperMap.Map("map");
+    layer = new SuperMap.Layer.TiledDynamicRESTLayer("World", GlobeParameter.WorldURL, null, {maxResolution: "auto"});
+    layer.events.on({"layerInitialized": addLayer});
+    var plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", GlobeParameter.plotUrl);
 
+    function addLayer() {
+        map.addLayers([layer, plottingLayer]);
+        map.setCenter(new SuperMap.LonLat(0, 0), 0);
+    }
+
+    //对接iserver中的服务
+    var getSymbolInfo = new SuperMap.REST.GetSymbolInfoService(GlobeParameter.plotUrl);
+    getSymbolInfo.events.on({
+        "processCompleted": getCompleted,
+        "processFailed": getFailed,
+        scope: this
+    });
+    var inputPoints = [new SuperMap.Geometry.Point(40, 35)];
+    var getSymbolInfoParams = new SuperMap.REST.GetSymbolInfoParameters();
+    getSymbolInfoParams.libID = 421;
+    getSymbolInfoParams.code = 10100;
+    getSymbolInfoParams.inputPoints = inputPoints;
+    getSymbolInfo.processAsync(getSymbolInfoParams);
+
+
+    function getCompleted(result) {
+        geoGraphicObject = SuperMap.Geometry.PlottingGeometry.createGeometry(421, 10100, {symbolData: result.originResult, map: map});
+    }
+
+    function getFailed() {
+        return null;
+    }
+
+    setTimeout(function () {
+        try{
+            console.log(geoGraphicObject);
+            geoGraphicObject.destroy();
+            ok(geoGraphicObject !== null, "geoGraphicObject not null");
+            equal(geoGraphicObject.minEditPts , null, "geoGraphicObject.minEditPts is null");
+            equal(geoGraphicObject.maxEditPts ,null, "geoGraphicObject.maxEditPts is null");
+            equal(geoGraphicObject.surroundLineType  , null,"geoGraphicObject.surroundLineType is null");
+            equal(geoGraphicObject.controlPoints , null,"geoGraphicObject.surroundLineType is null");
+            equal(geoGraphicObject.scalePoints , null,"geoGraphicObject.surroundLineType is null");
+            equal(geoGraphicObject.scaleValues , null,"geoGraphicObject.surroundLineType is null");
+            start();
+        } catch(exception){
+            ok(false, "exception occcurs,message is:" + exception.message);
+            start();
+        }
+    }, 500);
+});
 
 
 

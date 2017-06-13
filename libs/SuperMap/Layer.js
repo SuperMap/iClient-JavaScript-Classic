@@ -44,7 +44,13 @@ SuperMap.Layer = SuperMap.Class({
      * APIProperty: alwaysInRange
      * {Boolean} 当前地图显示的分辨率在图层的最大最小分辨率范围内，如果图层以非比例尺显示，此变量设置为true。
      */
-    alwaysInRange: null,   
+    alwaysInRange: null,
+
+    /**
+     * Property: useAnimation
+     * {Boolean} ]是否使用缩放动画。
+     */
+    useAnimation: true,
 
     /**
      * Constant: EVENT_TYPES
@@ -682,6 +688,9 @@ SuperMap.Layer = SuperMap.Class({
     setVisibility: function(visibility) {
         if (visibility !== this.visibility) {
             this.visibility = visibility;
+            if(visibility) {
+                this.useAnimation = false;
+            }
             this.display(visibility);
             this.redraw();
             if (this.map != null) {
@@ -691,6 +700,7 @@ SuperMap.Layer = SuperMap.Class({
                 });
             }
             this.events.triggerEvent("visibilitychanged");
+            this.useAnimation = true;
         }
     },
 
@@ -716,8 +726,8 @@ SuperMap.Layer = SuperMap.Class({
      */
     calculateInRange: function() {
         var inRange = false;
-        //允许分辨率误差数
-        var RELATIVEERROR=0.00000000000001;
+        //允许分辨率误差数，将误差调大，fix ICL-879
+        var RELATIVEERROR=0.000000001;
         if (this.alwaysInRange) {
             inRange = true;
         } else {

@@ -151,7 +151,81 @@ SuperMap.Renderer.AnimatorCanvas = SuperMap.Class(SuperMap.Renderer, {
             hitCanvas.height = size.h;
         }
     },
-    
+
+    /**
+     * Method: isInnerExtent
+     * 判断传入的Geometry是否需要被绘制
+     *
+     * Parameters:
+     * geo - {<SuperMap.Geometry>}
+     * style - {<Object>}
+     *
+     * Returns:
+     * {Boolean} 返回Geoemtry是否绘制，它的geometry超出返回或者未定义、不显示等情况都不绘制
+     */
+    isNeedToDraw: function(geo, style) {
+        var rendered;
+        geo.calculateBounds();
+        var bounds = geo.getBounds();
+        rendered = (style.display !== "none") && !!bounds &&
+            bounds.intersectsBounds(this.extent);
+        return rendered;
+    },
+
+    /**
+     * Method: createGeometry
+     * 根据传入参数类型，创建相应类型的Geometry
+     *
+     * Parameters:
+     * geoType - {<String>}
+     *
+     * Returns:
+     * {SuperMap.Geometry} 返回创建好的Geometry
+     */
+    createGeometry: function(geoType){
+        var geometry;
+        switch (geoType) {
+            case "SuperMap.Geometry.Collection": {
+                geometry = new SuperMap.Geometry.Collection();
+                break;
+            }
+            case "SuperMap.Geometry.MultiPoint": {
+                geometry = new SuperMap.Geometry.MultiPoint();
+                break;
+            }
+            case "SuperMap.Geometry.MultiLineString": {
+                geometry = new SuperMap.Geometry.MultiLineString();
+                break;
+            }
+            case "SuperMap.Geometry.MultiPolygon": {
+                geometry = new SuperMap.Geometry.MultiPolygon();
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+        return geometry;
+    },
+
+    /**
+     * Method: removeById
+     *从数组中移除指定ID的元素
+     *
+     * Parameters:
+     * arr - {<Array>}
+     * id - {<String>}
+     */
+    removeById: function(arr, id) {
+        var featureId= this.features[id][0].id;
+        for(var i=0; i<arr.length; i++) {
+            if(arr[i][0].id == featureId) {
+                arr.splice(i, 1);
+                break;
+            }
+        }
+    },
+
     /**
      * Method: drawFeature
      * Draw the feature. Stores the feature in the features list,
@@ -167,31 +241,29 @@ SuperMap.Renderer.AnimatorCanvas = SuperMap.Class(SuperMap.Renderer, {
     drawFeature: function(feature, style, option) {
         var rendered;
         if (feature.geometry) {
+            this.features[feature.id] = [feature, style, option];
             //获取style
             style = this.applyDefaultSymbolizer(style || feature.style);
             //如果display===none或者bounds不在extent之内，都不绘制（没必要绘制）
-            feature.geometry.calculateBounds();//重新计算一下bounds
-            var bounds = feature.geometry.getBounds();
-            rendered = (style.display !== "none") && !!bounds && 
-                bounds.intersectsBounds(this.extent);
-            //将要绘制的存放起来
-            if (rendered) {
-                this.features[feature.id] = [feature, style,option];
-                var renderedGeometry = this.drawGeometry(
-                    feature.geometry,
-                    style,
-                    feature.id,
-                    feature.frontFeature && feature.frontFeature.geometry,
-                    feature.backFeature && feature.backFeature.geometry
-                );
+            //feature.geometry.calculateBounds();//重新计算一下bounds
+            var recordGeometry = this.createGeometry(feature.geometry.CLASS_NAME);
+            var renderedGeometry = this.drawGeometry(
+                feature.geometry,
+                style,
+                feature.id,
+                feature.frontFeature && feature.frontFeature.geometry,
+                feature.backFeature && feature.backFeature.geometry,
+                recordGeometry
+            );
+            if(!!renderedGeometry) {
                 rendered = feature.clone();
                 rendered.geometry = renderedGeometry;
+            } else {
+                this.removeById(this.features, feature.id);
             }
-
         }
         return rendered;
     },
-
 
     /** 
      * Method: drawGeometry
@@ -202,22 +274,24 @@ SuperMap.Renderer.AnimatorCanvas = SuperMap.Class(SuperMap.Renderer, {
      * geometry - {<SuperMap.Geometry>} 
      * style - {Object} 
      */
-    drawGeometry: function(geometry, style, featureId,frontGeometry,backGeometry) {
+    drawGeometry: function(geometry, style, featureId,frontGeometry,backGeometry, recordGeometry) {
         var className = geometry.CLASS_NAME;
         if ((className === "SuperMap.Geometry.Collection") ||
             (className === "SuperMap.Geometry.MultiPoint") ||
             (className === "SuperMap.Geometry.MultiLineString") ||
             (className === "SuperMap.Geometry.MultiPolygon")) {
             for (var i = 0; i < geometry.components.length; i++) {
-                this.drawGeometry(
+                var smoothedGeometry = this.drawGeometry(
                     geometry.components[i],
                     style,
                     featureId,
                     frontGeometry && frontGeometry.components[i],
-                    backGeometry && backGeometry.components[i]
+                    backGeometry && backGeometry.components[i],
+                    recordGeometry
                 );
+                recordGeometry.components[i] = smoothedGeometry;
             }
-            return;
+            return recordGeometry;
         }
         switch (geometry.CLASS_NAME) {
             case "SuperMap.Geometry.Point":
@@ -225,22 +299,38 @@ SuperMap.Renderer.AnimatorCanvas = SuperMap.Class(SuperMap.Renderer, {
                 //此处的geometry还为经过平滑处理
                 var points = this.smoothConvertPoint(geometry,frontGeometry,backGeometry,featureId);
                 //将处理过的点再次进行绘制
-                this.drawPoint(points[0], style, featureId,points[1],points[2]);
-                return points[0];
+                if(this.isNeedToDraw(points[0], style)) {
+                    this.drawPoint(points[0], style, featureId,points[1],points[2]);
+                    return points[0];
+                } else {
+                    return geometry;
+                }
             case "SuperMap.Geometry.LineString":
             //当对象为路由对象时，进行判断并绘制
             case "SuperMap.REST.Route":
                 var lineStrings = this.smoothConvertLine(geometry,frontGeometry,backGeometry,featureId);
-                this.drawLineString(lineStrings[0], style, featureId,lineStrings[1],lineStrings[2]);
-                return lineStrings[0];
+                if(this.isNeedToDraw(lineStrings[0], style)) {
+                    this.drawLineString(lineStrings[0], style, featureId,lineStrings[1],lineStrings[2]);
+                    return lineStrings[0];
+                } else {
+                    return geometry;
+                }
             case "SuperMap.Geometry.LinearRing":
                 var lineRings = this.smoothConvertLine(geometry,frontGeometry,backGeometry,featureId);
-                this.drawLinearRing(lineRings[0], style, featureId,lineRings[1],lineRings[2]);
-                return lineRings[0];
+                if(this.isNeedToDraw(lineRings[0], style)) {
+                    this.drawLinearRing(lineRings[0], style, featureId,lineRings[1],lineRings[2]);
+                    return lineRings[0];
+                } else {
+                    return geometry;
+                }
             case "SuperMap.Geometry.Polygon":
                 var polygons = this.smoothConvertPolygon(geometry,frontGeometry,backGeometry,featureId);
-                this.drawPolygon(polygons[0], style, featureId,polygons[1],polygons[2]);
-                return polygons[0];
+                if(this.isNeedToDraw(polygons[0], style)) {
+                    this.drawPolygon(polygons[0], style, featureId,polygons[1],polygons[2]);
+                    return polygons[0];
+                } else {
+                    return geometry;
+                }
 //            case "SuperMap.Geometry.Rectangle":
 //                this.drawRectangle(geometry, style, featureId);
 //                break;

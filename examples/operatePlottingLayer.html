@@ -25,7 +25,7 @@
     <link href='./css/bootstrap-responsive.min.css' rel='stylesheet' />
     <script src = "../libs/SuperMap.Include.js"></script>
     <script type="text/javascript">
-        var map, baseLayer, drawGraphicObject, plottingEdit, plottingLayers = [],
+        var map, baseLayer, drawGraphicObject, plottingEdit,symbolLibManager,plotting,plottingLayers=[],
                 host = document.location.toString().match(/file:\/\//)?"http://localhost:8090":'http://' + document.location.host,
                 url = host + "/iserver/services/map-world/rest/maps/World";
         var serverUrl = host + "/iserver/services/plot-jingyong/rest/plot/";
@@ -59,7 +59,10 @@
         }
 
         function createLayer(){
-            plottingDrawCancel();
+            PlottingDrawCancel();
+            if(plottingEdit){
+                plottingEdit.deactivate();
+            }
 
             var plottingLayerName = "plottingLayer_" + Math.ceil(Math.random() * 1000);
             var plottingLayer = new SuperMap.Layer.PlottingLayer(plottingLayerName, serverUrl);
@@ -75,31 +78,25 @@
             // 绘制标号;
             drawGraphicObject = new SuperMap.Control.DrawFeature(addedEvt.layer, SuperMap.Handler.GraphicObject);
             //态势标绘编辑
-            plottingEdit = new SuperMap.Control.PlottingEdit(addedEvt.layer);
+            plottingEdit = new SuperMap.Control.PlottingEdit();
             //添加态势标绘控件
             map.addControls([plottingEdit, drawGraphicObject]);
         }
 
-        function removeLayer()
-        {
-            plottingDrawCancel();
-
+        function removeLayer() {
             if(plottingLayers.length !== 0){
                 var plottingLayer = plottingLayers[plottingLayers.length-1];
                 plottingLayer.events.on({"removed" : layerRemoved});
                 map.removeLayer(plottingLayer);
                 map.removeControl(plottingLayer.drawGraphicObject);
-                map.removeControl(plottingLayer.plottingEdit);
             } else {
                 alert("当前地图无标绘图层")
             }
 
             if(plottingLayers.length !== 0){
                 drawGraphicObject.layer = plottingLayers[plottingLayers.length-1];
-                plottingEdit.layer = plottingLayers[plottingLayers.length-1];
             } else {
                 drawGraphicObject = null;
-                plottingEdit = null;
             }
         }
 
@@ -119,20 +116,36 @@
         }
 
         //取消绘制
-        function plottingDrawCancel() {
+        function PlottingDrawCancel() {
             if(drawGraphicObject){
                 drawGraphicObject.deactivate();
+            }else{
+                var map = document.getElementById('map');
+                map.oncontextmenu = function (){
+                    window.event.returnValue = false;
+                    return false;
+                }
             }
 
             if(plottingEdit){
                 plottingEdit.activate();
+            } else {
+                var map = document.getElementById('map');
+                map.oncontextmenu = function (){
+                    window.event.returnValue = false;
+                    return false;
+                }
             }
         }
 
-        document.oncontextmenu = function(evt){
-            plottingDrawCancel();
-            return false;
+        document.onmouseup = function (evt) {
+            var evt = evt || window.event;
+            if (evt.button === 2) {
+                PlottingDrawCancel(evt);
+                return false;
+            }
         }
+
     </script>
 </head>
 <body onLoad = "init()">
@@ -140,7 +153,7 @@
     <input type="button" class="btn" value ="创建图层"onclick="createLayer()"/>
     <input type="button" class="btn" value ="删除图层"onclick="removeLayer()"/>
     <input type="button" class="btn" value="绘制标号" onclick="plotSymbol()"/>
-    <input type="button" class="btn" value="取消绘制" onclick="plottingDrawCancel()"/>
+    <input type="button" class="btn" value="取消绘制" onclick="PlottingDrawCancel()"/>
 </div>
 <div id = "map"></div>
 </body>

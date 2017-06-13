@@ -115,5 +115,17 @@ SuperMap.Geometry.Rectangle = SuperMap.Class(SuperMap.Geometry, {
         this.calculateBounds();
     },
 
+    /**
+     * APIMethod: getCentroid
+     * 获取几何对象的质心。
+     * Returns:
+     * {<SuperMap.Geometry.Point>} 几何图形的质心。
+     */
+    getCentroid: function(){
+        var centroidX = this.x + this.width/2,
+            centroidY = this.y + this.height/2;
+        return new SuperMap.Geometry.Point(centroidX, centroidY);
+    },
+
     CLASS_NAME: "SuperMap.Geometry.Rectangle"
 });

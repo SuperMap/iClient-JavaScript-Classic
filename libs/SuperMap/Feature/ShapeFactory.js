@@ -330,7 +330,7 @@ SuperMap.Feature.ShapeFactory.transformStyle = function(style){
     }
 
     //默认线宽 1
-    if(!newStyle["lineWidth"]){
+    if(newStyle["lineWidth"] == null){
         newStyle["lineWidth"] = 1;
     }
 
@@ -444,8 +444,8 @@ SuperMap.Feature.ShapeFactory.GraphAxis = function(shapeFactory, dataViewBox, se
     // x,y 轴主干节点数组
     var xMainPois = [];
     if(axisytick == 0){
-        xMainPois.push([dvb[0], dvb[3]]);
-        xMainPois.push([dvb[0], dvb[1]]);
+       xMainPois.push([dvb[0], dvb[3]-5]);
+       xMainPois.push([dvb[0], dvb[1]]);
 
         // 3D 坐标轴  第三象限平分线
         if(sets.axis3DParameter && !isNaN(sets.axis3DParameter) && sets.axis3DParameter >= 15){
@@ -467,7 +467,7 @@ SuperMap.Feature.ShapeFactory.GraphAxis = function(shapeFactory, dataViewBox, se
 
             xMainPois.push([dvb[0], dvb[1]]);
         }
-        xMainPois.push([dvb[2], dvb[1]]);
+        xMainPois.push([dvb[2]+5, dvb[1]]);
     }
     else{
         // 单位刻度长度

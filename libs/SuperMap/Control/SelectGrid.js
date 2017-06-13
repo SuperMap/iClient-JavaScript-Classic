@@ -156,7 +156,7 @@ SuperMap.Control.SelectGrid = SuperMap.Class(SuperMap.Control.SelectFeature, {
         this.handlers = {
             feature: new SuperMap.Handler.Feature(
                 this, this.layer, this._callbacks,
-                {geometryTypes: this.geometryTypes}
+                {geometryTypes: this.geometryTypes,stopDown:false}
             )
         };
 

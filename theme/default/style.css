@@ -49,6 +49,10 @@
     content: "\e908";
     color: whitesmoke;
 }
+.supermapol-icons-clear2:before {
+    content: "\e908";
+    color: #000000;
+}
 .supermapol-icons-setting:before {
     content: "\e909";
 }
@@ -133,8 +137,9 @@ div.smMap {
     z-index: 0;
     padding: 0px!important;
     margin: 0px!important;
-    cursor: url("../images/cursors/Pan.cur"),default;
+    /* cursor: url("../images/cursors/Pan.cur"),default; */
     border:1px solid #3473b7;
+    background-color: #f5f3f0;
 }
 
 div.smMapViewport {

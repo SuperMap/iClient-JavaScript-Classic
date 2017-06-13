@@ -67,7 +67,7 @@ SuperMap.REST.GetLayersInfoService = SuperMap.Class(SuperMap.ServiceBase, {
      * isTempLayers - {Boolean} 当前url对应的图层是否是临时图层。
      */
     initialize: function(url, options) {
-        SuperMap.ServiceBase.prototype.initialize.apply(this, [url]);
+        SuperMap.ServiceBase.prototype.initialize.apply(this, [url,options]);
         if (options) {
             SuperMap.Util.extend(this, options);
         }
@@ -94,7 +94,7 @@ SuperMap.REST.GetLayersInfoService = SuperMap.Class(SuperMap.ServiceBase, {
      * 负责将客户端的更新参数传递到服务端。
      *
      */
-    processAsync: function() {
+    processAsync: function(options) {
         var me = this,
             method = "GET",
             end = me.url.substr(me.url.length - 1, 1);
@@ -109,7 +109,8 @@ SuperMap.REST.GetLayersInfoService = SuperMap.Class(SuperMap.ServiceBase, {
             params: null,
             scope: me,
             success: me.getLayerComplted,
-            failure: me.getLayerFailed
+            failure: me.getLayerFailed,
+            credential:options && options.credential
         });
     },
 

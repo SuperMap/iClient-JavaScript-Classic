@@ -21,90 +21,70 @@
 SuperMap.Layer.Vector = SuperMap.Class(SuperMap.Layer, {
 
     /**
-     * Register a listener for a particular event with the following syntax:
+     * Constant: EVENT_TYPES
+     * {Array(String)}
+     * 此类支持的事件类型
+     * Examples:
      * (code)
      * layer.events.register(type, obj, listener);
+     * //或者
+     * layer.events.on({type:callback});
      * (end)
      *
-     * Listeners will be called with a reference to an event object.  The
-     *     properties of this event depends on exactly what happened.
-     *
-     * All event objects have at least the following properties:
-     * object - {Object} A reference to layer.events.object.
-     * element - {DOMElement} A reference to layer.events.element.
-     *
-     * Supported map event types (in addition to those from <SuperMap.Layer>):
-     * beforefeatureadded - Triggered before a feature is added.  Listeners
-     *      will receive an object with a *feature* property referencing the
-     *      feature to be added.  To stop the feature from being added, a
-     *      listener should return false.
-     * beforefeaturesadded - Triggered before an array of features is added.
-     *      Listeners will receive an object with a *features* property
-     *      referencing the feature to be added. To stop the features from
-     *      being added, a listener should return false.
-     * featureadded - Triggered after a feature is added.  The event
-     *      object passed to listeners will have a *feature* property with a
-     *      reference to the added feature.
-     * featuresadded - Triggered after features are added.  The event
-     *      object passed to listeners will have a *features* property with a
-     *      reference to an array of added features.
-     * beforefeatureremoved - Triggered before a feature is removed. Listeners
-     *      will receive an object with a *feature* property referencing the
-     *      feature to be removed.
-     * beforefeaturesremoved - Triggered before multiple features are removed. 
-     *      Listeners will receive an object with a *features* property
-     *      referencing the features to be removed.
-     * featureremoved - Triggerd after a feature is removed. The event
-     *      object passed to listeners will have a *feature* property with a
-     *      reference to the removed feature.
-     * featuresremoved - Triggered after features are removed. The event
-     *      object passed to listeners will have a *features* property with a
-     *      reference to an array of removed features.
-     * beforefeatureselected - Triggered after a feature is selected.  Listeners
-     *      will receive an object with a *feature* property referencing the
-     *      feature to be selected. To stop the feature from being selectd, a
-     *      listener should return false.
-     * featureselected - Triggered after a feature is selected.  Listeners
-     *      will receive an object with a *feature* property referencing the
-     *      selected feature.
-     * featureunselected - Triggered after a feature is unselected.
-     *      Listeners will receive an object with a *feature* property
-     *      referencing the unselected feature.
-     * beforefeaturemodified - Triggered when a feature is selected to 
-     *      be modified.  Listeners will receive an object with a *feature* 
-     *      property referencing the selected feature.
-     * featuremodified - Triggered when a feature has been modified.
-     *      Listeners will receive an object with a *feature* property referencing 
-     *      the modified feature.
-     * afterfeaturemodified - Triggered when a feature is finished being modified.
-     *      Listeners will receive an object with a *feature* property referencing 
-     *      the modified feature.
-     * vertexmodified - Triggered when a vertex within any feature geometry
-     *      has been modified.  Listeners will receive an object with a
-     *      *feature* property referencing the modified feature, a *vertex*
-     *      property referencing the vertex modified (always a point geometry),
-     *      and a *pixel* property referencing the pixel location of the
-     *      modification.
-     * vertexremoved - Triggered when a vertex within any feature geometry
-     *      has been deleted.  Listeners will receive an object with a
-     *      *feature* property referencing the modified feature, a *vertex*
-     *      property referencing the vertex modified (always a point geometry),
-     *      and a *pixel* property referencing the pixel location of the
-     *      removal.
-     * sketchstarted - Triggered when a feature sketch bound for this layer
-     *      is started.  Listeners will receive an object with a *feature*
-     *      property referencing the new sketch feature and a *vertex* property
-     *      referencing the creation point.
-     * sketchmodified - Triggered when a feature sketch bound for this layer
-     *      is modified.  Listeners will receive an object with a *vertex*
-     *      property referencing the modified vertex and a *feature* property
-     *      referencing the sketch feature.
-     * sketchcomplete - Triggered when a feature sketch bound for this layer
-     *      is complete.  Listeners will receive an object with a *feature*
-     *      property referencing the sketch feature.  By returning false, a
-     *      listener can stop the sketch feature from being added to the layer.
-     * refresh - Triggered when something wants a strategy to ask the protocol
-     *      for a new set of features.
+     * 支持的map事件（也包括其他继承自<SuperMap.Layer>的事件）:
+     * beforefeatureadded - 一个要素被添加到图层之前触发此事件。 Listeners
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被添加到图层上的要素，
+     *      如果要防止要素被添加，可以在回调函数中返回false。
+     * beforefeaturesadded - 一个数组的要素被添加到图层之前触发此事件。
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被添加到图层上的要素，
+     *      如果要防止要素被添加，可以在回调函数中返回false。
+     * featureadded - 一个要素被添加到图层之后触发此事件。
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被添加到图层上的要素
+     * featuresadded - 一个数组的要素被添加到图层之后触发此事件。  The event
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被选中的要素数组
+     * beforefeatureremoved - 一个要素被从图层中移除之前触发此事件。 Listeners
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被删除的要素
+     * beforefeaturesremoved - 一个数组的要素被从图层中移除之前触发此事件。
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被删除的要素数组
+     * featureremoved - 一个要素被从图层中移除之后触发此事件。
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被删除的要素
+     * featuresremoved - 一个数组的要素被从图层中移除之后触发此事件。
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被删除的要素数组
+     * beforefeatureselected - 一个要素被选中之前触发此事件。  Listeners
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被选中的要素，
+     *      如果要防止要素被选中，可以在回调函数中返回false。
+     * featureselected - 一个要素被选中之后触发此事件。  Listeners
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被选中的要素
+     * featureunselected - 一个要素被取消选中之后触发此事件。
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被选中的要素
+     * beforefeaturemodified - 一个要素被编辑之前触发此事件。
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被编辑的要素
+     * featuremodified - 一个要素被编辑之后触发此事件。
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被编辑的要素
+     * afterfeaturemodified - 一个要素完成编辑之后触发此事件。
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被编辑的要素
+     * vertexmodified - 当任何一个要素的几何图形端点坐标被修改时触发此事件。
+     *     监听者都将被接收到一个对象，其中'feature'属性引用了被编辑的要素，
+     *     'vertex'对象引用了被修改的端点（通常是一个点），以及'pixel'引用
+     *     了修改的坐标
+     * vertexremoved - 当任何一个要素的几何图形的端点被删除时触发此事件。
+     *      监听者都将被接收到一个对象，其中'feature'属性引用了被编辑的要素，
+     *     'vertex'对象引用了被修改的端点（通常是一个点），以及'pixel'引用
+     *     了修改的坐标
+     * sketchstarted - - 当要素草图被创建时触发此事件，监听者将会接收到
+     *      一个包含'feature'属性和'vertex'属性的对象，其中'vertex'就是创建的第一个点。
+     * sketchmodified - 当要素草图被修改时触发此事件，比如鼠标移动时，草图会一直被修改，
+     *      都会触发此事件，监听者将会接收到
+     *      一个包含'feature'属性和'vertex'属性的对象。
+     * sketchaddvertex - 当要素草图新添加了一个端点时触发此事件，监听者将会接收到
+     *      一个包含'feature'属性和'vertex'属性的对象。
+     * sketchcomplete - 当要素草图完成创建时（一般是指双击完成草图的创建）触发此事件，监听者将会接收到
+     *      一个包含'feature'属性和'vertex'属性的对象，如果监听者在回调函数中返回了'false',则不会被此草图
+     *      添加到图层中去。
+     * refresh - 当需要使用strategy来通过某种协议来获取要素时触发。
+     * featuremove - 要素绘制过程中，移动要素时触发此事件
+     * featurerotate - 要素绘制过程中，旋转要素时触发此事件
+     * featureresize - 要素绘制过程中，缩放要素时触发此事件
      */
      
      EVENT_TYPES: ["beforefeatureadded", "beforefeaturesadded",
@@ -113,7 +93,8 @@ SuperMap.Layer.Vector = SuperMap.Class(SuperMap.Layer, {
         "beforefeatureselected", "featureselected", "featureunselected",
         "beforefeaturemodified", "featuremodified", "afterfeaturemodified",
         "vertexmodified", "vertexremoved", "sketchstarted",
-        "sketchmodified", "sketchcomplete", "refresh"],
+        "sketchmodified", 'sketchaddvertex', "sketchcomplete", "refresh",
+        'featuremove','featurerotate','featureresize'],
 
     /**
      * APIProperty: isBaseLayer
@@ -575,7 +556,7 @@ SuperMap.Layer.Vector = SuperMap.Class(SuperMap.Layer, {
      * dragging - {Boolean} 
      */
     moveTo: function(bounds, zoomChanged, dragging) {
-
+        var me = this;
         SuperMap.Layer.prototype.moveTo.apply(this, arguments);
         //设置了固定位置后
         if(this.isFixed && !this.isFirstDraw)
@@ -652,7 +633,11 @@ SuperMap.Layer.Vector = SuperMap.Class(SuperMap.Layer, {
                     this.drawFeatures(bounds);
                 }else {
                     var lefttop = this.map.getLayerPxFromLonLat(this.lastCanvasPosition),
-                        callback = SuperMap.Function.bind(function(){this.drawFeatures(bounds);}, this);
+                        callback = SuperMap.Function.bind(function(){
+                           　 return function(zoomChanged) {
+                                 me.drawFeatures(bounds, zoomChanged);
+                             }(zoomChanged)
+                        }, this);
                     this.renderer.transitionObj.begin(this.renderer.root, lefttop, callback);
                 }
             }
@@ -687,7 +672,7 @@ SuperMap.Layer.Vector = SuperMap.Class(SuperMap.Layer, {
      * Method: drawFeatures
      * 遍历所有features，并绘制，
      */
-     drawFeatures: function(bounds) {
+     drawFeatures: function(bounds, zoomChanged) {
         var me = this, 
             feature, 
             drawFeatures = me.features;
@@ -705,7 +690,7 @@ SuperMap.Layer.Vector = SuperMap.Class(SuperMap.Layer, {
                 me.renderer.locked = false;
             }
             feature = drawFeatures[i];
-            me.drawFeature(feature, undefined, {isNewAdd: me.firstLoad || me.zoomChanged });
+            me.drawFeature(feature, undefined, {isNewAdd: me.firstLoad || (zoomChanged || me.zoomChanged) });
         }
     },
        
@@ -989,7 +974,8 @@ SuperMap.Layer.Vector = SuperMap.Class(SuperMap.Layer, {
         }
         var drawn;
         //Canvas Canvas2绘制性能很高，不需要裁剪，裁剪了反而影响了很大的性能问题
-        if(this.clipFeature&& (this.renderer.CLASS_NAME === "SuperMap.Renderer.SVG") || (this.renderer.CLASS_NAME === "SuperMap.Renderer.VML"))
+        //if(this.clipFeature&& (this.renderer.CLASS_NAME === "SuperMap.Renderer.SVG") || (this.renderer.CLASS_NAME === "SuperMap.Renderer.VML"))
+        if(this.clipFeature&& (this.renderer instanceof SuperMap.Renderer.SVG) || (this.renderer instanceof SuperMap.Renderer.VML))
         {
             //进行裁剪，需要替换掉geo
             var geo = feature.geometry;
@@ -1002,9 +988,8 @@ SuperMap.Layer.Vector = SuperMap.Class(SuperMap.Layer, {
                     if ((geo.CLASS_NAME === "SuperMap.Geometry.Collection") ||
                         (geo.CLASS_NAME === "SuperMap.Geometry.MultiPoint") ||
                         (geo.CLASS_NAME === "SuperMap.Geometry.MultiLineString") ||
-						(geo.CLASS_NAME === "SuperMap.Geometry.DotSymbol") ||
-						(geo.CLASS_NAME === "SuperMap.Geometry.AlgoSymbol") ||
-                        (geo.CLASS_NAME === "SuperMap.Geometry.MultiPolygon") || geo.isMultiPlotting) {
+                        (geo.CLASS_NAME === "SuperMap.Geometry.MultiPolygon")
+                        || geo.isMultiPlotting ) {
                         for (var i = 0, len = geo.components.length; i < len; i++) {
                             var id = geo.components[i].id;
                             //if(document.getElementById(id))

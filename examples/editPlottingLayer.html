@@ -49,7 +49,7 @@
             baseLayer.events.on({"layerInitialized": addLayer});
 
             plottingLayer = new SuperMap.Layer.PlottingLayer("PlottingLayer", serverUrl);
-            plottingEdit = new SuperMap.Control.PlottingEdit(plottingLayer);
+            plottingEdit = new SuperMap.Control.PlottingEdit();
             drawFeature = new SuperMap.Control.DrawFeature(plottingLayer, SuperMap.Handler.GraphicObject);
             drawFeature.events.on({"featureadded": drawCompleted});
             map.addControls([plottingEdit, drawFeature]);
@@ -68,6 +68,11 @@
                 document.getElementById("locked").value = 1;
             else
                 document.getElementById("locked").value = 0;
+
+            if(plottingLayer.isSelected)
+                document.getElementById("selected").value = 1;
+            else
+                document.getElementById("selected").value = 0;
         }
 
         function drawCompleted(){
@@ -76,25 +81,43 @@
         }
 
         function editableChanges(){
-            plottingLayer.isEditable = document.getElementById("editable").selectedIndex;
+            plottingLayer.setEditable(document.getElementById("editable").selectedIndex);
         }
 
         function lockedChanges(){
-            plottingLayer.isLocked = document.getElementById("locked").selectedIndex;
+            plottingLayer.setLocked(document.getElementById("locked").selectedIndex);
+        }
+
+        function selectedChanges(){
+            plottingLayer.setSelected(document.getElementById("selected").selectedIndex);
         }
 
         function drawPolygon()
         {
+            plottingEdit.deactivate();
+
             drawFeature.handler.serverUrl = serverUrl;
             drawFeature.handler.libID = 0;
             drawFeature.handler.symbolCode = 32;
-            drawFeature.deactivate();
             drawFeature.activate();
         }
+        function PlottingDrawCancel(){
+            if(drawFeature){
+                drawFeature.deactivate();
+            }
 
-        document.oncontextmenu = function(evt){
-            drawFeature.deactivate();
-            return false;
+            if(plottingEdit){
+                plottingEdit.activate();
+            }
+        }
+
+        document.onmouseup = function (evt) {
+            var evt = evt || window.event;
+            if (evt.button === 2) {
+                PlottingDrawCancel();
+                return false;
+            }
+            evt.stopPropagation();
         }
     </script>
 </head>
@@ -104,12 +127,18 @@
     <select style='width:70px' id='editable' onchange="editableChanges()">
         <option value='0'>false</option>
         <option value ='1'>true</option>
-    </select>
+    </select> &nbsp;&nbsp;
     <span>标绘图层的可锁定：</span>
     <select style='width:70px' id='locked' onchange="lockedChanges()">
         <option value='0'>false</option>
         <option value ='1'>true</option>
+    </select> &nbsp;&nbsp;
+    <span>标绘图层的可选择：</span>
+    <select style='width:70px' id='selected' onchange="selectedChanges()">
+        <option value='0'>false</option>
+        <option value ='1'>true</option>
     </select>
+    &nbsp;&nbsp;
     <input type="button" class="btn" value="绘制标号" style="margin-bottom: 10px" onclick="drawPolygon()"/>
 </div>
 <div id = "map"></div>

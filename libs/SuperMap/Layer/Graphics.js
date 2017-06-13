@@ -97,7 +97,7 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
      * refresh - Triggered when something wants a strategy to ask the protocol
      *      for a new set of graphics.
      */
-     
+
      EVENT_TYPES: ["beforegraphicadded", "beforegraphicsadded",
               "graphicadded", "graphicsadded", "beforegraphicremoved",
               "beforegraphicsremoved", "graphicremoved", "graphicsremoved",
@@ -112,7 +112,7 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
      */
     isBaseLayer: false,
 
-    /** 
+    /**
      * APIProperty: isFixed
      * {Boolean} 设置当前图层在鼠标拖动及放大缩小时位置是否固定，默认为 false。
      */
@@ -123,71 +123,75 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
      */
     isFirstDraw:true,
 
-    /** 
+    /**
      * APIProperty: graphics
      * {Array(<SuperMap.Graphic>)}用于存放graphic要素。
      */
     graphics: null,
-    
-    /** 
+
+    /**
      * Property: filter
      * {<SuperMap.Filter>} The filter set in this layer,
      *     a strategy launching read requests can combined
      *     this filter with its own filter.
      */
     filter: null,
-    
-    /** 
+
+    /**
      * Property: selectedGraphics
      * {Array(<SuperMap.Graphic>)}
      */
     selectedGraphics: null,
-    
+
     /**
      * Property: unrenderedGraphics
      * {Object} 由graphic对象组成的hash表，key值为graphic.id，标识渲染失败的graphic。
      */
     unrenderedGraphics: null,
 
-    
-    /** 
+
+    /**
      * Property: renderer
      * {<SuperMap.Renderer.Graphic>}
      */
     renderer: null,
 
-    /** 
+    /**
      * Property: drawn
      * {Boolean} 是否这个图层的graphic已经被绘制。
      */
     drawn: false,
 
 
-    /** 
+    /**
      * Property: firstload
      * {Boolean} 是否第一次加载。
-     */    
+     */
     firstLoad: true,
 
 
-    /** 
+    /**
      * Property: zoomChanged
      * {Boolean} 当前的地图操作是否是缩放操作。
      */
     zoomChanged: null,
-    
 
     /**
      * Constructor: SuperMap.Layer.Graphic
      * 创建一个矢量图层。
      * (start code)
      * //创建一个名为“Graphic Layer”
-     *  var graphicLayer = new SuperMap.Layer.Graphic("Graphic Layer");
-     * (end)     
+     *  var graphicLayer = new SuperMap.Layer.Graphic("Graphic Layer", null, {
+     *      hitdetection: true,
+     *      useCanvasEvent: false
+     *  });
+     * (end)
      *
      * Parameters:
      * name - {String} 此图层的图层名。
      * options - {Object} 此类与父类提供的属性。
+     * renderopation - {Object} 渲染属性； hitdetection是否开启事件，useCanvasEvent默认为false，需要首先设置hitdetection
+*            是否是快速渲染模式，默认为开启状态
      *
      * Returns:
      * {<SuperMap.Layer.Graphic>} 新的矢量图层。
@@ -197,14 +201,17 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
             SuperMap.Layer.Graphics.prototype.EVENT_TYPES.concat(
             SuperMap.Layer.prototype.EVENT_TYPES
         );
-        
+
         SuperMap.Layer.prototype.initialize.apply(this, arguments);
-        
-        this.renderer = new SuperMap.Renderer.Graphic(this.div,renderopation);
+
+        this.renderer = new SuperMap.Renderer.Graphic(this.div,renderopation,this);
         // this.features = {};
         this.graphics = [];
         this.selectedGraphics = [];
         this.unrenderedGraphics = {};
+        if(!!renderopation && !!renderopation.useCanvasEvent) {
+            this.useCanvasEvent = renderopation.useCanvasEvent;
+        }
     },
 
     /**
@@ -221,10 +228,10 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
         }
         this.renderer = null;
         this.drawn = null;
-        SuperMap.Layer.prototype.destroy.apply(this, arguments);  
+        SuperMap.Layer.prototype.destroy.apply(this, arguments);
     },
 
-    
+
     /**
      * APIMethod: refresh
      * 让图层重新请求Graphics并重绘。
@@ -241,17 +248,17 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
     },
 
 
-    /** 
+    /**
      * Method: setMap
      * 图层已经添加到Map控件中。
-     * 
+     *
      * 如果没有设置renderer集合，这个图层将不可用，从map控件中删除，
      * 否则，给当前渲染器添加map的引用，并设置渲染器的大小。
-     * 
+     *
      * Parameters:
      * map - {<SuperMap.Map>}需要与图层绑定的map。
      */
-    setMap: function(map) {        
+    setMap: function(map) {
         SuperMap.Layer.prototype.setMap.apply(this, arguments);
 
         if (!this.renderer) {
@@ -284,7 +291,7 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
     removeMap: function() {
         this.drawn = false;
     },
-    
+
     /**
      * Method: onMapResize
      * 通知渲染器的尺寸变化。
@@ -303,9 +310,9 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
      * 如果对象未绘制，则遍历对象，并绘制。
      *
      * Parameters:
-     * bounds - {<SuperMap.Bounds>} 
-     * zoomChanged - {Boolean} 
-     * dragging - {Boolean} 
+     * bounds - {<SuperMap.Bounds>}
+     * zoomChanged - {Boolean}
+     * dragging - {Boolean}
      */
     moveTo: function(bounds, zoomChanged, dragging) {
 
@@ -329,7 +336,7 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
             this.div.style.left = offsetLeft + 'px';
             this.div.style.top = offsetTop + 'px';
             var extent = this.map.getExtent();
-            //在setExtent方法中设置了canvasRenderer的lastbounds。
+             //在setExtent方法中设置了canvasRenderer的lastbounds。
             coordSysUnchanged = this.renderer.setExtent(extent, zoomChanged);
 
             this.renderer.root.style.visibility = "visible";
@@ -366,25 +373,27 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
             this.div.style.top = -parseInt(this.map.layerContainerDiv.style.top, 10) + 'px';
         }
     },
-    
+
     /**
      * Method: drawFeatures
      * 遍历所有features，并绘制，
      */
     drawGraphics: function(bounds) {
         var me = this,
-             graphic,
-            drawGraphics = me.graphics;
+            graphic,
+            drawGraphics = me.graphics,
+            len = drawGraphics.length;
         me.renderer.locked = true;
-        for(var i = 0, len = drawGraphics.length; i < len; i++) {
+        for(var i = 0; i < len; i++) {
             if(i === (len - 1)){
                 me.renderer.locked = false;
             }
             graphic = drawGraphics[i];
-            me.drawGraphic(graphic, {isNewAdd: me.firstLoad || me.zoomChanged, opacity: this.opacity });
+            me.drawGraphic(graphic, {isNewAdd: me.firstLoad
+                /*, opacity: this.opacity*/, index: i});
         }
     },
-       
+
     /**
      * APIMethod: redraw
      * 重绘该图层，成功则返回true，否则返回false。
@@ -395,11 +404,11 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
     redraw: function() {
         return SuperMap.Layer.prototype.redraw.apply(this, arguments);
     },
-    
-    /** 
+
+    /**
      * APIMethod: display
      * 临时隐藏或者显示图层。通过对CSS控制产生即时效果，重新渲染失效。 一般用 setVisibility 方法来动态控制图层的显示和隐藏。
-     * 
+     *
      * Parameters:
      * display - {Boolean}true代表不隐藏，false代表隐藏。
      * (start code)
@@ -418,12 +427,12 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
     /**
      * APIMethod: setOpacity
      * 设置图层的不透明度,取值[0-1]之间。使用方法如：
-     * 
+     *
      * (code)
      * var graphicLayer = new SuperMap.Layer.Graphic("Graphic Layer");
      * GraphicLayer.setOpacity(0.2);
      * (end)
-     * 
+     *
      * Parameter:
      * opacity - {Float} 图层的透明度，取值范围：[0-1]。
      */
@@ -431,7 +440,7 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
         if (opacity !== this.opacity) {
             this.opacity = opacity;
             var element = this.renderer.root;
-            SuperMap.Util.modifyDOMElement(element, null, null, null, 
+            SuperMap.Util.modifyDOMElement(element, null, null, null,
                                                  null, null, null, opacity);
             if (this.map != null) {
                 this.map.events.triggerEvent("changelayer", {
@@ -441,7 +450,7 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
             }
         }
     },
-    
+
     /**
      * APIMethod: addGraphics
      * 给这个图层添加Graphics。
@@ -450,17 +459,18 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
      * Graphics - {Array(<SuperMap.Graphic>)}需要添加的要素数组。
      */
     addGraphics: function(graphics) {
-        var graphicsFailAdded = [];
+        var graphicsFailAdded = [], useCanvasEvent = this.useCanvasEvent;
         this.renderer.locked = true;
-
-        for (var i=0, len=graphics.length; i<len; i++) {
+        var len = graphics.length;
+        for (var i=0; i<len; i++) {
             if (i === (len - 1)) {
                 this.renderer.locked = false;
             }
             var graphic = graphics[i];
 
             this.graphics.push(graphic);
-            var drawn = this.drawGraphic(graphic, {isNewAdd: true});
+            var drawn = this.drawGraphic(graphic, {isNewAdd: true, index: i,
+                useCanvasEvent: useCanvasEvent});
 
             //如果当前Graphic不可被绘制则加入到GraphicsFailAdded数组中。
             if(!drawn) {
@@ -470,7 +480,7 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
         var succeed = graphicsFailAdded.length == 0 ? true : false;
         this.events.triggerEvent("graphicsadded", {graphics: graphicsFailAdded, succeed: succeed});
     },
-    
+
     /**
      * Method: destroyGraphics
      * Erase and destroy graphics on the layer.
@@ -494,7 +504,7 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
             }
         }
     },
-    
+
     /**
      * APIMethod: removeGraphics
      * 从当前图层中删除Graphic。这个函数擦除所有传递进来的矢量要素。
@@ -502,7 +512,7 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
      * 如果无法确定Graphic数组，则可以调用removeAllGraphics来删除所有Graphic。
      * 如果要删除的Graphic数组中的元素特别多，推荐使用removeAllGraphics，
      * 删除所有Graphic后再重新添加。这样效率会更高。
-     * 
+     *
      * Parameters:
      * Graphics - {Array(<SuperMap.Graphic.Vector>)} 要删除Graphic的数组。
      */
@@ -520,15 +530,15 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
             graphics = graphics.slice();
         }
         var graphicsFailRemoved = [];
-        
+
         for (var i = graphics.length - 1; i >= 0; i--) {
             var graphic = graphics[i];
             delete this.unrenderedGraphics[graphic.id];
-            
+
             //如果我们传入的grapchic在graphics数组中没有的话，则不进行删除，
-            //并将其放入未删除的数组中。           
+            //并将其放入未删除的数组中。
             var findex = SuperMap.Util.indexOf(this.graphics, graphic);
-            
+
             if(findex === -1) {
                 graphicsFailRemoved.push(graphic);
                 continue;
@@ -540,7 +550,7 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
 			//这里移除了graphic之后将它的layer也移除掉，避免内存泄露
             graphic.layer = null;
         }
-        
+
         //先清除再重绘。
         this.renderer.clear();
         // this.redraw();
@@ -551,12 +561,12 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
         }
         this.graphics = [];
         this.addGraphics(drawGraphics);
-        
+
         var succeed = graphicsFailRemoved.length == 0 ? true : false;
         this.events.triggerEvent("graphicsremoved", {graphics: graphicsFailRemoved, succeed: succeed});
     },
-    
-    /** 
+
+    /**
      * APIMethod: removeAllGraphics
      * 清除当前图层所有的矢量要素。
      */
@@ -572,24 +582,24 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
      * APIMethod: drawGraphic
      * 在当前图层中绘制一个graphic。如果参数中的样式（style）被设置
      * 则使用。否则使用矢量要素的样式。如果未设置要素的样式，则使用图层上的样式。
-     * 
+     *
      * 当要素的样式更改或者要素已经添加到图层上需要更新时使用该函数。
      *
-     * Parameters: 
+     * Parameters:
      * graphic - {<SuperMap.Graphic>}需要绘制的要素
      * style - {String | Object} 风格
      */
-    drawGraphic: function(graphic) {
+    drawGraphic: function(graphic, option) {
         // don't try to draw the graphic with the renderer if the layer is not
         // drawn itself
         if (!this.drawn) {
             return;
         }
         var drawn;
-        drawn = this.renderer.drawGraphic(graphic);
+        drawn = this.renderer.drawGraphic(graphic, option);
         return drawn;
     },
-    
+
     /**
      * Method: eraseGraphics
      * 擦除graphic的显示，但是不从列表中删除。
@@ -606,7 +616,7 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
      * 通过一个事件，从渲染器中获取一个对应的graphic，如果没有则返回null。
      *
      * Parameters:
-     * evt - {Event} 
+     * evt - {Event}
      *
      * Returns:
      * {<SuperMap.Graphic>} 一个通过事件选中的graphic。
@@ -621,16 +631,17 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
                             'layer, but not some handler which is associated ' +
                             'with it.');
         }
-        var graphic = null;
-        var graphicId = this.renderer.getGraphicIdFromEvent(evt);
-        if (graphicId) {
-            if (typeof graphicId === "string") {
-                graphic = this.getGraphicById(graphicId);
-            } else {
-                graphic = graphicId;
-            }
-        }
-        return graphic;
+        // var graphic = null;
+        // var graphicId = this.renderer.getGraphicIdFromEvent(evt);
+        // if (graphicId) {
+        //     if (typeof graphicId === "string") {
+        //         graphic = this.getGraphicById(graphicId);
+        //     } else {
+        //         graphic = graphicId;
+        //     }
+        // }
+        // return graphic;
+        return this.renderer.getGraphicIdFromEvent(evt);
     },
 
     /**
@@ -672,7 +683,7 @@ SuperMap.Layer.Graphics = SuperMap.Class(SuperMap.Layer, {
     },
 
 
-    
+
     /**
      * APIMethod: getGraphicsByAttribute
      * 通过给定一个属性的key值和value值，返回所有匹配的要素数组。

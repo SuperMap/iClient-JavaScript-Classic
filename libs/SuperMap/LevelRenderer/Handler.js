@@ -283,7 +283,7 @@ SuperMap.LevelRenderer.Handler = SuperMap.Class(SuperMap.LevelRenderer.Eventful,
                 }
 
                 // set cursor for root element
-                var cursor = 'default';
+                var cursor = '';
 
                 // 如果存在拖拽中元素，被拖拽的图形元素最后addHover
                 if (this._draggingTarget) {
@@ -357,7 +357,7 @@ SuperMap.LevelRenderer.Handler = SuperMap.Class(SuperMap.LevelRenderer.Eventful,
 
                 event.zrenderX = this._lastX;
                 event.zrenderY = this._lastY;
-                this.root.style.cursor = 'default';
+                this.root.style.cursor = '';
                 this._isMouseDown = 0;
 
                 this._processOutShape(event);
@@ -408,7 +408,7 @@ SuperMap.LevelRenderer.Handler = SuperMap.Class(SuperMap.LevelRenderer.Eventful,
              */
             mouseup: function (event) {
                 event = this._zrenderEventFixed(event);
-                this.root.style.cursor = 'default';
+                this.root.style.cursor = '';
                 this._isMouseDown = 0;
                 this._mouseDownTarget = null;
 

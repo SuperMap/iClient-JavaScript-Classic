@@ -274,6 +274,10 @@ SuperMap.LevelRenderer.Shape = SuperMap.Class(SuperMap.LevelRenderer.Eventful, S
             case 'both':
                 this.setCtxGlobalAlpha(ctx, "fill", style);
                 ctx.fill();
+                if(style.lineWidth > 0){
+                	this.setCtxGlobalAlpha(ctx, "stroke", style);
+                    ctx.stroke();
+                }
                 this.setCtxGlobalAlpha(ctx, "reset", style);
                 break;
             case 'stroke':
@@ -687,10 +691,10 @@ SuperMap.LevelRenderer.Shape = SuperMap.Class(SuperMap.LevelRenderer.Eventful, S
                 break;
             case 'start':
             case 'end':
-                var xStart;
-                var xEnd;
-                var yStart;
-                var yEnd;
+                var xStart = 0;
+                var xEnd = 0;
+                var yStart = 0;
+                var yEnd = 0;
                 if (typeof style.pointList != 'undefined') {
                     var pointList = style.pointList;
                     if (pointList.length < 2) {
@@ -761,7 +765,7 @@ SuperMap.LevelRenderer.Shape = SuperMap.Class(SuperMap.LevelRenderer.Eventful, S
                         break;
                 }
                 dd -= 4;
-                if (xStart != xEnd) {
+                if (xStart && xEnd && xStart != xEnd) {
                     tx -= (al == 'end' ? dd : -dd);
                 }
                 else {

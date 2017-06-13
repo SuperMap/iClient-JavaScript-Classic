@@ -36,7 +36,7 @@ SuperMap.REST.GeometryOverlayAnalystResult = SuperMap.Class(SuperMap.REST.Spatia
      * resultGeometry - {<SuperMap.Geometry>} 叠加分析的结果几何对象
      * succeed - {Boolean} 是否成功返回结果。true 表示成功返回结果。 
      */
-    initialize: function (options) {
+    initialize: function(options) {
         SuperMap.REST.SpatialAnalystResult.prototype.initialize.apply(this, arguments);
         if (options) {
             SuperMap.Util.extend(this, options);
@@ -47,8 +47,8 @@ SuperMap.REST.GeometryOverlayAnalystResult = SuperMap.Class(SuperMap.REST.Spatia
      * APIMethod: destroy
      * 释放资源，将引用资源的属性置空。  
      */
-    destroy: function () {
-        SuperMap.REST.SpatialAnalystResult.prototype.destroy.apply(this,arguments);
+    destroy: function() {
+        SuperMap.REST.SpatialAnalystResult.prototype.destroy.apply(this, arguments);
         var me = this;
         if (me.resultGeometry) {
             me.resultGeometry.destroy();
@@ -69,7 +69,7 @@ SuperMap.REST.GeometryOverlayAnalystResult = SuperMap.Class(SuperMap.REST.Spatia
  * Returns:
  * {<SuperMap.REST.GeometryOverlayAnalystResult>} 几何对象叠加分析结果。
  */
-SuperMap.REST.GeometryOverlayAnalystResult.fromJson = function (jsonObject) {
+SuperMap.REST.GeometryOverlayAnalystResult.fromJson = function(jsonObject) {
     if (!jsonObject) {
         return;
     }
@@ -80,6 +80,19 @@ SuperMap.REST.GeometryOverlayAnalystResult.fromJson = function (jsonObject) {
 
     if (jsonObject.resultGeometry) {
         result.resultGeometry = SuperMap.REST.ServerGeometry.fromJson(jsonObject.resultGeometry).toGeometry();
+    }
+
+    return result;
+};
+
+SuperMap.REST.GeometryOverlayAnalystResult.fromArray = function(arrayObject) {
+    if (!arrayObject) {
+        return;
+    }
+
+    var result = [];
+    for(var i = 0, len = arrayObject.length; i < len; i ++) {
+        result.push( SuperMap.REST.GeometryOverlayAnalystResult.fromJson(arrayObject[i]));
     }
 
     return result;

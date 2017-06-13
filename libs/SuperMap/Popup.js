@@ -347,6 +347,11 @@ SuperMap.Popup = SuperMap.Class({
 
         this.moveTo(px);
         if (!this.autoSize && !this.size) {
+            if(!!this.maxSize) {
+                this.contentSize = new SuperMap.Size(this.contentSize.w > this.maxSize.w ? this.maxSize.w : this.contentSize.w,
+                    this.contentSize.h > this.maxSize.h ? this.maxSize.h : this.contentSize.h
+                );
+            }
             this.setSize(this.contentSize);
         }
         this.setBackgroundColor();

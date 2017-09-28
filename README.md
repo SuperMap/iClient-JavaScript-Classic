@@ -1,8 +1,9 @@
 # SuperMap iClient for JavaScript
 
 SuperMap iClient for JavaScript 是一套由 JavaScript 语言编写的 GIS 客户端应用开发包， 支持多源数据地图，支持多终端，跨浏览器， 通过本产品可快速实现浏览器上美观、流畅的地图呈现。
----
-新版本仓库地址为：[iClient9](https://github.com/SuperMap/iClient9)，新增支持多种Mapping库，并且在iClient9新版本中提供了与iClient8的兼容性模块[iClient-Classic](http://iclient.supermapol.com/introduction/classic.html)
+
+新版本仓库地址为：[iClient9](https://github.com/SuperMap/iClient9)，新增对接多种地图库及可视化库，并且在iClient9新版本中提供了与iClient8的兼容性模块[iClient-Classic](http://iclient.supermapol.com/introduction/classic.html)
+
 ---
 
 ## 产品兼容性

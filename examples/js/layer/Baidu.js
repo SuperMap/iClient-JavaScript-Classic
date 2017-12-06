@@ -46,15 +46,25 @@ SuperMap.Layer.Baidu = SuperMap.Class(SuperMap.CanvasLayer, {
      * Example:
      * (code)
      *
-     * var baiduLayer = new SuperMap.Layer.Baidu();
+     * var baiduLayer = new SuperMap.Layer.Baidu(type);
      * (end)
      */
-    initialize: function (options) {
+    initialize: function (type,options) {
         var me = this;
         me.name = "Baidu";
-        me.url = "http://online${num}.map.bdimg.com/onlinelabel/?qt=tile&x=${x}&y=${y}&z=${z}&styles=pl&udt=20150815&scaler=1";
+//        me.url = "http://online${num}.map.bdimg.com/onlinelabel/?qt=tile&x=${x}&y=${y}&z=${z}&styles=pl&udt=20150815&scaler=1";
 //        me.url = "http://shangetu${num}.map.bdimg.com/it/u=x=${x};y=${y};z=${z};v=017;type=web&fm=44&udt=20130712";
 
+	if (type =="PHYSICAL")//普通
+            me.url = "http://online${num}.map.bdimg.com/onlinelabel/?qt=tile&x=${x}&y=${y}&z=${z}&styles=pl&udt=20150815&scaler=1";
+        else if (type=="SATELLITE")//卫星
+            me.url = "http://shangetu1.map.bdimg.com/it/u=x=${x};y=${y};z=${z};v=009;type=sate&fm=46&udt=20130506";
+        else if (type=="DARK")//夜视
+            me.url = "http://api1.map.bdimg.com/customimage/tile?&x=${x}&y=${y}&z=${z}&udt=20170908&scale=1&ak=E4805d16520de693a3fe707cdc962045&customid=dark"
+        else if (type=="ROUTE")//道路
+            me.url = "http://online${num}.map.bdimg.com/tile/?qt=tile&x=${x}&y=${y}&z=${z}&styles=sl&udt=20170908"
+        else
+            me.url = "http://online${num}.map.bdimg.com/onlinelabel/?qt=tile&x=${x}&y=${y}&z=${z}&styles=pl&udt=20150815&scaler=1";
 /*
         offsetXY = [];
         offsetXY.push({x:-3,y:1});//3
